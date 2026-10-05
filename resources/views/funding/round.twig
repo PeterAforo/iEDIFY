@@ -1,0 +1,20 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}{{ round.title }} | iEDIFY Africa{% endblock %}
+{% block content %}
+<div class="container">
+<h1>{{ round.title }}</h1>
+<div class="prose">{{ round.description|nl2br }}</div>
+<p>Opens {{ round.opens_at }} UTC · closes {{ round.closes_at }} UTC · Currency: {{ round.currency }}{% if round.max_award is not null %} · maximum award {{ round.max_award }} {{ round.currency }}{% endif %}</p>
+{% if actor %}
+<form method="post" action="/funding/rounds/{{ round.id }}/requests" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Request title<input type="text" name="title" required maxlength="255"></label>
+    <label>Requested amount ({{ round.currency }})<input type="number" name="amount" min="0.01" step="0.01" required></label>
+    <label>Budget summary<textarea name="budget_summary" maxlength="8000"></textarea></label>
+    <button type="submit" class="button-secondary">Submit request</button>
+</form>
+{% else %}
+<p><a href="/sign-in">Sign in</a> to submit a funding request.</p>
+{% endif %}
+</div>
+{% endblock %}

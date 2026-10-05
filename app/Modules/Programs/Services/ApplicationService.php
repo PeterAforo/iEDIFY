@@ -133,7 +133,7 @@ final readonly class ApplicationService
             $this->execute("UPDATE applications SET status = 'submitted', eligibility_snapshot = ?, submitted_at = UTC_TIMESTAMP(6), version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ? AND status = 'draft'", [json_encode($snapshot, JSON_THROW_ON_ERROR), $applicationId]);
             $this->history($applicationId, 'draft', 'submitted', $actor->id, null);
             $this->notify($application['user_id'], 'application.submitted', 'Application received', 'Your application was received and will be screened. You will be contacted if more information is needed.', '/account/applications');
-            (new Outbox($this->pdo))->record('application.submitted.' . $applicationId, 'notification.send', ['user_id' => (int) $application['user_id'], 'subject' => 'Application received', 'body' => 'Your application to ' . $intake['name'] . ' was received. Sign in to track its status.', 'link' => '/account/applications']);
+            (new Outbox($this->pdo))->record('application.submitted.' . $applicationId, 'notification.send', ['scope' => 'application', 'user_id' => (int) $application['user_id'], 'subject' => 'Application received', 'body' => 'Your application to ' . $intake['name'] . ' was received. Sign in to track its status.', 'link' => '/account/applications']);
             $this->audit($actor, 'application.submitted', $applicationId, ['version' => $expectedVersion + 1]);
         });
     }
@@ -166,7 +166,7 @@ final readonly class ApplicationService
             if (isset($messages[$toStatus])) {
                 [$subject, $body] = $messages[$toStatus];
                 $this->notify((int) $application['user_id'], 'application.' . $toStatus, $subject, $body, '/account/applications');
-                (new Outbox($this->pdo))->record('application.' . $toStatus . '.' . $applicationId . '.' . $expectedVersion, 'notification.send', ['user_id' => (int) $application['user_id'], 'subject' => $subject, 'body' => $body, 'link' => '/account/applications']);
+                (new Outbox($this->pdo))->record('application.' . $toStatus . '.' . $applicationId . '.' . $expectedVersion, 'notification.send', ['scope' => 'application', 'user_id' => (int) $application['user_id'], 'subject' => $subject, 'body' => $body, 'link' => '/account/applications']);
             }
             $this->audit($actor, 'application.status.' . $toStatus, $applicationId, ['from_status' => $application['status'], 'to_status' => $toStatus, 'version' => $expectedVersion + 1]);
         });
@@ -232,7 +232,7 @@ final readonly class ApplicationService
             $this->execute("UPDATE applications SET status = 'enrolled', version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?", [$applicationId]);
             $this->history($applicationId, 'accepted', 'enrolled', $actor->id, null);
             $this->notify((int) $application['user_id'], 'application.enrolled', 'Enrollment confirmed', 'You were enrolled in ' . $record['name'] . '. Your participant dashboard shows next steps.', '/account/applications');
-            (new Outbox($this->pdo))->record('application.enrolled.' . $applicationId, 'notification.send', ['user_id' => (int) $application['user_id'], 'subject' => 'Enrollment confirmed', 'body' => 'You were enrolled in ' . $record['name'] . '.', 'link' => '/account/applications']);
+            (new Outbox($this->pdo))->record('application.enrolled.' . $applicationId, 'notification.send', ['scope' => 'application', 'user_id' => (int) $application['user_id'], 'subject' => 'Enrollment confirmed', 'body' => 'You were enrolled in ' . $record['name'] . '.', 'link' => '/account/applications']);
             $this->audit($actor, 'application.enrolled', $applicationId, ['from_status' => 'accepted', 'to_status' => 'enrolled']);
         });
     }

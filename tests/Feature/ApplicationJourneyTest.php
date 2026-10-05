@@ -57,7 +57,7 @@ final class ApplicationJourneyTest extends TestCase
 
     private function post(string $path, array $fields, string $csrfFrom = '/account'): Response
     {
-        return $this->kernel->handle(Request::create('http://127.0.0.1:8080' . $path, 'POST', $fields + ['_csrf' => $this->csrf($csrfFrom)], [], [], [], ['REMOTE_ADDR' => $this->ip]));
+        return $this->kernel->handle(Request::create('http://127.0.0.1:8080' . $path, 'POST', $fields + ['_csrf' => $this->csrf($csrfFrom)], [], [], ['REMOTE_ADDR' => $this->ip]));
     }
 
     private function registerParticipant(): string

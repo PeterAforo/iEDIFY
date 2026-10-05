@@ -1,0 +1,54 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}{{ round.title }} | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>{{ round.title }}</h1>
+<p>Status: {{ round.status }} · Currency: {{ round.currency }}{% if round.max_award is not null %} · Max award: {{ round.max_award }} {{ round.currency }}{% endif %}</p>
+<form method="post" action="/admin/funding/rounds/{{ round.id }}/status" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <input type="hidden" name="version" value="{{ round.version }}">
+    <select name="status">
+        {% for s in ['draft','open','closed','archived'] %}<option value="{{ s }}"{% if round.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="button-secondary">Update status</button>
+</form>
+<h2>Scoring rule versions</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Version</th><th scope="col">Criteria</th><th scope="col">Max score</th><th scope="col">Created</th></tr></thead>
+    <tbody>
+        {% for rule in rules %}
+        <tr>
+            <td>v{{ rule.version }}</td>
+            <td><code>{{ rule.weights_json }}</code></td>
+            <td>{{ rule.max_score }}</td>
+            <td>{{ rule.created_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No rule versions yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h3>New rule version</h3>
+<form method="post" action="/admin/funding/rounds/{{ round.id }}/rules" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Criteria — one per line as <code>criterion=weight</code> (weights 1–100)<textarea name="criteria_lines" rows="4" placeholder="impact=40&#10;feasibility=35&#10;team=25" required></textarea></label>
+    <label>Max score per criterion<input type="number" name="max_score" min="1" max="10" value="5"></label>
+    <button type="submit" class="button-secondary">Save rule version</button>
+</form>
+<h2>Requests</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Request</th><th scope="col">Applicant</th><th scope="col">Amount</th><th scope="col">Status</th><th scope="col">Submitted</th></tr></thead>
+    <tbody>
+        {% for request in requests %}
+        <tr>
+            <td><a href="/admin/funding/requests/{{ request.id }}">{{ request.title }}</a></td>
+            <td>{{ request.applicant_name }}</td>
+            <td>{{ request.requested_amount }} {{ request.currency }}</td>
+            <td>{{ request.status }}</td>
+            <td>{{ request.submitted_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No requests in this round.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

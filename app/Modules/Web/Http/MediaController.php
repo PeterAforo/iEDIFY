@@ -39,8 +39,9 @@ final class MediaController extends Controller
     }
 
     /**
-     * Private assets (application documents) are visible to media managers,
-     * program staff, the owning applicant and their assigned reviewers.
+     * Private assets (application documents, milestone evidence) are visible to
+     * media managers, program staff, the owning applicant and their assigned
+     * reviewers, and to milestone owners/startup members for evidence files.
      */
     private function maySeePrivate(int $mediaId): bool
     {
@@ -62,6 +63,19 @@ final class MediaController extends Controller
             $assigned = $this->app->pdo()->prepare('SELECT r.id FROM review_assignments r JOIN application_documents d ON d.application_id = r.application_id WHERE d.media_id = ? AND r.reviewer_id = ? LIMIT 1');
             $assigned->execute([$mediaId, $actor->id]);
             return $assigned->fetchColumn() !== false;
+        }
+        $milestone = $this->app->pdo()->prepare('SELECT user_id, startup_id FROM milestones WHERE evidence_media_id = ? LIMIT 1');
+        $milestone->execute([$mediaId]);
+        $owner = $milestone->fetch();
+        if ($owner !== false) {
+            if ($owner['user_id'] !== null && (int) $owner['user_id'] === $actor->id) {
+                return true;
+            }
+            if ($owner['startup_id'] !== null) {
+                $member = $this->app->pdo()->prepare('SELECT id FROM startup_members WHERE startup_id = ? AND user_id = ? LIMIT 1');
+                $member->execute([(int) $owner['startup_id'], $actor->id]);
+                return $member->fetchColumn() !== false;
+            }
         }
         return false;
     }

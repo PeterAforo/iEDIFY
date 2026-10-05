@@ -1,0 +1,118 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Impact | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Impact measurement</h1>
+<p><a class="button-secondary" href="/admin/impact/export.csv">Download results CSV</a></p>
+<h2>Indicator dictionary</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Code</th><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">Frequency</th><th scope="col">Status</th><th scope="col">Set target</th></tr></thead>
+    <tbody>
+        {% for indicator in indicators %}
+        <tr>
+            <td><code>{{ indicator.code }}</code></td>
+            <td>{{ indicator.name }}</td>
+            <td>{{ indicator.unit }}</td>
+            <td>{{ indicator.frequency }}</td>
+            <td>{{ indicator.status }}</td>
+            <td>
+                <form method="post" action="/admin/impact/indicators/{{ indicator.id }}/targets" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <label>Period<input type="text" name="period" pattern="\d{4}(-\d{2})?" placeholder="2026" size="7" required></label>
+                    <label>Target<input type="number" name="target" min="0" step="any" required></label>
+                    <button type="submit" class="button-secondary">Save</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">No indicators yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h3>New indicator</h3>
+<form method="post" action="/admin/impact/indicators" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Code (UPPER_SNAKE)<input type="text" name="code" required pattern="[A-Z][A-Z0-9_]+" maxlength="40"></label>
+    <label>Name<input type="text" name="name" required maxlength="180"></label>
+    <label>Definition<textarea name="definition" required></textarea></label>
+    <label>Unit<input type="text" name="unit" required maxlength="60" placeholder="people, startups, USD, %"></label>
+    <label>Source<input type="text" name="source" maxlength="120" value="operational"></label>
+    <label>Calculation<input type="text" name="calculation" maxlength="255"></label>
+    <label>Frequency<select name="frequency"><option value="monthly">monthly</option><option value="quarterly">quarterly</option><option value="annual" selected>annual</option></select></label>
+    <label>Validation method<textarea name="validation"></textarea></label>
+    <button type="submit" class="button-secondary">Create indicator</button>
+</form>
+<h2>Results</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Value</th><th scope="col">Status</th><th scope="col">Submitted by</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for result in results %}
+        <tr>
+            <td>{{ result.code }} — {{ result.indicator_name }}</td>
+            <td>{{ result.period }}</td>
+            <td>{{ result.geography|default('—') }}</td>
+            <td>{{ result.value }} {{ result.unit }}</td>
+            <td>{{ result.status }}</td>
+            <td>{{ result.submitted_by_name|default('—') }}</td>
+            <td>
+                {% if result.status == 'submitted' %}
+                <form method="post" action="/admin/impact/results/{{ result.id }}/verify" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ result.version }}"><button type="submit" class="button-secondary">Verify</button></form>
+                {% endif %}
+                {% if result.status == 'verified' %}
+                <form method="post" action="/admin/impact/results/{{ result.id }}/publish" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ result.version }}"><button type="submit" class="button-secondary">Publish</button></form>
+                {% endif %}
+                {% if result.status in ['submitted','verified'] %}
+                <form method="post" action="/admin/impact/results/{{ result.id }}/reject" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ result.version }}"><button type="submit" class="button-secondary">Reject</button></form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">No results yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h3>Submit a result</h3>
+<form method="post" action="/admin/impact/results" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Indicator
+        <select name="indicator_id" required>
+            {% for indicator in indicators if indicator.status == 'active' %}<option value="{{ indicator.id }}">{{ indicator.code }} — {{ indicator.name }}</option>{% endfor %}
+        </select>
+    </label>
+    <label>Period<input type="text" name="period" pattern="\d{4}(-\d{2})?" placeholder="2026 or 2026-03" required></label>
+    <label>Value<input type="number" name="value" min="0" step="any" required></label>
+    <label>Geography<input type="text" name="geography" maxlength="120"></label>
+    <label>Source / evidence note<textarea name="source_note"></textarea></label>
+    <button type="submit" class="button-secondary">Submit for verification</button>
+</form>
+<h2>Reports</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Title</th><th scope="col">Period</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for report in reports %}
+        <tr>
+            <td>{{ report.title }}</td>
+            <td>{{ report.period }}</td>
+            <td>{{ report.status }}</td>
+            <td>
+                {% if report.status == 'draft' %}
+                <form method="post" action="/admin/impact/reports/{{ report.id }}/approve" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ report.version }}"><button type="submit" class="button-secondary">Approve</button></form>
+                {% elseif report.status == 'approved' %}
+                <form method="post" action="/admin/impact/reports/{{ report.id }}/publish" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ report.version }}"><button type="submit" class="button-secondary">Publish</button></form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No reports yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h3>New report</h3>
+<form method="post" action="/admin/impact/reports" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Title<input type="text" name="title" required maxlength="255"></label>
+    <label>Period<input type="text" name="period" pattern="\d{4}(-\d{2})?" required></label>
+    <label>Summary<textarea name="summary" required></textarea></label>
+    <label>Body<textarea name="body" rows="8" required></textarea></label>
+    <button type="submit" class="button-secondary">Draft report</button>
+</form>
+{% endblock %}

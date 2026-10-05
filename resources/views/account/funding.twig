@@ -1,0 +1,23 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}My funding requests | iEDIFY Africa{% endblock %}
+{% block content %}
+<div class="container">
+<h1>My funding requests</h1>
+<table class="admin-table">
+    <thead><tr><th scope="col">Request</th><th scope="col">Round</th><th scope="col">Requested</th><th scope="col">Awarded</th><th scope="col">Status</th></tr></thead>
+    <tbody>
+        {% for request in requests %}
+        <tr>
+            <td>{{ request.title }}</td>
+            <td>{{ request.round_title }}</td>
+            <td>{{ request.requested_amount }} {{ request.currency }}</td>
+            <td>{% if request.awarded_amount is not null %}{{ request.awarded_amount }} {{ request.currency }}{% else %}—{% endif %}</td>
+            <td>{{ request.status }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">You have no funding requests.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

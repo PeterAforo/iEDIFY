@@ -19,7 +19,7 @@ final class CommunityController extends Controller
         $community = $this->app->community();
         $profile = $this->app->pdo()->prepare('SELECT * FROM member_profiles WHERE user_id = ?');
         $profile->execute([$actor->id]);
-        $bookmarks = $this->app->pdo()->prepare("SELECT p.id, p.title, p.group_id FROM bookmarks b JOIN community_posts p ON p.id = b.post_id WHERE b.user_id = ? AND p.status = 'visible' ORDER BY b.id DESC LIMIT 50");
+        $bookmarks = $this->app->pdo()->prepare("SELECT p.id, p.title, p.group_id FROM bookmarks b JOIN community_posts p ON p.id = b.post_id WHERE b.user_id = ? AND p.status = 'visible' ORDER BY b.created_at DESC LIMIT 50");
         $bookmarks->execute([$actor->id]);
         return $this->render('community/hub.twig', [
             'groups' => $community->groupsFor($actor),

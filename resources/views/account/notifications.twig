@@ -20,6 +20,15 @@
         <li>No notifications yet.</li>
         {% endfor %}
     </ul>
+    <h2>Email preferences</h2>
+    <p class="field-hint">Choose which notifications are also emailed to you. In-app notifications always appear here.</p>
+    <form method="post" action="/account/notifications/preferences" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        {% for scope in scopes %}
+        <label><input type="checkbox" name="scope_{{ scope }}" value="1"{% if preferences[scope] is not defined or preferences[scope] %} checked{% endif %}> {{ scope|capitalize }}</label>
+        {% endfor %}
+        <button type="submit" class="button-secondary">Save preferences</button>
+    </form>
     <p><a href="/account">Back to account</a></p>
 </section>
 {% endblock %}

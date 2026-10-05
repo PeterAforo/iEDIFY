@@ -12,6 +12,9 @@
             <li><a href="/admin/learning"{% if current_path starts with '/admin/learning' or current_path starts with '/admin/courses' %} aria-current="page"{% endif %}>Learning</a></li>
             <li><a href="/admin/milestones"{% if current_path starts with '/admin/milestones' %} aria-current="page"{% endif %}>Milestones</a></li>
             <li><a href="/admin/moderation"{% if current_path starts with '/admin/moderation' %} aria-current="page"{% endif %}>Moderation</a></li>
+            <li><a href="/admin/funding"{% if current_path starts with '/admin/funding' %} aria-current="page"{% endif %}>Funding</a></li>
+            <li><a href="/admin/impact"{% if current_path starts with '/admin/impact' %} aria-current="page"{% endif %}>Impact</a></li>
+            <li><a href="/admin/partners"{% if current_path starts with '/admin/partners' %} aria-current="page"{% endif %}>Partners</a></li>
         </ul>
     </nav>
     <div class="admin-main">{% block admin %}{% endblock %}</div>

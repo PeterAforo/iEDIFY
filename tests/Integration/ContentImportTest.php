@@ -32,7 +32,7 @@ final class ContentImportTest extends TestCase
         self::assertSame(10, (int) $pdo->query("SELECT COUNT(*) FROM team_members WHERE roster_group = 'board'")->fetchColumn());
         self::assertSame(2, (int) $pdo->query('SELECT COUNT(*) FROM team_members WHERE youth_adviser = TRUE')->fetchColumn());
         self::assertSame(0, (int) $pdo->query("SELECT COUNT(*) FROM content_items c JOIN source_mappings m ON m.content_id = c.id WHERE m.source_system = 'iedify-public-capture' AND c.status = 'published'")->fetchColumn());
-        self::assertSame(24, (int) $pdo->query('SELECT COUNT(*) FROM media_assets')->fetchColumn());
+        self::assertSame(24, (int) $pdo->query("SELECT COUNT(*) FROM media_assets WHERE classification = 'public_content'")->fetchColumn());
         self::assertSame(14, (int) $pdo->query("SELECT COUNT(*) FROM source_mappings WHERE source_key LIKE 'page:%'")->fetchColumn());
     }
 

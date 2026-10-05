@@ -39,12 +39,31 @@ final class AccountController extends Controller
         return $this->redirect('/');
     }
 
+    private const NOTIFICATION_SCOPES = ['application', 'learning', 'mentoring', 'milestone', 'event', 'community', 'general'];
+
     public function notifications(): Response
     {
         $actor = $this->requireActor();
         $statement = $this->app->pdo()->prepare('SELECT id, type, title, target_path, read_at, created_at FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT 100');
         $statement->execute([$actor->id]);
-        return $this->render('account/notifications.twig', ['notifications' => $statement->fetchAll()]);
+        $preferences = $this->app->pdo()->prepare('SELECT scope, enabled FROM notification_preferences WHERE user_id = ?');
+        $preferences->execute([$actor->id]);
+        return $this->render('account/notifications.twig', [
+            'notifications' => $statement->fetchAll(),
+            'scopes' => self::NOTIFICATION_SCOPES,
+            'preferences' => array_column($preferences->fetchAll(), 'enabled', 'scope'),
+        ]);
+    }
+
+    public function saveNotificationPreferences(): Response
+    {
+        $actor = $this->requireActor();
+        $statement = $this->app->pdo()->prepare('INSERT INTO notification_preferences (user_id, scope, enabled, updated_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE enabled = VALUES(enabled), updated_at = UTC_TIMESTAMP(6)');
+        foreach (self::NOTIFICATION_SCOPES as $scope) {
+            $statement->execute([$actor->id, $scope, $this->has('scope_' . $scope) ? 1 : 0]);
+        }
+        $this->flash('success', 'Notification preferences saved.');
+        return $this->redirect('/account/notifications');
     }
 
     public function markNotificationRead(): Response

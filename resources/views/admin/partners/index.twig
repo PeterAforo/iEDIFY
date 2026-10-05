@@ -1,0 +1,29 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Partners | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Partners &amp; donors</h1>
+<table class="admin-table">
+    <thead><tr><th scope="col">Organization</th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Members</th><th scope="col">Shared items</th></tr></thead>
+    <tbody>
+        {% for org in orgs %}
+        <tr>
+            <td><a href="/admin/partners/{{ org.id }}">{{ org.name }}</a></td>
+            <td>{{ org.org_type }}</td>
+            <td>{{ org.status }}</td>
+            <td>{{ org.members }}</td>
+            <td>{{ org.shares }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No partner organizations yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>New organization</h2>
+<form method="post" action="/admin/partners" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Name<input type="text" name="name" required maxlength="200"></label>
+    <label>Type<select name="org_type"><option value="donor">donor</option><option value="partner" selected>partner</option><option value="sponsor">sponsor</option><option value="other">other</option></select></label>
+    <label>Website<input type="url" name="website" maxlength="255"></label>
+    <button type="submit" class="button-secondary">Create</button>
+</form>
+{% endblock %}

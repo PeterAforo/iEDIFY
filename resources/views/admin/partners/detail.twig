@@ -1,0 +1,125 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}{{ org.name }} | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>{{ org.name }}</h1>
+<p>{{ org.org_type }} · {{ org.status }}{% if org.website %} · <a href="{{ org.website }}" rel="noopener noreferrer">{{ org.website }}</a>{% endif %}</p>
+<h2>Members</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for member in org.members %}
+        <tr>
+            <td>{{ member.name }}</td><td>{{ member.email }}</td><td>{{ member.member_role }}</td><td>{{ member.status }}</td>
+            <td>{% if member.status == 'active' %}<form method="post" action="/admin/partners/{{ org.id }}/members/{{ member.user_id }}/suspend" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><button type="submit" class="button-secondary">Suspend</button></form>{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No members.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form method="post" action="/admin/partners/{{ org.id }}/members" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>User email<input type="email" name="email" required></label>
+    <label>Role<select name="member_role"><option value="viewer">viewer</option><option value="admin">admin</option></select></label>
+    <button type="submit" class="button-secondary">Add member</button>
+</form>
+<h2>Proposals</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Title</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for proposal in org.proposals %}
+        <tr>
+            <td>{{ proposal.title }}</td><td>{{ proposal.status }}</td>
+            <td>
+                <form method="post" action="/admin/partners/proposals/{{ proposal.id }}/status" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ proposal.version }}">
+                    <select name="status">{% for s in ['draft','submitted','under_review','committed','declined','withdrawn'] %}<option value="{{ s }}"{% if proposal.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+                    <button type="submit" class="button-secondary">Update</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3">No proposals.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form method="post" action="/admin/partners/{{ org.id }}/proposals" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Proposal title<input type="text" name="title" required maxlength="255"></label>
+    <label>Summary<textarea name="summary" required></textarea></label>
+    <button type="submit" class="button-secondary">Draft proposal</button>
+</form>
+<h2>Commitments &amp; funds received</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Date</th><th scope="col">Commitment</th><th scope="col">Received</th><th scope="col">Status</th><th scope="col">Record receipt</th></tr></thead>
+    <tbody>
+        {% for c in org.commitments %}
+        <tr>
+            <td>{{ c.committed_on }}</td>
+            <td>{{ c.amount }} {{ c.currency }}</td>
+            <td>{{ c.received_total }} {{ c.currency }}</td>
+            <td>{{ c.status }}</td>
+            <td>
+                <form method="post" action="/admin/partners/commitments/{{ c.id }}/received" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <label>Ref<input type="text" name="reference" size="10" required></label>
+                    <label>Amount<input type="number" name="amount" min="0.01" step="0.01" size="10" required></label>
+                    <label>Date<input type="date" name="received_on" required></label>
+                    <button type="submit" class="button-secondary">Record</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No commitments.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p><strong>Commitments are pledges, not received funds.</strong> Receipts: {% for r in org.received %}{{ r.reference }} {{ r.amount }} {{ r.currency }} ({{ r.received_on }}){% if not loop.last %}, {% endif %}{% else %}none yet{% endfor %}.</p>
+<form method="post" action="/admin/partners/{{ org.id }}/commitments" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Amount<input type="number" name="amount" min="0.01" step="0.01" required></label>
+    <label>Currency<input type="text" name="currency" pattern="[A-Z]{3}" maxlength="3" value="USD" required></label>
+    <label>Committed on<input type="date" name="committed_on" required></label>
+    <label>Conditions<textarea name="conditions"></textarea></label>
+    <label>Linked proposal (optional)<select name="proposal_id"><option value="">—</option>{% for p in org.proposals %}<option value="{{ p.id }}">{{ p.title }}</option>{% endfor %}</select></label>
+    <button type="submit" class="button-secondary">Record commitment</button>
+</form>
+<h2>Shared resources</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Shared</th><th scope="col">Revoked</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for share in org.shares %}
+        <tr>
+            <td>{{ share.resource_type }}</td><td>{{ share.resource_id }}</td><td>{{ share.shared_at }}</td><td>{{ share.revoked_at|default('—') }}</td>
+            <td>{% if share.revoked_at is null %}<form method="post" action="/admin/partners/{{ org.id }}/shares/revoke" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="resource_type" value="{{ share.resource_type }}"><input type="hidden" name="resource_id" value="{{ share.resource_id }}"><button type="submit" class="button-secondary">Revoke</button></form>{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">Nothing shared yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form method="post" action="/admin/partners/{{ org.id }}/shares" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Resource type
+        <select name="resource_type" required>
+            <option value="report">published impact report</option>
+            <option value="document">private document (media ID)</option>
+            <option value="project">program</option>
+        </select>
+    </label>
+    <label>Resource ID<input type="number" name="resource_id" min="1" required></label>
+    <p>Published reports: {% for r in reports %}#{{ r.id }} {{ r.title }}{% if not loop.last %}, {% endfor %}. Programs: {% for p in programs %}#{{ p.id }} {{ p.title }}{% if not loop.last %}, {% endfor %}.</p>
+    <button type="submit" class="button-secondary">Share</button>
+</form>
+<h2>Staff relationship notes <small>(never shown to the partner)</small></h2>
+{% for note in org.notes %}
+<p><strong>{{ note.author|default('Staff') }}</strong> {{ note.created_at }} — {{ note.note }}</p>
+{% else %}
+<p>No notes yet.</p>
+{% endfor %}
+<form method="post" action="/admin/partners/{{ org.id }}/notes" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Note<textarea name="note" required></textarea></label>
+    <button type="submit" class="button-secondary">Add note</button>
+</form>
+{% endblock %}

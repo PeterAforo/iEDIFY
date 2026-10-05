@@ -1,0 +1,104 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}{{ request.title }} | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>{{ request.title }}</h1>
+<p>Status: {{ request.status }} · Requested: {{ request.requested_amount }} {{ request.currency }} · Rule version: v{{ request.rules.version|default('?') }} (frozen at submission)</p>
+{% if request.budget_summary %}<h2>Budget summary</h2><p>{{ request.budget_summary|nl2br }}</p>{% endif %}
+{% if request.rules %}
+<h2>Scorecard (v{{ request.rules.version }}, max {{ request.rules.max_score }})</h2>
+<form method="post" action="/admin/funding/requests/{{ request.id }}/reviews" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    {% for criterion, weight in request.rules.weights %}
+    <label>{{ criterion }} (weight {{ weight }}, 0–{{ request.rules.max_score }})<input type="number" name="scores[{{ criterion }}]" min="0" max="{{ request.rules.max_score }}" step="0.5" required></label>
+    {% endfor %}
+    <label>Recommendation
+        <select name="recommendation"><option value="award">award</option><option value="decline">decline</option><option value="hold">hold</option></select>
+    </label>
+    <label>Notes<textarea name="notes" maxlength="8000"></textarea></label>
+    <button type="submit" class="button-secondary">Record review</button>
+</form>
+{% endif %}
+<h2>Reviews</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Reviewer</th><th scope="col">Weighted total</th><th scope="col">Recommendation</th><th scope="col">Notes</th></tr></thead>
+    <tbody>
+        {% for review in request.reviews %}
+        <tr><td>{{ review.reviewer_name }}</td><td>{{ review.weighted_total }}</td><td>{{ review.recommendation }}</td><td>{{ review.notes }}</td></tr>
+        {% else %}
+        <tr><td colspan="4">No reviews yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Conflicts of interest</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Reviewer</th><th scope="col">Declaration</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for conflict in request.conflicts %}
+        <tr>
+            <td>{{ conflict.reviewer_name }}</td><td>{{ conflict.declaration }}</td><td>{{ conflict.status }}</td>
+            <td>{% if conflict.status == 'declared' %}<form method="post" action="/admin/funding/conflicts/{{ conflict.id }}/clear" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><button type="submit" class="button-secondary">Clear</button></form>{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No conflicts declared.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form method="post" action="/admin/funding/requests/{{ request.id }}/conflicts" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Declare a conflict<textarea name="declaration" maxlength="2000"></textarea></label>
+    <button type="submit" class="button-secondary">Declare</button>
+</form>
+<h2>Decision</h2>
+{% if request.approval %}
+<p>{{ request.approval.decision }} by {{ request.approver_name }}{% if request.approval.reason %} — {{ request.approval.reason }}{% endif %}</p>
+{% else %}
+<form method="post" action="/admin/funding/requests/{{ request.id }}/decision" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Reason<input type="text" name="reason" maxlength="1000"></label>
+    <button type="submit" name="decision" value="approved" class="button-secondary">Approve</button>
+    <button type="submit" name="decision" value="rejected" class="button-secondary">Reject</button>
+</form>
+{% endif %}
+<h2>Award</h2>
+{% if request.award %}
+<p>Awarded: {{ request.award.amount }} {{ request.award.currency }}{% if request.award.conditions %} — {{ request.award.conditions }}{% endif %} ({{ request.award.status }})</p>
+<h3>Disbursements</h3>
+<table class="admin-table">
+    <thead><tr><th scope="col">Reference</th><th scope="col">Scheduled</th><th scope="col">Amount</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for d in request.disbursements %}
+        <tr>
+            <td>{{ d.reference }}</td><td>{{ d.scheduled_on }}</td><td>{{ d.amount }} {{ d.currency }}</td><td>{{ d.status }}</td>
+            <td>
+                {% if d.status == 'planned' %}
+                <form method="post" action="/admin/funding/disbursements/{{ d.id }}/authorize" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><button type="submit" class="button-secondary">Authorize</button></form>
+                <form method="post" action="/admin/funding/disbursements/{{ d.id }}/cancel" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><button type="submit" class="button-secondary">Cancel</button></form>
+                {% elseif d.status == 'authorized' %}
+                <form method="post" action="/admin/funding/disbursements/{{ d.id }}/record" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><label>Note<input type="text" name="note" maxlength="1000"></label><button type="submit" class="button-secondary">Record</button></form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No disbursements scheduled.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form method="post" action="/admin/funding/awards/{{ request.award.id }}/disbursements" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Transfer reference<input type="text" name="reference" required maxlength="120"></label>
+    <label>Scheduled date<input type="date" name="scheduled_on" required></label>
+    <label>Amount ({{ request.award.currency }})<input type="number" name="amount" min="0.01" step="0.01" required></label>
+    <label>Note<input type="text" name="note" maxlength="1000"></label>
+    <button type="submit" class="button-secondary">Schedule disbursement</button>
+</form>
+{% elseif request.status == 'approved' %}
+<form method="post" action="/admin/funding/requests/{{ request.id }}/award" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Award amount ({{ request.currency }})<input type="number" name="amount" min="0.01" max="{{ request.requested_amount }}" step="0.01" required></label>
+    <label>Conditions<textarea name="conditions" maxlength="8000"></textarea></label>
+    <button type="submit" class="button-secondary">Record award</button>
+</form>
+{% else %}
+<p>Awards are recorded after an approval.</p>
+{% endif %}
+{% endblock %}

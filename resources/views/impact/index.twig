@@ -1,0 +1,32 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Impact | iEDIFY Africa{% endblock %}
+{% block content %}
+<div class="container">
+<h1>Impact</h1>
+<p>Verified, published results alongside their targets. Figures below are actuals — targets are shown separately and proposed figures are never presented as achieved results.</p>
+<table class="admin-table">
+    <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Actual</th><th scope="col">Target</th></tr></thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.name }} ({{ row.code }})</td>
+            <td>{{ row.period }}</td>
+            <td>{{ row.geography|default('All') }}</td>
+            <td>{{ row.actual }} {{ row.unit }}</td>
+            <td>{% if row.target is not null %}{{ row.target }} {{ row.unit }}{% else %}—{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">Published impact data will appear here once verified.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Published reports</h2>
+<ul>
+    {% for report in reports %}
+    <li><a href="/impact/reports/{{ report.id }}">{{ report.title }}</a> ({{ report.period }})</li>
+    {% else %}
+    <li>No published reports yet.</li>
+    {% endfor %}
+</ul>
+</div>
+{% endblock %}

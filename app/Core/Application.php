@@ -120,6 +120,26 @@ final class Application
         return new \IEdify\Modules\Community\Services\CommunityService($this->pdo());
     }
 
+    public function funding(): \IEdify\Modules\Funding\Services\FundingService
+    {
+        return new \IEdify\Modules\Funding\Services\FundingService($this->pdo());
+    }
+
+    public function disbursements(): \IEdify\Modules\Funding\Services\DisbursementService
+    {
+        return new \IEdify\Modules\Funding\Services\DisbursementService($this->pdo());
+    }
+
+    public function impact(): \IEdify\Modules\Impact\Services\ImpactService
+    {
+        return new \IEdify\Modules\Impact\Services\ImpactService($this->pdo());
+    }
+
+    public function partners(): \IEdify\Modules\Partners\Services\PartnerService
+    {
+        return new \IEdify\Modules\Partners\Services\PartnerService($this->pdo());
+    }
+
     public function policy(): Policy
     {
         return new Policy();

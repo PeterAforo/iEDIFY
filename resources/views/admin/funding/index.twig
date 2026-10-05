@@ -1,0 +1,51 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Funding | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Funding</h1>
+<h2>Rounds</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Round</th><th scope="col">Window (UTC)</th><th scope="col">Currency</th><th scope="col">Status</th><th scope="col">Requests</th></tr></thead>
+    <tbody>
+        {% for round in rounds %}
+        <tr>
+            <td><a href="/admin/funding/rounds/{{ round.id }}">{{ round.title }}</a></td>
+            <td>{{ round.opens_at }} – {{ round.closes_at }}</td>
+            <td>{{ round.currency }}</td>
+            <td>{{ round.status }}</td>
+            <td>{{ round.requests }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No funding rounds yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Requests</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Request</th><th scope="col">Applicant</th><th scope="col">Round</th><th scope="col">Amount</th><th scope="col">Status</th></tr></thead>
+    <tbody>
+        {% for request in requests %}
+        <tr>
+            <td><a href="/admin/funding/requests/{{ request.id }}">{{ request.title }}</a></td>
+            <td>{{ request.applicant_name }}</td>
+            <td>{{ request.round_title }}</td>
+            <td>{{ request.requested_amount }} {{ request.currency }}</td>
+            <td>{{ request.status }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No requests yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>New round</h2>
+<form method="post" action="/admin/funding/rounds" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="160"></label>
+    <label>Title<input type="text" name="title" required maxlength="255"></label>
+    <label>Description<textarea name="description" maxlength="20000"></textarea></label>
+    <label>Currency (ISO)<input type="text" name="currency" required pattern="[A-Z]{3}" maxlength="3" value="USD"></label>
+    <label>Maximum award<input type="number" name="max_award" min="0" step="0.01"></label>
+    <label>Opens (UTC)<input type="datetime-local" name="opens_at" required></label>
+    <label>Closes (UTC)<input type="datetime-local" name="closes_at" required></label>
+    <button type="submit" class="button-secondary">Create round</button>
+</form>
+{% endblock %}

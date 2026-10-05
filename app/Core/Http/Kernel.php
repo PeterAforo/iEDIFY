@@ -19,7 +19,7 @@ use function FastRoute\simpleDispatcher;
 
 final readonly class Kernel
 {
-    private const MODULES = ['Operations', 'Identity', 'Engagement', 'CMS', 'Programs', 'Learning', 'Community', 'Web'];
+    private const MODULES = ['Operations', 'Identity', 'Engagement', 'CMS', 'Programs', 'Learning', 'Community', 'Funding', 'Impact', 'Partners', 'Web'];
 
     public function __construct(private Application $app)
     {

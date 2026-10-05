@@ -1,0 +1,64 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Partner portal | iEDIFY Africa{% endblock %}
+{% block content %}
+<div class="container">
+<h1>Partner portal</h1>
+{% for data in orgs %}
+<section>
+    <h2>{{ data.org.name }} <small>({{ data.org.org_type }})</small></h2>
+    <h3>Shared with you</h3>
+    <ul>
+        {% for item in data.shared %}
+        <li>
+            {% if item.resource_type == 'report' %}<a href="/partner/reports/{{ item.resource_id }}">{{ item.title }}</a> (report)
+            {% elseif item.resource_type == 'document' %}<a href="/partner/documents/{{ item.resource_id }}">{{ item.title }}</a> (document)
+            {% else %}{{ item.title }} (project){% endif %}
+        </li>
+        {% else %}
+        <li>Nothing has been shared with this organization yet.</li>
+        {% endfor %}
+    </ul>
+    <h3>Your proposals</h3>
+    <table class="admin-table">
+        <thead><tr><th scope="col">Title</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+        <tbody>
+            {% for proposal in data.proposals %}
+            <tr>
+                <td>{{ proposal.title }}</td><td>{{ proposal.status }}</td>
+                <td>
+                    {% if proposal.status == 'draft' %}
+                    <form method="post" action="/partner/proposals/{{ proposal.id }}/status" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ proposal.version }}"><button type="submit" name="status" value="submitted" class="button-secondary">Submit</button></form>
+                    {% elseif proposal.status in ['draft','submitted'] %}
+                    <form method="post" action="/partner/proposals/{{ proposal.id }}/status" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ proposal.version }}"><button type="submit" name="status" value="withdrawn" class="button-secondary">Withdraw</button></form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3">No proposals.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="post" action="/partner/proposals" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <input type="hidden" name="org_id" value="{{ data.org.org_id }}">
+        <label>New proposal title<input type="text" name="title" required maxlength="255"></label>
+        <label>Summary<textarea name="summary" required></textarea></label>
+        <button type="submit" class="button-secondary">Draft proposal</button>
+    </form>
+    <h3>Commitments</h3>
+    <table class="admin-table">
+        <thead><tr><th scope="col">Date</th><th scope="col">Committed</th><th scope="col">Received</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+            {% for c in data.commitments %}
+            <tr><td>{{ c.committed_on }}</td><td>{{ c.amount }} {{ c.currency }}</td><td>{{ c.received_total }} {{ c.currency }}</td><td>{{ c.status }}</td></tr>
+            {% else %}
+            <tr><td colspan="4">No commitments recorded.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% else %}
+<p>Your account is not a member of any partner organization.</p>
+{% endfor %}
+</div>
+{% endblock %}

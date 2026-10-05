@@ -111,7 +111,15 @@ final class OutboxProcessor
                 ]);
                 break;
             case 'notification.send':
-                $this->mailer()->send($this->userEmail((int) $payload['user_id']), (string) $payload['subject'], 'notification', [
+                $userId = (int) $payload['user_id'];
+                $scope = isset($payload['scope']) && is_string($payload['scope']) ? $payload['scope'] : 'general';
+                $preference = $this->pdo->prepare('SELECT enabled FROM notification_preferences WHERE user_id = ? AND scope = ?');
+                $preference->execute([$userId, $scope]);
+                $enabled = $preference->fetchColumn();
+                if ($enabled !== false && !(bool) $enabled) {
+                    break;
+                }
+                $this->mailer()->send($this->userEmail($userId), (string) $payload['subject'], 'notification', [
                     'subject' => (string) $payload['subject'],
                     'body' => (string) $payload['body'],
                     'link' => (string) ($payload['link'] ?? ''),

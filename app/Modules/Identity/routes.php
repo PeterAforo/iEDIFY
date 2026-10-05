@@ -30,6 +30,7 @@ return [
     ['POST', '/account/email/resend', [AccountController::class, 'resendVerification'], ['auth' => true]],
     ['GET', '/account/notifications', [AccountController::class, 'notifications'], ['auth' => true]],
     ['POST', '/account/notifications/read', [AccountController::class, 'markNotificationRead'], ['auth' => true]],
+    ['POST', '/account/notifications/preferences', [AccountController::class, 'saveNotificationPreferences'], ['auth' => true]],
     ['GET', '/account/security', [AccountController::class, 'security'], ['auth' => true]],
     ['POST', '/account/security/mfa/begin', [AccountController::class, 'mfaBegin'], ['auth' => true]],
     ['POST', '/account/security/mfa/confirm', [AccountController::class, 'mfaConfirm'], ['auth' => true]],
