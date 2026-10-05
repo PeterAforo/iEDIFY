@@ -1,0 +1,5 @@
+* text=auto eol=lf
+iEDIFY_Website_Content_Pack/** -text
+*.png binary
+*.jpg binary
+*.webp binary
