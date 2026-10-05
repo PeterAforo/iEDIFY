@@ -14,6 +14,7 @@ return [
     ['GET', '/admin/funding/rounds/{id:\d+}', [FundingAdminController::class, 'round'], ['permission' => 'funding.review']],
     ['POST', '/admin/funding/rounds/{id:\d+}/status', [FundingAdminController::class, 'roundStatus'], ['permission' => 'funding.manage']],
     ['POST', '/admin/funding/rounds/{id:\d+}/rules', [FundingAdminController::class, 'createRules'], ['permission' => 'funding.manage']],
+    ['POST', '/admin/funding/rounds/{id:\d+}/form', [FundingAdminController::class, 'setForm'], ['permission' => 'funding.manage']],
     ['GET', '/admin/funding/requests/{id:\d+}', [FundingAdminController::class, 'request'], ['permission' => 'funding.review']],
     ['POST', '/admin/funding/requests/{id:\d+}/conflicts', [FundingAdminController::class, 'declareConflict'], ['permission' => 'funding.review']],
     ['POST', '/admin/funding/conflicts/{id:\d+}/clear', [FundingAdminController::class, 'clearConflict'], ['permission' => 'funding.manage']],

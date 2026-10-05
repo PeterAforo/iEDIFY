@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use IEdify\Modules\Identity\Http\AccountController;
+use IEdify\Modules\Identity\Http\Admin\DataRequestController;
+use IEdify\Modules\Identity\Http\Admin\InvitationController;
 use IEdify\Modules\Identity\Http\MfaController;
 use IEdify\Modules\Identity\Http\PasswordResetController;
 use IEdify\Modules\Identity\Http\RegisterController;
@@ -34,4 +36,11 @@ return [
     ['GET', '/account/security', [AccountController::class, 'security'], ['auth' => true]],
     ['POST', '/account/security/mfa/begin', [AccountController::class, 'mfaBegin'], ['auth' => true]],
     ['POST', '/account/security/mfa/confirm', [AccountController::class, 'mfaConfirm'], ['auth' => true]],
+    ['POST', '/account/data-request', [AccountController::class, 'dataRequest'], ['auth' => true]],
+    ['GET', '/admin/requests', [DataRequestController::class, 'index'], ['permission' => 'identity.manage']],
+    ['POST', '/admin/requests/{id:\d+}', [DataRequestController::class, 'decide'], ['permission' => 'identity.manage']],
+    ['GET', '/admin/invitations', [InvitationController::class, 'index'], ['permission' => 'identity.manage']],
+    ['POST', '/admin/invitations', [InvitationController::class, 'create'], ['permission' => 'identity.manage']],
+    ['GET', '/invite/{token:[a-f0-9]{64}}', [InvitationController::class, 'acceptForm'], ['guest' => true]],
+    ['POST', '/invite/{token:[a-f0-9]{64}}', [InvitationController::class, 'accept'], ['guest' => true]],
 ];

@@ -1,0 +1,32 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Outbox | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Message outbox</h1>
+<p>
+    {% for status, count in counts %}{{ status }}: {{ count }}{% if not loop.last %} &middot; {% endif %}{% endfor %}
+</p>
+<h2>Pending and failed events</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Event</th><th scope="col">Status</th><th scope="col">Attempts</th><th scope="col">Last error</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for event in events %}
+        <tr>
+            <td>{{ event.event_type }}<br><small>{{ event.event_key }}</small></td>
+            <td>{{ event.status }}</td>
+            <td>{{ event.attempts }}</td>
+            <td>{{ event.last_error_code }}</td>
+            <td>
+                {% if event.status == 'failed' %}
+                <form method="post" action="/admin/outbox/{{ event.id }}/retry" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <button type="submit" class="button-secondary">Re-queue</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No pending or failed events.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

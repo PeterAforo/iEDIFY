@@ -7,7 +7,11 @@
         {% elseif block.type == 'rich_text' %}
             <div class="prose">{{ block.html|raw }}</div>
         {% elseif block.type == 'image' and media[block.media_id]|default(null) %}
-            <figure class="section-image"><img src="{{ media[block.media_id] }}" alt="{{ block.alt }}" loading="lazy"></figure>
+            {% set m = media[block.media_id] %}
+            <figure class="section-image"><img src="{{ m.url }}" alt="{{ block.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}></figure>
+        {% elseif block.type == 'document' and media[block.media_id]|default(null) %}
+            {% set m = media[block.media_id] %}
+            <p class="section-document"><a class="document-link" href="{{ m.url }}">{{ block.label|default('Download document') }}</a> <span class="document-meta">({{ m.mime }}, reviewed)</span></p>
         {% elseif block.type == 'quote' %}
             <blockquote class="section-quote"><p>{{ block.text }}</p><cite>{{ block.attribution }}</cite></blockquote>
         {% elseif block.type == 'cta' %}
@@ -30,7 +34,8 @@
         {% elseif block.type == 'gallery' %}
             <div class="section-gallery">
                 {% for item in block.items %}{% if media[item.media_id]|default(null) %}
-                <figure><img src="{{ media[item.media_id] }}" alt="{{ item.alt }}" loading="lazy"></figure>
+                {% set m = media[item.media_id] %}
+                <figure><img src="{{ m.url }}" alt="{{ item.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}></figure>
                 {% endif %}{% endfor %}
             </div>
         {% endif %}

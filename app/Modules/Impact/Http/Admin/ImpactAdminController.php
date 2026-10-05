@@ -13,10 +13,21 @@ final class ImpactAdminController extends Controller
     public function index(): Response
     {
         $impact = $this->app->impact();
+        $filters = [
+            'status' => ($v = $this->request->query->get('status')) !== null && in_array($v, ['submitted', 'verified', 'published', 'rejected'], true) ? $v : null,
+            'period' => ($v = $this->request->query->get('period')) !== null && preg_match('/^\d{4}(-\d{2})?$/', $v) ? $v : '',
+            'geography' => mb_substr(trim((string) $this->request->query->get('geography', '')), 0, 120),
+            'program_id' => (int) $this->request->query->get('program_id', 0),
+            'cohort_id' => (int) $this->request->query->get('cohort_id', 0),
+        ];
         return $this->render('admin/impact/index.twig', [
             'indicators' => $impact->indicators(),
-            'results' => $impact->results(),
+            'results' => $impact->results($filters['status'], $filters),
             'reports' => $impact->reports(),
+            'filters' => $filters,
+            'programs' => $this->app->pdo()->query('SELECT id, title FROM programs ORDER BY title')->fetchAll(),
+            'cohorts' => $this->app->pdo()->query('SELECT id, name FROM cohorts ORDER BY name')->fetchAll(),
+            'charts' => $impact->chartConfig($impact->publicSummary()),
         ]);
     }
 
@@ -39,7 +50,18 @@ final class ImpactAdminController extends Controller
     public function submitResult(): Response
     {
         $evidence = $this->request->request->get('evidence_media_id');
-        return $this->attempt(fn () => $this->app->impact()->submitResult($this->requireActor(), (int) $this->request->request->get('indicator_id', 0), (string) $this->request->request->get('period', ''), (string) $this->request->request->get('value', ''), null, null, $this->request->request->get('geography') ?: null, null, $this->request->request->get('source_note'), $evidence !== null && $evidence !== '' ? (int) $evidence : null), 'Result submitted for verification.');
+        $groupSize = $this->request->request->get('group_size');
+        try {
+            $disaggRaw = trim((string) $this->request->request->get('disaggregation', ''));
+            $disaggregation = $disaggRaw !== '' ? json_decode($disaggRaw, true, 8, JSON_THROW_ON_ERROR) : null;
+            if ($disaggregation !== null && !is_array($disaggregation)) {
+                throw new \InvalidArgumentException('Disaggregation must be a JSON object.');
+            }
+        } catch (\JsonException) {
+            $this->flash('error', 'Disaggregation must be valid JSON (e.g. {"sex":"female"}).');
+            return $this->redirect('/admin/impact');
+        }
+        return $this->attempt(fn () => $this->app->impact()->submitResult($this->requireActor(), (int) $this->request->request->get('indicator_id', 0), (string) $this->request->request->get('period', ''), (string) $this->request->request->get('value', ''), null, null, $this->request->request->get('geography') ?: null, $disaggregation, $this->request->request->get('source_note'), $evidence !== null && $evidence !== '' ? (int) $evidence : null, $groupSize !== null && $groupSize !== '' ? (int) $groupSize : null), 'Result submitted for verification.');
     }
 
     public function verifyResult(): Response

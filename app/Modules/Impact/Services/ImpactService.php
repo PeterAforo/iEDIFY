@@ -58,22 +58,31 @@ final readonly class ImpactService
         });
     }
 
-    public function submitResult(Actor $actor, int $indicatorId, string $period, string $value, ?int $programId, ?int $cohortId, ?string $geography, ?array $disaggregation, ?string $sourceNote, ?int $evidenceMediaId): int
+    /**
+     * $disaggregation labels the subgroup (e.g. {"sex":"female"}); $groupSize is
+     * the number of respondents in that subgroup and drives public small-group
+     * suppression. Each distinct disaggregation is its own dedupe bucket.
+     */
+    public function submitResult(Actor $actor, int $indicatorId, string $period, string $value, ?int $programId, ?int $cohortId, ?string $geography, ?array $disaggregation, ?string $sourceNote, ?int $evidenceMediaId, ?int $groupSize = null): int
     {
         $this->authorize($actor, 'impact.submit');
         $this->assertPeriod($period);
         if (!is_numeric($value) || (float) $value < 0) {
             throw new \InvalidArgumentException('Results need a non-negative value.');
         }
-        return (new Transaction($this->pdo))->run(function () use ($actor, $indicatorId, $period, $value, $programId, $cohortId, $geography, $disaggregation, $sourceNote, $evidenceMediaId): int {
+        if ($disaggregation !== null && $groupSize === null) {
+            throw new \InvalidArgumentException('Disaggregated results must record the group size so small groups can be suppressed publicly.');
+        }
+        $disagg = $disaggregation !== null ? json_encode($disaggregation, JSON_THROW_ON_ERROR) : null;
+        return (new Transaction($this->pdo))->run(function () use ($actor, $indicatorId, $period, $value, $programId, $cohortId, $geography, $disagg, $sourceNote, $evidenceMediaId, $groupSize): int {
             $this->record('impact_indicators', $indicatorId);
-            $dedupe = hash('sha256', implode('|', [(string) $indicatorId, $period, (string) ($programId ?? ''), (string) ($cohortId ?? ''), (string) ($geography ?? '')]));
+            $dedupe = hash('sha256', implode('|', [(string) $indicatorId, $period, (string) ($programId ?? ''), (string) ($cohortId ?? ''), (string) ($geography ?? ''), (string) ($disagg ?? '')]));
             $existing = $this->pdo->prepare("SELECT id, status FROM impact_results WHERE dedupe_key = ? AND status != 'rejected'");
             $existing->execute([$dedupe]);
             if ($existing->fetch() !== false) {
                 throw new HttpError(409, 'This indicator/period/segment was already reported.');
             }
-            $this->execute("INSERT INTO impact_results (dedupe_key, indicator_id, period, program_id, cohort_id, geography, value, disaggregation, source_note, evidence_media_id, submitted_by, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))", [$dedupe, $indicatorId, $period, $programId, $cohortId, $geography !== null ? mb_substr($geography, 0, 120) : null, $value, $disaggregation !== null ? json_encode($disaggregation, JSON_THROW_ON_ERROR) : null, $sourceNote, $evidenceMediaId, $actor->id]);
+            $this->execute("INSERT INTO impact_results (dedupe_key, indicator_id, period, program_id, cohort_id, geography, value, disaggregation, group_size, source_note, evidence_media_id, submitted_by, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))", [$dedupe, $indicatorId, $period, $programId, $cohortId, $geography !== null ? mb_substr($geography, 0, 120) : null, $value, $disagg, $groupSize, $sourceNote, $evidenceMediaId, $actor->id]);
             $id = (int) $this->pdo->lastInsertId();
             $this->audit($actor, 'impact.result_submitted', $id);
             return $id;
@@ -166,18 +175,112 @@ final readonly class ImpactService
         return $this->pdo->query($sql . " GROUP BY i.code, i.name, i.unit, r.period, r.geography ORDER BY r.period DESC, i.code, r.geography")->fetchAll();
     }
 
+    /**
+     * Public disaggregated breakdowns. Groups with a recorded respondent count
+     * below $threshold are withheld entirely (returned only as a count so the
+     * page can explain the suppression) — their values are never exposed.
+     *
+     * @return array{rows: array<int,array<string,mixed>>, suppressed: int}
+     */
+    public function publicBreakdown(?string $period, int $threshold): array
+    {
+        $sql = "SELECT i.code, i.name, i.unit, r.period, r.geography, r.value, r.disaggregation, r.group_size
+                FROM impact_results r JOIN impact_indicators i ON i.id = r.indicator_id
+                WHERE r.status = 'published' AND i.status = 'active' AND r.disaggregation IS NOT NULL";
+        $params = [];
+        if ($period !== null) {
+            $sql .= ' AND r.period = ?';
+            $params[] = $period;
+        }
+        $statement = $this->pdo->prepare($sql . ' ORDER BY i.code, r.period DESC, r.geography');
+        $statement->execute($params);
+        $rows = [];
+        $suppressed = 0;
+        foreach ($statement->fetchAll() as $row) {
+            if ($row['group_size'] !== null && (int) $row['group_size'] < $threshold) {
+                $suppressed++;
+                continue;
+            }
+            $row['disaggregation'] = json_decode((string) $row['disaggregation'], true);
+            $rows[] = $row;
+        }
+        return ['rows' => $rows, 'suppressed' => $suppressed];
+    }
+
+    /**
+     * Chart.js configs from publicSummary rows, one chart per unit so mixed
+     * units never share an axis. Every chart renders next to its HTML table.
+     */
+    public function chartConfig(array $rows): array
+    {
+        $byUnit = [];
+        foreach ($rows as $row) {
+            $unit = (string) $row['unit'];
+            $byUnit[$unit]['labels'][] = $row['code'] . ' ' . $row['period'] . ($row['geography'] !== null ? ' · ' . $row['geography'] : '');
+            $byUnit[$unit]['actual'][] = (float) $row['actual'];
+            $byUnit[$unit]['target'][] = $row['target'] !== null ? (float) $row['target'] : null;
+        }
+        $charts = [];
+        foreach ($byUnit as $unit => $data) {
+            $charts[] = [
+                'unit' => $unit,
+                'config' => [
+                    'type' => 'bar',
+                    'data' => [
+                        'labels' => $data['labels'],
+                        'datasets' => [
+                            ['label' => 'Actual', 'data' => $data['actual'], 'backgroundColor' => '#1f6b3f'],
+                            ['label' => 'Target', 'data' => $data['target'], 'backgroundColor' => '#9dbba8'],
+                        ],
+                    ],
+                    'options' => ['responsive' => true, 'plugins' => ['legend' => ['position' => 'top']]],
+                ],
+            ];
+        }
+        return $charts;
+    }
+
     public function indicators(): array
     {
         return $this->pdo->query("SELECT * FROM impact_indicators ORDER BY status = 'retired', code")->fetchAll();
     }
 
-    public function results(?string $status = null): array
+    /** @param array{status?:string,period?:string,geography?:string,program_id?:int,cohort_id?:int} $filters */
+    public function results(?string $status = null, array $filters = []): array
     {
-        $sql = 'SELECT r.*, i.code, i.name AS indicator_name, i.unit, u.name AS submitted_by_name FROM impact_results r JOIN impact_indicators i ON i.id = r.indicator_id LEFT JOIN users u ON u.id = r.submitted_by';
+        $where = [];
+        $params = [];
         if ($status !== null) {
-            $sql .= ' WHERE r.status = ' . $this->pdo->quote($status);
+            $where[] = 'r.status = ?';
+            $params[] = $status;
         }
-        return $this->pdo->query($sql . ' ORDER BY r.id DESC LIMIT 300')->fetchAll();
+        if (($filters['status'] ?? null) !== null && $status === null) {
+            $where[] = 'r.status = ?';
+            $params[] = $filters['status'];
+        }
+        if (($filters['period'] ?? '') !== '') {
+            $where[] = 'r.period = ?';
+            $params[] = $filters['period'];
+        }
+        if (($filters['geography'] ?? '') !== '') {
+            $where[] = 'r.geography = ?';
+            $params[] = $filters['geography'];
+        }
+        if (($filters['program_id'] ?? 0) > 0) {
+            $where[] = 'r.program_id = ?';
+            $params[] = $filters['program_id'];
+        }
+        if (($filters['cohort_id'] ?? 0) > 0) {
+            $where[] = 'r.cohort_id = ?';
+            $params[] = $filters['cohort_id'];
+        }
+        $sql = 'SELECT r.*, i.code, i.name AS indicator_name, i.unit, u.name AS submitted_by_name FROM impact_results r JOIN impact_indicators i ON i.id = r.indicator_id LEFT JOIN users u ON u.id = r.submitted_by';
+        if ($where !== []) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+        $statement = $this->pdo->prepare($sql . ' ORDER BY r.id DESC LIMIT 300');
+        $statement->execute($params);
+        return $statement->fetchAll();
     }
 
     public function reports(): array

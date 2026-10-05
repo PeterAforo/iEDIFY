@@ -1,0 +1,45 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Publications | iEDIFY Africa{% endblock %}
+{% block content %}
+<div class="container">
+<h1>Publications &amp; resources</h1>
+<p>Reports, research and resources published by iEDIFY Africa. Only reviewed documents are listed — each publication page links to its downloadable files.</p>
+<form method="get" action="/publications" class="filter-form" role="search">
+    <div class="field">
+        <label for="q">Search titles</label>
+        <input id="q" name="q" type="search" value="{{ filters.q }}" maxlength="120">
+    </div>
+    {% if categories %}
+    <div class="field">
+        <label for="category">Category</label>
+        <select id="category" name="category">
+            <option value="">All categories</option>
+            {% for c in categories %}<option value="{{ c }}"{% if filters.category == c %} selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    {% if years %}
+    <div class="field">
+        <label for="year">Year</label>
+        <select id="year" name="year">
+            <option value="">All years</option>
+            {% for y in years %}<option value="{{ y }}"{% if filters.year == y %} selected{% endif %}>{{ y }}</option>{% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    <button type="submit" class="button-primary">Filter</button>
+</form>
+<ul class="publication-list">
+    {% for item in items %}
+    <li class="publication-item">
+        <h2><a href="{{ item.slug }}">{{ item.title }}</a></h2>
+        <p class="publication-meta">
+            {% if item.category %}{{ item.category }}{% endif %}{% if item.pub_year %}{{ item.category ? ' · ' }}{{ item.pub_year }}{% endif %}
+        </p>
+    </li>
+    {% else %}
+    <li>No publications match these filters{% if filters.q or filters.category or filters.year %} — <a href="/publications">clear filters</a>{% endif %}. Publications will appear here as they are approved for release.</li>
+    {% endfor %}
+</ul>
+</div>
+{% endblock %}

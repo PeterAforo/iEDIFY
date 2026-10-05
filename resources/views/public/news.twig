@@ -1,0 +1,17 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}News and stories | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>News and stories</h1>
+    <ul class="card-list">
+        {% for item in items %}
+        <li>
+            <h2><a href="{{ item.slug }}">{{ item.title }}</a></h2>
+            <p>{{ item.updated_at|date('j M Y') }}</p>
+        </li>
+        {% else %}
+        <li>No published stories yet.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

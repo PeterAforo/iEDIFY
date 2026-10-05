@@ -31,6 +31,18 @@ final class AccountController extends Controller
         return $this->redirect('/account');
     }
 
+    public function dataRequest(): Response
+    {
+        $this->throttle('account.data_request', 3, 86400);
+        try {
+            (new \IEdify\Modules\Identity\Services\DataRequestService($this->app->pdo()))->request($this->requireActor(), $this->input('type'));
+            $this->flash('success', 'Your request has been recorded. The team will follow up by email.');
+        } catch (\InvalidArgumentException $error) {
+            $this->flash('error', $error->getMessage());
+        }
+        return $this->redirect('/account');
+    }
+
     public function signOut(): Response
     {
         $this->app->clearAuthentication();
@@ -48,20 +60,33 @@ final class AccountController extends Controller
         $statement->execute([$actor->id]);
         $preferences = $this->app->pdo()->prepare('SELECT scope, enabled FROM notification_preferences WHERE user_id = ?');
         $preferences->execute([$actor->id]);
+        $consents = $this->app->pdo()->prepare('SELECT purpose, granted FROM consents c WHERE user_id = ? AND id = (SELECT MAX(id) FROM consents WHERE user_id = c.user_id AND purpose = c.purpose)');
+        $consents->execute([$actor->id]);
         return $this->render('account/notifications.twig', [
             'notifications' => $statement->fetchAll(),
             'scopes' => self::NOTIFICATION_SCOPES,
             'preferences' => array_column($preferences->fetchAll(), 'enabled', 'scope'),
+            'consents' => array_column($consents->fetchAll(), 'granted', 'purpose'),
+            'policy_version' => $this->app->config->string('POLICY_VERSION', '2026-10'),
         ]);
     }
 
     public function saveNotificationPreferences(): Response
     {
         $actor = $this->requireActor();
-        $statement = $this->app->pdo()->prepare('INSERT INTO notification_preferences (user_id, scope, enabled, updated_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE enabled = VALUES(enabled), updated_at = UTC_TIMESTAMP(6)');
-        foreach (self::NOTIFICATION_SCOPES as $scope) {
-            $statement->execute([$actor->id, $scope, $this->has('scope_' . $scope) ? 1 : 0]);
-        }
+        $pdo = $this->app->pdo();
+        (new \IEdify\Core\Database\Transaction($pdo))->run(function () use ($actor, $pdo): void {
+            $statement = $pdo->prepare('INSERT INTO notification_preferences (user_id, scope, enabled, updated_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE enabled = VALUES(enabled), updated_at = UTC_TIMESTAMP(6)');
+            foreach (self::NOTIFICATION_SCOPES as $scope) {
+                $statement->execute([$actor->id, $scope, $this->has('scope_' . $scope) ? 1 : 0]);
+            }
+            // Consent decisions are an append-only record — a new row per change.
+            $consent = $pdo->prepare('INSERT INTO consents (user_id, purpose, policy_version, granted, channel, created_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6))');
+            $policyVersion = $this->app->config->string('POLICY_VERSION', '2026-10');
+            $consent->execute([$actor->id, 'sms_notifications', $policyVersion, $this->has('consent_sms') ? 1 : 0, 'web']);
+            $consent->execute([$actor->id, 'marketing_email', $policyVersion, $this->has('consent_marketing') ? 1 : 0, 'web']);
+            (new \IEdify\Core\Audit\AuditLog($pdo))->record($actor->id, 'account.preferences_saved', 'users', (string) $actor->id);
+        });
         $this->flash('success', 'Notification preferences saved.');
         return $this->redirect('/account/notifications');
     }

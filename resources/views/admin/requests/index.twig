@@ -1,0 +1,27 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Data requests | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Data requests</h1>
+<table class="admin-table">
+    <thead><tr><th scope="col">User</th><th scope="col">Type</th><th scope="col">Requested</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for request in requests %}
+        <tr>
+            <td>{{ request.name }}<br><small>{{ request.email }}</small></td>
+            <td>{{ request.type }}</td>
+            <td>{{ request.requested_at }}</td>
+            <td>
+                <form method="post" action="/admin/requests/{{ request.id }}" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <button type="submit" name="decision" value="completed" class="button-secondary">Mark completed</button>
+                    <button type="submit" name="decision" value="rejected" class="button-secondary">Reject</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No pending requests.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p><small>Completing a deletion request deactivates the account. Export fulfilment is manual: compile the user's records, deliver them securely, then mark the request completed. Audit and financial records are retained per policy.</small></p>
+{% endblock %}

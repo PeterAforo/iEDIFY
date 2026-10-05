@@ -110,6 +110,30 @@ final class OutboxProcessor
                     'unsubscribe_url' => '/newsletter/unsubscribe/' . $this->secrets->decrypt($payload['unsubscribe_ciphertext']),
                 ]);
                 break;
+            case 'newsletter.broadcast':
+                $statement = $this->pdo->prepare('SELECT email, status FROM newsletter_subscriptions WHERE id = ?');
+                $statement->execute([(int) $payload['subscription_id']]);
+                $subscriber = $statement->fetch();
+                if ($subscriber === false || $subscriber['status'] !== 'subscribed') {
+                    break; // unsubscribed or removed before delivery — drop silently
+                }
+                $this->mailer()->send((string) $subscriber['email'], (string) $payload['subject'], 'newsletter-broadcast', [
+                    'body' => (string) $payload['body'],
+                    'unsubscribe_url' => '/newsletter/unsubscribe/' . $this->secrets->decrypt($payload['unsubscribe_ciphertext']),
+                ]);
+                break;
+            case 'identity.invite':
+                $statement = $this->pdo->prepare('SELECT i.email, r.name AS role_name FROM invitations i JOIN roles r ON r.id = i.role_id WHERE i.id = ?');
+                $statement->execute([(int) $payload['invitation_id']]);
+                $invite = $statement->fetch();
+                if ($invite === false) {
+                    throw new \RuntimeException('Invitation record missing for delivery.');
+                }
+                $this->mailer()->send($invite['email'], 'Your iEDIFY Africa invitation', 'invite', [
+                    'role' => $invite['role_name'],
+                    'url' => '/invite/' . $this->secrets->decrypt($payload['token_ciphertext']),
+                ]);
+                break;
             case 'notification.send':
                 $userId = (int) $payload['user_id'];
                 $scope = isset($payload['scope']) && is_string($payload['scope']) ? $payload['scope'] : 'general';
@@ -124,6 +148,23 @@ final class OutboxProcessor
                     'body' => (string) $payload['body'],
                     'link' => (string) ($payload['link'] ?? ''),
                 ]);
+                break;
+            case 'sms.send':
+                $userId = (int) $payload['user_id'];
+                $consent = $this->pdo->prepare("SELECT granted FROM consents WHERE user_id = ? AND purpose = 'sms_notifications' ORDER BY id DESC LIMIT 1");
+                $consent->execute([$userId]);
+                $granted = $consent->fetchColumn();
+                if ($granted === false || !(bool) $granted) {
+                    // No consent on record: skip silently — never send unsolicited SMS.
+                    break;
+                }
+                $phone = $this->pdo->prepare('SELECT phone FROM participant_profiles WHERE user_id = ?');
+                $phone->execute([$userId]);
+                $number = $phone->fetchColumn();
+                if (!is_string($number) || $number === '') {
+                    throw new \RuntimeException('Consented user has no phone number on file.');
+                }
+                $this->smser()->send($number, (string) $payload['message']);
                 break;
             default:
                 throw new \RuntimeException('No handler for outbox event type.');
@@ -163,5 +204,10 @@ final class OutboxProcessor
     private function mailer(): Mailer
     {
         return new Mailer($this->config, $this->root);
+    }
+
+    private function smser(): \IEdify\Core\Sms\Smser
+    {
+        return new \IEdify\Core\Sms\Smser($this->config, $this->root);
     }
 }

@@ -4,6 +4,13 @@
 <h1>{{ request.title }}</h1>
 <p>Status: {{ request.status }} · Requested: {{ request.requested_amount }} {{ request.currency }} · Rule version: v{{ request.rules.version|default('?') }} (frozen at submission)</p>
 {% if request.budget_summary %}<h2>Budget summary</h2><p>{{ request.budget_summary|nl2br }}</p>{% endif %}
+{% if request.budget_media_id %}<p><a href="/media/{{ request.budget_media_id }}">Download budget document</a></p>{% endif %}
+{% if request.answers %}
+<h2>Form answers</h2>
+<dl>
+    {% for key, value in request.answers %}<dt>{{ key }}</dt><dd>{{ value is same as(true) ? 'Yes' : (value is same as(false) ? 'No' : value) }}</dd>{% endfor %}
+</dl>
+{% endif %}
 {% if request.rules %}
 <h2>Scorecard (v{{ request.rules.version }}, max {{ request.rules.max_score }})</h2>
 <form method="post" action="/admin/funding/requests/{{ request.id }}/reviews" class="stacked-form">

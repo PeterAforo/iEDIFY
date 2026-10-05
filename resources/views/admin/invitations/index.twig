@@ -1,0 +1,31 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Invitations | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Staff invitations</h1>
+<form method="post" action="/admin/invitations" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Email<input type="email" name="email" required maxlength="254"></label>
+    <label>Role
+        <select name="role_id">
+            {% for role in roles %}<option value="{{ role.id }}">{{ role.name }}</option>{% endfor %}
+        </select>
+    </label>
+    <button type="submit" class="button-secondary">Send invitation</button>
+</form>
+<h2>Pending invitations</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Invited by</th><th scope="col">Expires (UTC)</th></tr></thead>
+    <tbody>
+        {% for invite in invitations %}
+        <tr>
+            <td>{{ invite.email }}</td>
+            <td>{{ invite.role_name }}</td>
+            <td>{{ invite.invited_by_name }}</td>
+            <td>{{ invite.expires_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No pending invitations.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

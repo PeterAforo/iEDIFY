@@ -27,6 +27,10 @@
         {% for scope in scopes %}
         <label><input type="checkbox" name="scope_{{ scope }}" value="1"{% if preferences[scope] is not defined or preferences[scope] %} checked{% endif %}> {{ scope|capitalize }}</label>
         {% endfor %}
+        <h3>Consent</h3>
+        <p class="field-hint">Your choices are recorded against policy version {{ policy_version }}.</p>
+        <label><input type="checkbox" name="consent_sms" value="1"{% if consents.sms_notifications|default(0) %} checked{% endif %}> I consent to receive SMS notifications (sent only to the phone number on my participant profile)</label>
+        <label><input type="checkbox" name="consent_marketing" value="1"{% if consents.marketing_email|default(0) %} checked{% endif %}> I consent to occasional newsletters and announcements by email</label>
         <button type="submit" class="button-secondary">Save preferences</button>
     </form>
     <p><a href="/account">Back to account</a></p>

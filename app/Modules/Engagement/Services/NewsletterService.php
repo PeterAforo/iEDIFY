@@ -6,7 +6,10 @@ namespace IEdify\Modules\Engagement\Services;
 
 use IEdify\Core\Audit\AuditLog;
 use IEdify\Core\Database\Transaction;
+use IEdify\Core\Http\HttpError;
 use IEdify\Core\Jobs\Outbox;
+use IEdify\Core\Security\Actor;
+use IEdify\Core\Security\Policy;
 use IEdify\Core\Security\SecretBox;
 use InvalidArgumentException;
 use PDO;
@@ -57,6 +60,89 @@ final readonly class NewsletterService
     {
         return $this->consume($token, 'confirm', function (int $subscriptionId): void {
             $this->pdo->prepare("UPDATE newsletter_subscriptions SET status = 'subscribed', confirmed_at = COALESCE(confirmed_at, UTC_TIMESTAMP(6)) WHERE id = ? AND status = 'pending'")->execute([$subscriptionId]);
+        });
+    }
+
+    /**
+     * Queue a broadcast to confirmed subscribers. Bounded per call so a large
+     * list is drained in batches; event keys dedupe re-runs and subscribers
+     * who unsubscribe before delivery are skipped at send time.
+     *
+     * @return array{id:int, queued:int}
+     */
+    public function queueBroadcast(Actor $actor, string $subject, string $body, int $limit = 200): array
+    {
+        if (!(new Policy())->allows($actor, 'operations.manage')) {
+            throw new HttpError(403, 'You do not have permission to send broadcasts.');
+        }
+        $subject = trim($subject);
+        $body = trim($body);
+        if ($subject === '' || mb_strlen($subject) > 255 || $body === '' || mb_strlen($body) > 60000) {
+            throw new InvalidArgumentException('Broadcasts need a subject and a body.');
+        }
+        if ($limit < 1 || $limit > 1000) {
+            throw new InvalidArgumentException('Batch limit must be between 1 and 1000.');
+        }
+        return (new Transaction($this->pdo))->run(function () use ($actor, $subject, $body, $limit): array {
+            $this->pdo->prepare('INSERT INTO newsletter_broadcasts (subject, body, created_by, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP(6))')->execute([$subject, $body, $actor->id > 0 ? $actor->id : null]);
+            $broadcastId = (int) $this->pdo->lastInsertId();
+            $statement = $this->pdo->prepare("SELECT s.id FROM newsletter_subscriptions s WHERE s.status = 'subscribed' AND NOT EXISTS (SELECT 1 FROM outbox_events e WHERE e.event_key = CONCAT('newsletter.broadcast.', {$broadcastId}, '.', s.id)) ORDER BY s.id LIMIT {$limit}");
+            $statement->execute();
+            $queued = 0;
+            $outbox = new Outbox($this->pdo);
+            foreach ($statement->fetchAll(PDO::FETCH_COLUMN) as $subscriptionId) {
+                $unsubscribe = $this->issueToken((int) $subscriptionId, 'unsubscribe', '400 DAY');
+                $outbox->record('newsletter.broadcast.' . $broadcastId . '.' . (int) $subscriptionId, 'newsletter.broadcast', [
+                    'subscription_id' => (int) $subscriptionId,
+                    'broadcast_id' => $broadcastId,
+                    'subject' => $subject,
+                    'body' => $body,
+                    'unsubscribe_ciphertext' => $this->secrets->encrypt($unsubscribe),
+                ]);
+                $queued++;
+            }
+            $this->pdo->prepare('UPDATE newsletter_broadcasts SET queued_count = queued_count + ? WHERE id = ?')->execute([$queued, $broadcastId]);
+            (new AuditLog($this->pdo))->record($actor->id > 0 ? $actor->id : null, 'newsletter.broadcast_queued', 'newsletter_broadcast', (string) $broadcastId);
+            return ['id' => $broadcastId, 'queued' => $queued];
+        });
+    }
+
+    /** Continue queueing an existing broadcast — dedupe keys make this idempotent. */
+    public function queueBroadcastBatch(Actor $actor, int $broadcastId, int $limit = 200): int
+    {
+        if (!(new Policy())->allows($actor, 'operations.manage')) {
+            throw new HttpError(403, 'You do not have permission to send broadcasts.');
+        }
+        if ($limit < 1 || $limit > 1000) {
+            throw new InvalidArgumentException('Batch limit must be between 1 and 1000.');
+        }
+        return (new Transaction($this->pdo))->run(function () use ($actor, $broadcastId, $limit): int {
+            $broadcast = $this->pdo->prepare('SELECT subject, body FROM newsletter_broadcasts WHERE id = ? FOR UPDATE');
+            $broadcast->execute([$broadcastId]);
+            $record = $broadcast->fetch();
+            if ($record === false) {
+                throw new HttpError(404, 'Broadcast not found.');
+            }
+            $statement = $this->pdo->prepare("SELECT s.id FROM newsletter_subscriptions s WHERE s.status = 'subscribed' AND NOT EXISTS (SELECT 1 FROM outbox_events e WHERE e.event_key = CONCAT('newsletter.broadcast.', {$broadcastId}, '.', s.id)) ORDER BY s.id LIMIT {$limit}");
+            $statement->execute();
+            $queued = 0;
+            $outbox = new Outbox($this->pdo);
+            foreach ($statement->fetchAll(PDO::FETCH_COLUMN) as $subscriptionId) {
+                $unsubscribe = $this->issueToken((int) $subscriptionId, 'unsubscribe', '400 DAY');
+                $outbox->record('newsletter.broadcast.' . $broadcastId . '.' . (int) $subscriptionId, 'newsletter.broadcast', [
+                    'subscription_id' => (int) $subscriptionId,
+                    'broadcast_id' => $broadcastId,
+                    'subject' => (string) $record['subject'],
+                    'body' => (string) $record['body'],
+                    'unsubscribe_ciphertext' => $this->secrets->encrypt($unsubscribe),
+                ]);
+                $queued++;
+            }
+            $this->pdo->prepare('UPDATE newsletter_broadcasts SET queued_count = queued_count + ? WHERE id = ?')->execute([$queued, $broadcastId]);
+            if ($queued > 0) {
+                (new AuditLog($this->pdo))->record($actor->id > 0 ? $actor->id : null, 'newsletter.broadcast_batch_queued', 'newsletter_broadcast', (string) $broadcastId);
+            }
+            return $queued;
         });
     }
 

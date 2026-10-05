@@ -2,13 +2,29 @@
 {% block title %}Media | iEDIFY Africa{% endblock %}
 {% block admin %}
 <h1>Media review</h1>
+<form method="post" action="/admin/media/upload" enctype="multipart/form-data" class="editor-form media-upload">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <div class="field">
+        <label for="document">New public asset (PDF, PNG or JPEG, up to 10 MB)</label>
+        <input id="document" name="document" type="file" required accept="application/pdf,image/png,image/jpeg">
+    </div>
+    <div class="field">
+        <label for="alt_text">Alt text / accessible description</label>
+        <input id="alt_text" name="alt_text" type="text" maxlength="500">
+    </div>
+    <button type="submit" class="button-primary">Upload for review</button>
+</form>
 <nav class="filter-tabs" aria-label="Filter media by status">
     {% for s in ['pending','approved','rejected'] %}<a href="/admin/media?status={{ s }}"{% if status == s %} aria-current="page"{% endif %}>{{ s }}</a>{% endfor %}
 </nav>
 <div class="media-grid">
     {% for asset in assets %}
     <figure class="media-card">
+        {% if asset.mime starts with 'image/' %}
         <img src="/media/{{ asset.id }}" alt="{{ asset.alt_text }}" loading="lazy">
+        {% else %}
+        <p class="media-file-badge">{{ asset.mime }}</p>
+        {% endif %}
         <figcaption>
             <p><strong>{{ asset.original_filename }}</strong></p>
             <p>{{ asset.mime }}{% if asset.width %} · {{ asset.width }}×{{ asset.height }}{% endif %} · {{ asset.review_status }}</p>

@@ -55,6 +55,18 @@ final readonly class FundingService
         });
     }
 
+    /** Constrained custom request form for a round (same field types as application forms). */
+    public function setRoundForm(Actor $actor, int $roundId, array $fields): void
+    {
+        $this->authorize($actor, 'funding.manage');
+        $clean = (new \IEdify\Modules\Programs\Services\FormDefinition())->validate($fields);
+        (new Transaction($this->pdo))->run(function () use ($actor, $roundId, $clean): void {
+            $this->record('funding_rounds', $roundId, true);
+            $this->execute('UPDATE funding_rounds SET form_schema = ?, version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?', [json_encode($clean, JSON_THROW_ON_ERROR), $roundId]);
+            $this->audit($actor, 'funding.form_versioned', $roundId);
+        });
+    }
+
     /** New immutable scorecard version; weights are criterion => weight (0-100). */
     public function createRuleVersion(Actor $actor, int $roundId, array $weights, int $maxScore = 5): int
     {
@@ -81,7 +93,7 @@ final readonly class FundingService
     }
 
     /** Startup/participant submits a request; the current rule version freezes onto it. */
-    public function submitRequest(Actor $actor, int $roundId, string $title, string $amount, ?string $budgetSummary, ?int $startupId = null): int
+    public function submitRequest(Actor $actor, int $roundId, string $title, string $amount, ?string $budgetSummary, ?int $startupId = null, ?array $answers = null, ?int $budgetMediaId = null): int
     {
         if (!(new Policy())->allows($actor, 'startup.team') && !(new Policy())->allows($actor, 'funding.manage')) {
             throw new HttpError(403, 'You do not have permission to request funding.');
@@ -89,7 +101,7 @@ final readonly class FundingService
         if (trim($title) === '' || !is_numeric($amount) || (float) $amount <= 0) {
             throw new \InvalidArgumentException('A request needs a title and a positive amount.');
         }
-        return (new Transaction($this->pdo))->run(function () use ($actor, $roundId, $title, $amount, $budgetSummary, $startupId): int {
+        return (new Transaction($this->pdo))->run(function () use ($actor, $roundId, $title, $amount, $budgetSummary, $startupId, $answers, $budgetMediaId): int {
             $round = $this->record('funding_rounds', $roundId, true);
             $now = gmdate('Y-m-d H:i:s');
             if ($round['status'] !== 'open' || $round['opens_at'] > $now || $round['closes_at'] < $now) {
@@ -111,7 +123,19 @@ final readonly class FundingService
             if ($ruleVersion === false) {
                 throw new HttpError(409, 'No scoring rules are configured for this round.');
             }
-            $this->execute("INSERT INTO funding_requests (public_id, round_id, startup_id, user_id, title, requested_amount, currency, budget_summary, status, rule_version_id, submitted_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))", [bin2hex(random_bytes(16)), $roundId, $startupId, $actor->id, mb_substr($title, 0, 255), $amount, $round['currency'], $budgetSummary !== null ? mb_substr($budgetSummary, 0, 8000) : null, (int) $ruleVersion]);
+            $validatedAnswers = null;
+            if ($round['form_schema'] !== null) {
+                $fields = json_decode((string) $round['form_schema'], true, 512, JSON_THROW_ON_ERROR);
+                $validatedAnswers = json_encode((new \IEdify\Modules\Programs\Services\FormDefinition())->validateAnswers($fields, $answers ?? [], true), JSON_THROW_ON_ERROR);
+            }
+            if ($budgetMediaId !== null) {
+                $media = $this->pdo->prepare('SELECT id FROM media_assets WHERE id = ?');
+                $media->execute([$budgetMediaId]);
+                if ($media->fetchColumn() === false) {
+                    throw new \InvalidArgumentException('The budget document is not a valid upload.');
+                }
+            }
+            $this->execute("INSERT INTO funding_requests (public_id, round_id, startup_id, user_id, title, requested_amount, currency, budget_summary, status, rule_version_id, answers, budget_media_id, submitted_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))", [bin2hex(random_bytes(16)), $roundId, $startupId, $actor->id, mb_substr($title, 0, 255), $amount, $round['currency'], $budgetSummary !== null ? mb_substr($budgetSummary, 0, 8000) : null, (int) $ruleVersion, $validatedAnswers, $budgetMediaId]);
             $id = (int) $this->pdo->lastInsertId();
             $this->execute('INSERT INTO notifications (user_id, event_key, type, title, target_path, created_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE title = VALUES(title)', [$actor->id, 'funding.submitted.' . $id, 'funding.submitted', 'Your funding request was received.', '/account/funding']);
             $this->audit($actor, 'funding.request_submitted', $id);
@@ -302,6 +326,7 @@ final readonly class FundingService
         if ($request['rules'] !== null) {
             $request['rules']['weights'] = json_decode((string) $request['rules']['weights_json'], true, 512, JSON_THROW_ON_ERROR);
         }
+        $request['answers'] = $request['answers'] !== null ? json_decode((string) $request['answers'], true, 512, JSON_THROW_ON_ERROR) : null;
         return $request;
     }
 

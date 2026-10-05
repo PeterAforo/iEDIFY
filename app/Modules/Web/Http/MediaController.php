@@ -77,6 +77,15 @@ final class MediaController extends Controller
                 return $member->fetchColumn() !== false;
             }
         }
+        // Funding budget documents: the requester, or any staff with a funding role.
+        $budget = $this->app->pdo()->prepare('SELECT user_id FROM funding_requests WHERE budget_media_id = ? LIMIT 1');
+        $budget->execute([$mediaId]);
+        $budgetOwner = $budget->fetchColumn();
+        if ($budgetOwner !== false) {
+            if ((int) $budgetOwner === $actor->id || $policy->allows($actor, 'funding.manage') || $policy->allows($actor, 'funding.review') || $policy->allows($actor, 'funding.approve')) {
+                return true;
+            }
+        }
         return false;
     }
 }

@@ -1,0 +1,46 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Menus | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Menus</h1>
+<p><small>Links must be site-relative paths. Empty menus fall back to the default navigation.</small></p>
+<table class="admin-table">
+    <thead><tr><th scope="col">Menu</th><th scope="col">Label</th><th scope="col">URL</th><th scope="col">Sort</th><th scope="col">Enabled</th><th scope="col"></th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td><select name="menu" form="nav-{{ item.id }}"><option value="main"{% if item.menu == 'main' %} selected{% endif %}>main</option><option value="footer"{% if item.menu == 'footer' %} selected{% endif %}>footer</option></select></td>
+            <td><input type="text" name="label" value="{{ item.label }}" required maxlength="120" form="nav-{{ item.id }}"></td>
+            <td><input type="text" name="url" value="{{ item.url }}" required maxlength="500" form="nav-{{ item.id }}"></td>
+            <td><input type="number" name="sort" value="{{ item.sort }}" min="0" max="999" form="nav-{{ item.id }}"></td>
+            <td><input type="checkbox" name="enabled" value="1"{% if item.enabled %} checked{% endif %} form="nav-{{ item.id }}"></td>
+            <td>
+                <form id="nav-{{ item.id }}" method="post" action="/admin/menus">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="id" value="{{ item.id }}">
+                    <button type="submit" class="button-secondary">Save</button>
+                </form>
+            </td>
+            <td>
+                <form method="post" action="/admin/menus/delete">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="id" value="{{ item.id }}">
+                    <button type="submit" class="button-secondary">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">No custom items yet — the default navigation is in use.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Add item</h2>
+<form method="post" action="/admin/menus" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <select name="menu"><option value="main">main</option><option value="footer">footer</option></select>
+    <input type="text" name="label" placeholder="Label" required maxlength="120">
+    <input type="text" name="url" placeholder="/path" required maxlength="500">
+    <input type="number" name="sort" value="10" min="0" max="999">
+    <label><input type="checkbox" name="enabled" value="1" checked> Enabled</label>
+    <button type="submit" class="button-primary">Add</button>
+</form>
+{% endblock %}

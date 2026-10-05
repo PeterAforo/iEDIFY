@@ -1,0 +1,50 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Hero slides | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Hero slides</h1>
+<p><small>Slides render on the home page in sort order. Images must be approved public media (see the media library for IDs).</small></p>
+<table class="admin-table">
+    <thead><tr><th scope="col">Title</th><th scope="col">Kicker</th><th scope="col">Media</th><th scope="col">CTA</th><th scope="col">Sort</th><th scope="col">Enabled</th><th scope="col"></th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for slide in slides %}
+        <tr>
+            <td><input type="text" name="title" value="{{ slide.title }}" required maxlength="255" form="hero-{{ slide.id }}"></td>
+            <td><input type="text" name="kicker" value="{{ slide.kicker }}" maxlength="255" form="hero-{{ slide.id }}"></td>
+            <td><input type="number" name="media_id" value="{{ slide.media_id }}" min="0" style="width:6rem" form="hero-{{ slide.id }}"></td>
+            <td><input type="text" name="cta_label" value="{{ slide.cta_label }}" maxlength="80" placeholder="Label" form="hero-{{ slide.id }}"> <input type="text" name="cta_url" value="{{ slide.cta_url }}" maxlength="500" placeholder="/path" form="hero-{{ slide.id }}"></td>
+            <td><input type="number" name="sort" value="{{ slide.sort }}" min="0" max="999" style="width:5rem" form="hero-{{ slide.id }}"></td>
+            <td><input type="checkbox" name="enabled" value="1"{% if slide.enabled %} checked{% endif %} form="hero-{{ slide.id }}"></td>
+            <td>
+                <form id="hero-{{ slide.id }}" method="post" action="/admin/hero">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="id" value="{{ slide.id }}">
+                    <button type="submit" class="button-secondary">Save</button>
+                </form>
+            </td>
+            <td>
+                <form method="post" action="/admin/hero/delete">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="id" value="{{ slide.id }}">
+                    <button type="submit" class="button-secondary">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8">No slides yet — the page-level hero section is used.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Add slide</h2>
+<form method="post" action="/admin/hero" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Title<input type="text" name="title" required maxlength="255"></label>
+    <label>Kicker<input type="text" name="kicker" maxlength="255"></label>
+    <label>Body<textarea name="body" maxlength="4000"></textarea></label>
+    <label>CTA label<input type="text" name="cta_label" maxlength="80"></label>
+    <label>CTA URL (site-relative)<input type="text" name="cta_url" maxlength="500" placeholder="/get-involved/participant"></label>
+    <label>Media ID (optional)<input type="number" name="media_id" min="0"></label>
+    <label>Sort<input type="number" name="sort" value="10" min="0" max="999"></label>
+    <label><input type="checkbox" name="enabled" value="1" checked> Enabled</label>
+    <button type="submit" class="button-primary">Add slide</button>
+</form>
+{% endblock %}

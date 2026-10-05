@@ -15,6 +15,12 @@
             <li><a href="/admin/funding"{% if current_path starts with '/admin/funding' %} aria-current="page"{% endif %}>Funding</a></li>
             <li><a href="/admin/impact"{% if current_path starts with '/admin/impact' %} aria-current="page"{% endif %}>Impact</a></li>
             <li><a href="/admin/partners"{% if current_path starts with '/admin/partners' %} aria-current="page"{% endif %}>Partners</a></li>
+            <li><a href="/admin/requests"{% if current_path starts with '/admin/requests' %} aria-current="page"{% endif %}>Data requests</a></li>
+            <li><a href="/admin/invitations"{% if current_path starts with '/admin/invitations' %} aria-current="page"{% endif %}>Invitations</a></li>
+            <li><a href="/admin/outbox"{% if current_path starts with '/admin/outbox' %} aria-current="page"{% endif %}>Outbox</a></li>
+            <li><a href="/admin/menus"{% if current_path starts with '/admin/menus' %} aria-current="page"{% endif %}>Menus</a></li>
+            <li><a href="/admin/hero"{% if current_path starts with '/admin/hero' %} aria-current="page"{% endif %}>Hero</a></li>
+            <li><a href="/admin/settings"{% if current_path starts with '/admin/settings' %} aria-current="page"{% endif %}>Settings</a></li>
         </ul>
     </nav>
     <div class="admin-main">{% block admin %}{% endblock %}</div>

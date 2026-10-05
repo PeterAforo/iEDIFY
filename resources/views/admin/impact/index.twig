@@ -1,8 +1,28 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Impact | iEDIFY Africa{% endblock %}
+{% block extra_head %}<script type="module" src="{{ asset('resources/assets/scripts/charts.js') }}"></script>{% endblock %}
 {% block admin %}
 <h1>Impact measurement</h1>
 <p><a class="button-secondary" href="/admin/impact/export.csv">Download results CSV</a></p>
+{% if charts %}
+<div class="impact-charts">
+    {% for chart in charts %}
+    <figure class="chart-panel">
+        <figcaption>Published actuals vs targets ({{ chart.unit }})</figcaption>
+        <canvas data-chart="{{ chart.config|json_encode|e('html_attr') }}" role="img" aria-label="Bar chart of published actuals versus targets; tables below contain the same figures."></canvas>
+    </figure>
+    {% endfor %}
+</div>
+{% endif %}
+<h2>Results dashboard</h2>
+<form method="get" action="/admin/impact" class="inline-form">
+    <label>Status<select name="status"><option value="">All</option>{% for s in ['submitted','verified','published','rejected'] %}<option value="{{ s }}"{% if filters.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+    <label>Period<input type="text" name="period" value="{{ filters.period }}" placeholder="2026" pattern="\d{4}(-\d{2})?"></label>
+    <label>Geography<input type="text" name="geography" value="{{ filters.geography }}" maxlength="120"></label>
+    <label>Program<select name="program_id"><option value="0">All</option>{% for p in programs %}<option value="{{ p.id }}"{% if filters.program_id == p.id %} selected{% endif %}>{{ p.title }}</option>{% endfor %}</select></label>
+    <label>Cohort<select name="cohort_id"><option value="0">All</option>{% for c in cohorts %}<option value="{{ c.id }}"{% if filters.cohort_id == c.id %} selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></label>
+    <button type="submit" class="button-secondary">Filter</button>
+</form>
 <h2>Indicator dictionary</h2>
 <table class="admin-table">
     <thead><tr><th scope="col">Code</th><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">Frequency</th><th scope="col">Status</th><th scope="col">Set target</th></tr></thead>
@@ -81,6 +101,8 @@
     <label>Period<input type="text" name="period" pattern="\d{4}(-\d{2})?" placeholder="2026 or 2026-03" required></label>
     <label>Value<input type="number" name="value" min="0" step="any" required></label>
     <label>Geography<input type="text" name="geography" maxlength="120"></label>
+    <label>Disaggregation (JSON, optional)<input type="text" name="disaggregation" placeholder='{"sex":"female"}' maxlength="500"></label>
+    <label>Group size (required when disaggregated)<input type="number" name="group_size" min="0"></label>
     <label>Source / evidence note<textarea name="source_note"></textarea></label>
     <button type="submit" class="button-secondary">Submit for verification</button>
 </form>

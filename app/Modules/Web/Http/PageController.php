@@ -37,6 +37,12 @@ final class PageController extends Controller
             'sections' => $sections,
             'media' => $this->mediaUrls($sections),
         ];
+        if ($slug === '/') {
+            $slides = (new \IEdify\Modules\CMS\Services\SiteChromeService($this->app->pdo()))->heroSlides();
+            if ($slides !== []) {
+                $data['hero_slides'] = $slides;
+            }
+        }
         if ($slug === '/team') {
             $data['roster'] = $this->roster();
         }
@@ -44,6 +50,39 @@ final class PageController extends Controller
             return $this->render('public/contact.twig', $data);
         }
         return $this->render('public/page.twig', $data);
+    }
+
+    /**
+     * Signed draft preview: renders the latest revision regardless of status.
+     * The HMAC token is issued only inside the admin UI, so access control is
+     * the token itself — previews are noindex and never cached.
+     */
+    public function preview(): Response
+    {
+        $id = (int) $this->vars['id'];
+        $revision = $this->app->pdo()->prepare('SELECT * FROM content_revisions WHERE content_id = ? ORDER BY revision_number DESC LIMIT 1');
+        $revision->execute([$id]);
+        $revision = $revision->fetch();
+        $item = $this->app->pdo()->prepare('SELECT id, slug, title, content_type, status, working_state FROM content_items WHERE id = ?');
+        $item->execute([$id]);
+        $item = $item->fetch();
+        if ($revision === false || $item === false) {
+            throw new HttpError(404, 'This page is not available.');
+        }
+        $expected = \IEdify\Modules\CMS\Services\CmsService::previewToken($this->app->config->string('APP_KEY'), $id, (int) $revision['id']);
+        if (!hash_equals($expected, (string) $this->vars['token'])) {
+            throw new HttpError(404, 'This page is not available.');
+        }
+        $sections = json_decode($revision['sections'], true, 512, JSON_THROW_ON_ERROR);
+        $response = $this->render('public/page.twig', [
+            'page' => ['title' => $revision['title'] . ' (preview)', 'slug' => $item['slug'], 'content_type' => $item['content_type']],
+            'sections' => $sections,
+            'media' => $this->mediaUrls($sections),
+            'preview' => ['status' => $item['status'], 'state' => $item['working_state'], 'revision' => (int) $revision['revision_number']],
+        ]);
+        $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        $response->headers->set('Cache-Control', 'private, no-store');
+        return $response;
     }
 
     /**
@@ -67,11 +106,17 @@ final class PageController extends Controller
             return [];
         }
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $statement = $this->app->pdo()->prepare("SELECT id FROM media_assets WHERE id IN ({$placeholders}) AND classification = 'public_content' AND review_status = 'approved'");
+        $statement = $this->app->pdo()->prepare("SELECT id, width, height, mime, original_filename FROM media_assets WHERE id IN ({$placeholders}) AND classification = 'public_content' AND review_status = 'approved'");
         $statement->execute($ids);
         $media = [];
         foreach ($statement->fetchAll() as $row) {
-            $media[(int) $row['id']] = '/media/' . (int) $row['id'];
+            $media[(int) $row['id']] = [
+                'url' => '/media/' . (int) $row['id'],
+                'width' => (int) $row['width'],
+                'height' => (int) $row['height'],
+                'mime' => (string) $row['mime'],
+                'filename' => (string) $row['original_filename'],
+            ];
         }
         return $media;
     }

@@ -25,8 +25,17 @@ final readonly class DocumentStore
     {
     }
 
-    public function store(UploadedFile $file): int
+    /**
+     * @param string $classification private (owner-scoped) or public_content
+     *                               (served through /media after review)
+     * @param string $reviewStatus   approved for applicant uploads; public
+     *                               uploads should stay pending until reviewed
+     */
+    public function store(UploadedFile $file, string $classification = 'private', string $reviewStatus = 'approved'): int
     {
+        if (!in_array($classification, ['private', 'public_content'], true) || !in_array($reviewStatus, ['pending', 'approved'], true)) {
+            throw new \InvalidArgumentException('Unsupported media classification.');
+        }
         $size = $file->getSize();
         if (!$file->isValid() || $size === false || $size > self::MAX_BYTES || $size === 0) {
             throw new HttpError(422, 'Upload a file up to 10 MB.');
@@ -40,8 +49,8 @@ final readonly class DocumentStore
             throw new HttpError(422, 'The upload could not be read.');
         }
         $hash = hash('sha256', $contents);
-        $statement = $this->pdo->prepare("SELECT id FROM media_assets WHERE sha256 = ? AND classification = 'private'");
-        $statement->execute([$hash]);
+        $statement = $this->pdo->prepare('SELECT id FROM media_assets WHERE sha256 = ? AND classification = ?');
+        $statement->execute([$hash, $classification]);
         $existing = $statement->fetchColumn();
         if ($existing !== false) {
             return (int) $existing;
@@ -54,9 +63,18 @@ final readonly class DocumentStore
             throw new HttpError(500, 'The document could not be stored.');
         }
         $original = mb_substr(preg_replace('/[^\x20-\x7E]/', '_', (string) $file->getClientOriginalName()), 0, 255);
+        $width = null;
+        $height = null;
+        if (str_starts_with($mime, 'image/')) {
+            $size = getimagesizefromstring($contents);
+            if ($size !== false) {
+                $width = $size[0];
+                $height = $size[1];
+            }
+        }
         try {
-            $this->pdo->prepare("INSERT INTO media_assets (sha256, storage_path, original_filename, mime, alt_text, classification, review_status, created_at) VALUES (?, ?, ?, ?, '', 'private', 'approved', UTC_TIMESTAMP(6))")
-                ->execute([$hash, $filename, $original !== '' ? $original : 'document.' . self::ALLOWED_MIME[$mime], $mime]);
+            $this->pdo->prepare("INSERT INTO media_assets (sha256, storage_path, original_filename, mime, width, height, alt_text, classification, review_status, created_at) VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, UTC_TIMESTAMP(6))")
+                ->execute([$hash, $filename, $original !== '' ? $original : 'document.' . self::ALLOWED_MIME[$mime], $mime, $width, $height, $classification, $reviewStatus]);
         } catch (\PDOException $error) {
             // The same bytes may already exist under another classification.
             $statement = $this->pdo->prepare('SELECT id FROM media_assets WHERE sha256 = ?');

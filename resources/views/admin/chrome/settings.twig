@@ -1,0 +1,17 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Site settings | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Site settings</h1>
+<p><small>Contact details and social links shown in the site footer. Secrets and provider credentials are never editable here — they live in server environment configuration only.</small></p>
+<form method="post" action="/admin/settings" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Contact email<input type="email" name="settings[contact_email]" value="{{ settings.contact_email }}" maxlength="254"></label>
+    <label>Contact phone<input type="text" name="settings[contact_phone]" value="{{ settings.contact_phone }}" maxlength="120"></label>
+    <label>Contact address<input type="text" name="settings[contact_address]" value="{{ settings.contact_address }}" maxlength="500"></label>
+    <label>Twitter / X URL<input type="url" name="settings[social_twitter]" value="{{ settings.social_twitter }}" maxlength="500"></label>
+    <label>LinkedIn URL<input type="url" name="settings[social_linkedin]" value="{{ settings.social_linkedin }}" maxlength="500"></label>
+    <label>Facebook URL<input type="url" name="settings[social_facebook]" value="{{ settings.social_facebook }}" maxlength="500"></label>
+    <label>Instagram URL<input type="url" name="settings[social_instagram]" value="{{ settings.social_instagram }}" maxlength="500"></label>
+    <button type="submit" class="button-primary">Save settings</button>
+</form>
+{% endblock %}

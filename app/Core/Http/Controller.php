@@ -45,20 +45,44 @@ abstract class Controller
         } catch (\Throwable) {
             $logo = null;
         }
+        $defaultsNav = [
+            ['/', 'Home'],
+            ['/about', 'About'],
+            ['/programs', 'Programs'],
+            ['/community', 'Community'],
+            ['/team', 'Team'],
+            ['/impact', 'Impact'],
+            ['/publications', 'Publications'],
+            ['/contact', 'Contact'],
+        ];
+        try {
+            $service = new \IEdify\Modules\CMS\Services\SiteChromeService($this->app->pdo());
+            $settings = $service->settings();
+            $mainNav = $service->navigation('main');
+            $footerNav = $service->navigation('footer');
+        } catch (\Throwable) {
+            $settings = [];
+            $mainNav = [];
+            $footerNav = [];
+        }
+        $socialLabels = ['social_twitter' => 'Twitter / X', 'social_linkedin' => 'LinkedIn', 'social_facebook' => 'Facebook', 'social_instagram' => 'Instagram'];
+        $social = [];
+        foreach ($socialLabels as $key => $label) {
+            $url = (string) ($settings[$key] ?? '');
+            if ($url !== '') {
+                $social[] = [$label, $url];
+            }
+        }
         return [
             'logo_url' => $logo,
-            'nav' => [
-                ['/', 'Home'],
-                ['/about', 'About'],
-                ['/programs', 'Programs'],
-                ['/community', 'Community'],
-                ['/team', 'Team'],
-                ['/impact', 'Impact'],
-                ['/publications', 'Publications'],
-                ['/contact', 'Contact'],
+            'nav' => $mainNav !== [] ? array_map(fn (array $item): array => [$item[1], $item[0]], $mainNav) : $defaultsNav,
+            'footer_nav' => array_map(fn (array $item): array => [$item[1], $item[0]], $footerNav),
+            'contact' => [
+                'email' => $settings['contact_email'] ?? 'info@iedifyafrica.org',
+                'phone' => $settings['contact_phone'] ?? '+233 (0) 20 956 6403',
+                'address' => $settings['contact_address'] ?? 'EB873 Dewberries Street, Oyibi, Greater Accra GK-0842-9404',
             ],
-            'contact' => ['email' => 'info@iedifyafrica.org', 'phone' => '+233 (0) 20 956 6403', 'address' => 'EB873 Dewberries Street, Oyibi, Greater Accra GK-0842-9404'],
-            'social' => [
+            'social' => $social !== [] ? $social : [
                 ['Twitter / X', 'https://twitter.com/iedifyafrica'],
                 ['LinkedIn', 'https://linkedin.com/company/iedify-africa'],
                 ['Facebook', 'https://facebook.com/iedifyafrica'],

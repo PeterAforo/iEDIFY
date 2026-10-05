@@ -1,8 +1,19 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}Impact | iEDIFY Africa{% endblock %}
+{% block extra_head %}<script type="module" src="{{ asset('resources/assets/scripts/charts.js') }}"></script>{% endblock %}
 {% block content %}
 <div class="container">
 <h1>Impact</h1>
+{% if charts %}
+<div class="impact-charts">
+    {% for chart in charts %}
+    <figure class="chart-panel">
+        <figcaption>Published actuals vs targets ({{ chart.unit }})</figcaption>
+        <canvas data-chart="{{ chart.config|json_encode|e('html_attr') }}" role="img" aria-label="Bar chart of published actuals versus targets; the data table below contains the same figures."></canvas>
+    </figure>
+    {% endfor %}
+</div>
+{% endif %}
 <p>Verified, published results alongside their targets. Figures below are actuals — targets are shown separately and proposed figures are never presented as achieved results.</p>
 <table class="admin-table">
     <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Actual</th><th scope="col">Target</th></tr></thead>
@@ -20,6 +31,24 @@
         {% endfor %}
     </tbody>
 </table>
+{% if breakdown.rows or breakdown.suppressed %}
+<h2>Breakdowns</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Group</th><th scope="col">Actual</th></tr></thead>
+    <tbody>
+        {% for row in breakdown.rows %}
+        <tr>
+            <td>{{ row.name }} ({{ row.code }})</td>
+            <td>{{ row.period }}</td>
+            <td>{{ row.geography|default('All') }}</td>
+            <td>{% for key, val in row.disaggregation %}{{ key }}: {{ val }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+            <td>{{ row.value }} {{ row.unit }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% if breakdown.suppressed %}<p class="suppression-note">{{ breakdown.suppressed }} subgroup{{ breakdown.suppressed == 1 ? '' : 's' }} withheld: groups smaller than {{ threshold }} respondents are suppressed to protect privacy.</p>{% endif %}
+{% endif %}
 <h2>Published reports</h2>
 <ul>
     {% for report in reports %}

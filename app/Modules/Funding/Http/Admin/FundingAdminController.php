@@ -58,6 +58,21 @@ final class FundingAdminController extends Controller
         return $this->versioned('funding.rounds.' . (int) $this->vars['id'], '/admin/funding/rounds/' . (int) $this->vars['id'], fn () => $this->app->funding()->setRoundStatus($this->requireActor(), (int) $this->vars['id'], (string) $this->request->request->get('status', ''), (int) $this->request->request->get('version', 0)));
     }
 
+    public function setForm(): Response
+    {
+        $roundId = (int) $this->vars['id'];
+        try {
+            $fields = json_decode((string) $this->request->request->get('fields', ''), true, 512, JSON_THROW_ON_ERROR);
+            $this->app->funding()->setRoundForm($this->requireActor(), $roundId, $fields);
+            $this->flash('success', 'Request form saved.');
+        } catch (\JsonException) {
+            $this->flash('error', 'Fields must be valid JSON.');
+        } catch (HttpError|\InvalidArgumentException $error) {
+            $this->flash('error', $error->getMessage());
+        }
+        return $this->redirect('/admin/funding/rounds/' . $roundId);
+    }
+
     public function createRules(): Response
     {
         $roundId = (int) $this->vars['id'];

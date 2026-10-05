@@ -29,6 +29,15 @@
     </ul>
     <h2>Security</h2>
     <p><a href="/account/security">Manage multi-factor authentication</a></p>
+    <h2>Your data</h2>
+    <p>Request a copy of your personal data or ask for your account to be deleted. Requests are reviewed by the team; audit and financial records are retained as required.</p>
+    <div class="action-row">
+        <form method="post" action="/account/data-request">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <button type="submit" name="type" value="export" class="button-secondary">Request data export</button>
+            <button type="submit" name="type" value="deletion" class="button-secondary">Request account deletion</button>
+        </form>
+    </div>
     {% if actor.privileged %}<p><a href="/admin">Go to the administration area</a></p>{% endif %}
 </section>
 {% endblock %}

@@ -17,6 +17,12 @@ final readonly class CmsService
     {
     }
 
+    /** HMAC-signed preview token for a specific revision of a content item. */
+    public static function previewToken(string $appKey, int $contentId, int $revisionId): string
+    {
+        return hash_hmac('sha256', "preview.{$contentId}.{$revisionId}", $appKey);
+    }
+
     public function create(Actor $actor, string $type, string $slug, string $title, array $sections): int
     {
         $this->authorize($actor, 'cms.edit');
@@ -55,6 +61,25 @@ final readonly class CmsService
         });
     }
 
+    /** Publication metadata: optional category (≤60 chars) and year on the item itself. */
+    public function updateMeta(Actor $actor, int $id, int $expectedVersion, ?string $category, ?string $year): void
+    {
+        $this->authorize($actor, 'cms.edit');
+        $category = $category !== null && trim($category) !== '' ? mb_substr(trim($category), 0, 60) : null;
+        $yearValue = null;
+        if ($year !== null && trim($year) !== '') {
+            $yearValue = filter_var(trim($year), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1900, 'max_range' => 2200]]);
+            if ($yearValue === false) {
+                throw new \InvalidArgumentException('Year must be between 1900 and 2200.');
+            }
+        }
+        (new Transaction($this->pdo))->run(function () use ($actor, $id, $expectedVersion, $category, $yearValue): void {
+            $this->locked($id, $expectedVersion);
+            $this->execute('UPDATE content_items SET category = ?, pub_year = ?, version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?', [$category, $yearValue, $id]);
+            $this->audit($actor, 'cms.meta_updated', $id, $expectedVersion + 1);
+        });
+    }
+
     public function submitReview(Actor $actor, int $id, int $expectedVersion): void
     {
         $this->authorize($actor, 'cms.edit');
@@ -83,10 +108,50 @@ final readonly class CmsService
                 throw new HttpError(409, 'Source editorial and policy flags must be resolved before publication.');
             }
             $this->validateMedia(json_decode($revision['sections'], true, 512, JSON_THROW_ON_ERROR));
-            $this->execute("UPDATE content_items SET published_revision_id = ?, title = ?, status = 'published', working_state = 'approved', version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?", [$revision['id'], $revision['title'], $id]);
+            $this->execute("UPDATE content_items SET published_revision_id = ?, title = ?, status = 'published', working_state = 'approved', publish_at = NULL, version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?", [$revision['id'], $revision['title'], $id]);
             $this->execute('INSERT INTO publication_events (content_id, revision_id, actor_id, action, created_at) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(6))', [$id, $revision['id'], $actor->id, 'published']);
             $this->audit($actor, 'cms.published', $id, $expectedVersion + 1);
         });
+    }
+
+    /** Schedule (or clear) publication of an item already in review. */
+    public function schedule(Actor $actor, int $id, int $expectedVersion, ?string $publishAt): void
+    {
+        $this->authorize($actor, 'cms.edit');
+        if ($publishAt !== null && (!preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/', $publishAt) || strtotime(str_replace('T', ' ', $publishAt)) === false)) {
+            throw new \InvalidArgumentException('Schedule must be a valid date and time.');
+        }
+        (new Transaction($this->pdo))->run(function () use ($actor, $id, $expectedVersion, $publishAt): void {
+            $record = $this->locked($id, $expectedVersion);
+            if ($record['working_state'] !== 'review') {
+                throw new HttpError(409, 'Only items in review can be scheduled.');
+            }
+            $this->execute('UPDATE content_items SET publish_at = ?, scheduled_by = ?, version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?', [$publishAt !== null ? str_replace('T', ' ', $publishAt) . (strlen($publishAt) === 16 ? ':00' : '') : null, $actor->id, $id]);
+            $this->audit($actor, 'cms.scheduled', $id, $expectedVersion + 1);
+        });
+    }
+
+    /**
+     * Cron entry point: publish items whose schedule is due. Runs the same
+     * publish path as a publisher — flag/media gates still apply, so a
+     * blocked item stays in review and is logged rather than forced live.
+     */
+    public function publishDueSchedules(): int
+    {
+        $due = $this->pdo->query("SELECT id, version, scheduled_by FROM content_items WHERE working_state = 'review' AND publish_at IS NOT NULL AND publish_at <= UTC_TIMESTAMP(6) AND status != 'archived'")->fetchAll();
+        $published = 0;
+        foreach ($due as $item) {
+            try {
+                $latest = $this->pdo->prepare('SELECT COALESCE(MAX(revision_number), 0) FROM content_revisions WHERE content_id = ?');
+                $latest->execute([$item['id']]);
+                $actor = new Actor((int) $item['scheduled_by'], ['cms.publish', 'cms.edit'], true, true, true);
+                $this->publish($actor, (int) $item['id'], (int) $latest->fetchColumn(), (int) $item['version']);
+                $published++;
+            } catch (HttpError) {
+                // Flag-gated or changed items stay queued for the next run.
+            }
+        }
+        return $published;
     }
 
     public function restore(Actor $actor, int $id, int $revisionNumber, int $expectedVersion): void

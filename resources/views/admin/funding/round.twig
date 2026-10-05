@@ -34,6 +34,12 @@
     <label>Max score per criterion<input type="number" name="max_score" min="1" max="10" value="5"></label>
     <button type="submit" class="button-secondary">Save rule version</button>
 </form>
+<h2>Custom request form</h2>
+<form method="post" action="/admin/funding/rounds/{{ round.id }}/form" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Fields (JSON array of {key, label, type, required, options, help}; types: text, number, date, select, checkbox, document)<textarea name="fields" rows="6" placeholder='[{"key":"stage","label":"Venture stage","type":"select","required":true,"options":["idea","early","growth"]}]'>{{ round.form_schema }}</textarea></label>
+    <button type="submit" class="button-secondary">Save request form</button>
+</form>
 <h2>Requests</h2>
 <table class="admin-table">
     <thead><tr><th scope="col">Request</th><th scope="col">Applicant</th><th scope="col">Amount</th><th scope="col">Status</th><th scope="col">Submitted</th></tr></thead>

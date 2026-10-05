@@ -28,6 +28,7 @@ final class Sections
             'heading', 'text' => ['type' => $type, 'text' => $this->text($block, 'text', $type === 'heading' ? 250 : 60000)],
             'rich_text' => ['type' => $type, 'html' => (new HtmlSanitizer((new HtmlSanitizerConfig())->allowSafeElements()))->sanitize($this->text($block, 'html', 60000))],
             'image' => ['type' => $type, 'media_id' => $this->mediaId($block), 'alt' => $this->text($block, 'alt', 500)],
+            'document' => ['type' => $type, 'media_id' => $this->mediaId($block), 'label' => $this->text($block, 'label', 200)],
             'quote' => ['type' => $type, 'text' => $this->text($block, 'text', 5000), 'attribution' => $this->text($block, 'attribution', 250)],
             'cta' => ['type' => $type, 'label' => $this->text($block, 'label', 100), 'url' => $this->url($this->text($block, 'url', 1000))],
             'statistic' => $this->statistic($block),

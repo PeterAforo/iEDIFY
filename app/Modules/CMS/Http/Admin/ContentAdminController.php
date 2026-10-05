@@ -53,6 +53,7 @@ final class ContentAdminController extends Controller
         return $this->render('admin/content/edit.twig', [
             'item' => $record,
             'latest' => $latest === false ? null : $latest,
+            'preview_url' => $latest !== false ? '/preview/' . (int) $record['id'] . '/' . \IEdify\Modules\CMS\Services\CmsService::previewToken($this->app->config->string('APP_KEY'), (int) $record['id'], (int) $latest['id']) : null,
             'flags' => $flags->fetchAll(),
             'can_publish' => $this->app->policy()->allows($this->actor(), 'cms.publish'),
             'can_review' => $this->app->policy()->allows($this->actor(), 'cms.review'),
@@ -73,6 +74,18 @@ final class ContentAdminController extends Controller
             return $this->redirect('/admin/content/' . (int) $record['id']);
         }
         $this->flash('success', 'Draft saved.');
+        return $this->redirect('/admin/content/' . (int) $record['id']);
+    }
+
+    public function saveMeta(): Response
+    {
+        $record = $this->record();
+        try {
+            $this->app->cms()->updateMeta($this->requireActor(), (int) $record['id'], (int) $this->request->request->get('version'), (string) $this->request->request->get('category', ''), (string) $this->request->request->get('pub_year', ''));
+            $this->flash('success', 'Metadata saved.');
+        } catch (HttpError|\InvalidArgumentException $error) {
+            $this->flash('error', $error->getMessage());
+        }
         return $this->redirect('/admin/content/' . (int) $record['id']);
     }
 
@@ -101,6 +114,19 @@ final class ContentAdminController extends Controller
             return $this->redirect('/admin/content/' . (int) $record['id']);
         }
         $this->flash('success', 'Published.');
+        return $this->redirect('/admin/content/' . (int) $record['id']);
+    }
+
+    public function schedule(): Response
+    {
+        $record = $this->record();
+        $at = trim((string) $this->request->request->get('publish_at', ''));
+        try {
+            $this->app->cms()->schedule($this->requireActor(), (int) $record['id'], (int) $this->request->request->get('version'), $at !== '' ? $at : null);
+            $this->flash('success', $at !== '' ? 'Publication scheduled.' : 'Schedule cleared.');
+        } catch (HttpError|\InvalidArgumentException $error) {
+            $this->flash('error', $error->getMessage());
+        }
         return $this->redirect('/admin/content/' . (int) $record['id']);
     }
 

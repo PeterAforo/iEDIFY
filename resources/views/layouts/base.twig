@@ -12,6 +12,7 @@
     <title>{% block title %}iEDIFY Africa{% endblock %}</title>
     {% for stylesheet in asset_styles('resources/assets/scripts/app.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
     <script type="module" src="{{ asset('resources/assets/scripts/app.js') }}"></script>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -65,9 +66,13 @@
             </div>
             <nav aria-label="Footer navigation">
                 <ul class="footer-links">
+                    {% if chrome.footer_nav %}
+                        {% for item in chrome.footer_nav %}<li><a href="{{ item[0] }}">{{ item[1] }}</a></li>{% endfor %}
+                    {% else %}
                     <li><a href="/legal/privacy">Privacy</a></li>
                     <li><a href="/legal/terms">Terms</a></li>
                     <li><a href="/legal/cookies">Cookies</a></li>
+                    {% endif %}
                 </ul>
             </nav>
             <div>

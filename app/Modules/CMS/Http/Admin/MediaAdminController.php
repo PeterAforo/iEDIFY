@@ -8,6 +8,7 @@ use IEdify\Core\Audit\AuditLog;
 use IEdify\Core\Database\Transaction;
 use IEdify\Core\Http\Controller;
 use IEdify\Core\Http\HttpError;
+use IEdify\Modules\Programs\Services\DocumentStore;
 use Symfony\Component\HttpFoundation\Response;
 
 final class MediaAdminController extends Controller
@@ -25,6 +26,24 @@ final class MediaAdminController extends Controller
         $statement = $this->app->pdo()->prepare($sql);
         $statement->execute($params);
         return $this->render('admin/media/index.twig', ['assets' => $statement->fetchAll(), 'status' => $status]);
+    }
+
+    /** Public-content uploads enter the review queue; nothing serves until approved. */
+    public function upload(): Response
+    {
+        $file = $this->request->files->get('document');
+        if ($file === null) {
+            throw new HttpError(422, 'Choose a file to upload.');
+        }
+        $alt = mb_substr(trim((string) $this->request->request->get('alt_text', '')), 0, 500);
+        $store = new DocumentStore($this->app->pdo(), $this->app->config->string('CONTENT_STORAGE', $this->app->root . '/storage/private/content'));
+        $mediaId = $store->store($file, 'public_content', 'pending');
+        if ($alt !== '') {
+            $this->app->pdo()->prepare('UPDATE media_assets SET alt_text = ? WHERE id = ?')->execute([$alt, $mediaId]);
+        }
+        (new AuditLog($this->app->pdo()))->record($this->requireActor()->id, 'media.uploaded', 'media', (string) $mediaId);
+        $this->flash('success', 'Uploaded for review — it will not be served until approved.');
+        return $this->redirect('/admin/media');
     }
 
     public function review(): Response

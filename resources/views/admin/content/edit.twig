@@ -24,10 +24,25 @@
     <div class="field">
         <label for="sections">Sections (JSON)</label>
         <textarea id="sections" name="sections" rows="24" required>{{ latest ? latest.sections|json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES')) : '[]' }}</textarea>
-        <p class="field-hint">Blocks: heading, text, rich_text, image, quote, cta, statistic, cards, gallery, accordion, timeline.</p>
+        <p class="field-hint">Blocks: heading, text, rich_text, image, document, quote, cta, statistic, cards, gallery, accordion, timeline.</p>
     </div>
     <button type="submit" class="button-primary">Save draft</button>
 </form>
+{% if item.content_type == 'publication' %}
+<form method="post" action="/admin/content/{{ item.id }}/meta" class="editor-form meta-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <input type="hidden" name="version" value="{{ item.version }}">
+    <div class="field">
+        <label for="category">Publication category</label>
+        <input id="category" name="category" type="text" maxlength="60" value="{{ item.category }}" placeholder="e.g. Annual report, Research, Toolkit">
+    </div>
+    <div class="field">
+        <label for="pub_year">Publication year</label>
+        <input id="pub_year" name="pub_year" type="number" min="1900" max="2200" value="{{ item.pub_year }}">
+    </div>
+    <button type="submit" class="button-secondary">Save metadata</button>
+</form>
+{% endif %}
 <div class="action-row">
     <form method="post" action="/admin/content/{{ item.id }}/submit-review">
         <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
@@ -41,6 +56,13 @@
         <button type="submit" class="button-primary"{% if item.working_state != 'review' %} disabled{% endif %}>Publish current revision</button>
     </form>
     {% endif %}
-    <p><a href="/admin/content/{{ item.id }}/revisions">Revision history</a></p>
+    <form method="post" action="/admin/content/{{ item.id }}/schedule" class="inline-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <input type="hidden" name="version" value="{{ item.version }}">
+        <label>Publish at (UTC) <input type="datetime-local" name="publish_at" value="{{ item.publish_at ? item.publish_at|date('Y-m-d\\TH:i') : '' }}"></label>
+        <button type="submit" class="button-secondary"{% if item.working_state != 'review' %} disabled{% endif %}>{% if item.publish_at %}Update schedule{% else %}Schedule{% endif %}</button>
+        {% if item.publish_at %}<small>Scheduled for {{ item.publish_at }} UTC</small>{% endif %}
+    </form>
+    <p><a href="/admin/content/{{ item.id }}/revisions">Revision history</a>{% if preview_url %} · <a href="{{ preview_url }}" target="_blank" rel="noopener">Preview latest draft</a>{% endif %}</p>
 </div>
 {% endblock %}

@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     outDir: 'public/build',
     manifest: true,
-    rollupOptions: { input: 'resources/assets/scripts/app.js' },
+    rollupOptions: { input: { app: 'resources/assets/scripts/app.js', charts: 'resources/assets/scripts/charts.js' } },
   },
   css: { preprocessorOptions: { scss: { silenceDeprecations: ['import', 'global-builtin', 'color-functions'] } } },
 });

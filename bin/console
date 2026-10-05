@@ -149,6 +149,36 @@ $app->add((new Command('outbox:run'))
         $output->writeln('Processed ' . $stats['processed'] . ', failed ' . $stats['failed'] . '.');
         return $stats['failed'] > 0 ? Command::FAILURE : Command::SUCCESS;
     }));
+$app->add((new Command('content:publish-scheduled'))
+    ->setDescription('Publish content items whose scheduled publish_at time is due (flag/media gates still apply)')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        $service = new IEdify\Modules\CMS\Services\CmsService(Connection::open($config));
+        $count = $service->publishDueSchedules();
+        $output->writeln('Published ' . $count . ' scheduled item(s).');
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('retention:purge'))
+    ->setDescription('Apply data-retention policy: purge expired sessions, tokens, rate-limit buckets, old completed outbox events and read notifications')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        $pdo = Connection::open($config);
+        $outboxDays = max(7, $config->integer('RETENTION_OUTBOX_DAYS', 30));
+        $notificationDays = max(7, $config->integer('RETENTION_NOTIFICATION_DAYS', 90));
+        $results = [
+            'sessions' => $pdo->exec('DELETE FROM sessions WHERE expires_at < UNIX_TIMESTAMP()'),
+            'rate_limits' => $pdo->exec('DELETE FROM rate_limit_buckets WHERE expires_at < UTC_TIMESTAMP(6)'),
+            'auth_tokens' => $pdo->exec('DELETE FROM auth_tokens WHERE consumed_at IS NOT NULL AND consumed_at < UTC_TIMESTAMP(6) - INTERVAL 7 DAY'),
+            'outbox' => $pdo->exec("DELETE FROM outbox_events WHERE status = 'completed' AND processed_at < UTC_TIMESTAMP(6) - INTERVAL {$outboxDays} DAY"),
+            'notifications' => $pdo->exec("DELETE FROM notifications WHERE read_at IS NOT NULL AND read_at < UTC_TIMESTAMP(6) - INTERVAL {$notificationDays} DAY"),
+        ];
+        foreach ($results as $scope => $count) {
+            $output->writeln(sprintf('%s: %d row(s) purged', $scope, (int) $count));
+        }
+        return Command::SUCCESS;
+    }));
 $app->add((new Command('backup:create'))
     ->setDescription('Dump the whole database to a gzipped JSON-lines archive under storage/private/backups')
     ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
@@ -203,6 +233,56 @@ $app->add((new Command('local:seal'))
             throw new RuntimeException('Could not remove the generated one-use bootstrap file.');
         }
         $output->writeln('Local bootstrap sealed. Restart MySQL without --init-file.');
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('newsletter:queue'))
+    ->setDescription('Queue a newsletter broadcast to confirmed subscribers in bounded batches')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->addOption('subject', null, InputOption::VALUE_REQUIRED, 'Email subject')
+    ->addOption('body-file', null, InputOption::VALUE_REQUIRED, 'Path to a UTF-8 text file with the message body')
+    ->addOption('broadcast', null, InputOption::VALUE_REQUIRED, 'Existing broadcast id to continue queueing (re-run to drain the list)')
+    ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Subscribers per run', '200')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        $pdo = Connection::open($config);
+        $service = new IEdify\Modules\Engagement\Services\NewsletterService($pdo, new IEdify\Core\Security\SecretBox($config->string('APP_KEY')));
+        $operator = new IEdify\Core\Security\Actor(0, ['operations.manage'], true, true, true);
+        $broadcast = $input->getOption('broadcast');
+        if ($broadcast !== null) {
+            $queued = $service->queueBroadcastBatch($operator, (int) $broadcast, (int) $input->getOption('limit'));
+            $output->writeln("Queued {$queued} more message(s) for broadcast {$broadcast}.");
+            return Command::SUCCESS;
+        }
+        $bodyFile = $input->getOption('body-file');
+        $body = is_string($bodyFile) && is_file($bodyFile) ? file_get_contents($bodyFile) : false;
+        if ($body === false || !is_string($input->getOption('subject'))) {
+            $output->writeln('Provide --subject and --body-file.');
+            return Command::FAILURE;
+        }
+        $result = $service->queueBroadcast($operator, (string) $input->getOption('subject'), $body, (int) $input->getOption('limit'));
+        $output->writeln("Broadcast {$result['id']} queued for {$result['queued']} subscriber(s). Re-run with --broadcast={$result['id']} until it reports 0.");
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('newsletter:test-send'))
+    ->setDescription('Send a newsletter broadcast preview to a single address through the configured transport')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->addOption('to', null, InputOption::VALUE_REQUIRED, 'Test recipient address')
+    ->addOption('subject', null, InputOption::VALUE_REQUIRED, 'Email subject')
+    ->addOption('body-file', null, InputOption::VALUE_REQUIRED, 'Path to a UTF-8 text file with the message body')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        $to = $input->getOption('to');
+        $bodyFile = $input->getOption('body-file');
+        $body = is_string($bodyFile) && is_file($bodyFile) ? file_get_contents($bodyFile) : false;
+        if (!is_string($to) || !filter_var($to, FILTER_VALIDATE_EMAIL) || $body === false || !is_string($input->getOption('subject'))) {
+            $output->writeln('Provide a valid --to, --subject and --body-file.');
+            return Command::FAILURE;
+        }
+        (new IEdify\Core\Mail\Mailer($config, $root))->send($to, '[TEST] ' . (string) $input->getOption('subject'), 'newsletter-broadcast', [
+            'body' => $body,
+            'unsubscribe_url' => '#test-send-no-token',
+        ]);
+        $output->writeln('Test send handed to the configured transport (' . $config->string('MAIL_TRANSPORT', 'capture') . ').');
         return Command::SUCCESS;
     }));
 exit($app->run());
