@@ -1,0 +1,70 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Apply — {{ intake.name }} | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>{{ intake.name }}</h1>
+    <p class="auth-lead">Status: <strong>{{ application.status|replace({'_': ' '}) }}</strong>{% if application.status in ['submitted','screening','under_review','shortlisted','waitlisted','accepted','enrolled','rejected','withdrawn'] %} — submitted {{ application.submitted_at|date('j M Y') }}{% endif %}</p>
+    {% if application.status in ['draft','request_info'] %}
+    <form method="post" action="/apply/{{ application.intake_id }}" class="editor-form" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        {% for field in fields %}
+        {% if field.type != 'document' %}
+        <div class="field">
+            <label for="f-{{ field.key }}">{{ field.label }}{% if field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
+            {% if field.type == 'select' %}
+            <select id="f-{{ field.key }}" name="answers[{{ field.key }}]"{% if field.required %} required{% endif %}>
+                <option value="">Choose…</option>
+                {% for option in field.options %}<option value="{{ option }}"{% if answers[field.key]|default('') == option %} selected{% endif %}>{{ option }}</option>{% endfor %}
+            </select>
+            {% elseif field.type == 'checkbox' %}
+            <input id="f-{{ field.key }}" name="answers[{{ field.key }}]" type="checkbox" value="1"{% if answers[field.key]|default(false) %} checked{% endif %}{% if field.required %} required{% endif %}>
+            {% else %}
+            <input id="f-{{ field.key }}" name="answers[{{ field.key }}]" type="{{ field.type }}"{% if field.required %} required{% endif %} value="{{ answers[field.key]|default('') }}">
+            {% endif %}
+            {% if field.help %}<p class="field-hint">{{ field.help }}</p>{% endif %}
+        </div>
+        {% endif %}
+        {% endfor %}
+        <button type="submit" class="button-secondary">Save draft</button>
+    </form>
+    {% for field in fields %}
+    {% if field.type == 'document' %}
+    <form method="post" action="/applications/{{ application.id }}/documents/{{ field.key }}" enctype="multipart/form-data" class="editor-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <div class="field">
+            <label for="doc-{{ field.key }}">{{ field.label }}{% if field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
+            <input id="doc-{{ field.key }}" name="document" type="file" accept=".pdf,.png,.jpg,.jpeg" required>
+            {% if documents[field.key]|default(null) %}<p class="field-hint">Uploaded: <a href="/media/{{ documents[field.key] }}">view document</a></p>{% endif %}
+            {% if field.help %}<p class="field-hint">{{ field.help }}</p>{% endif %}
+        </div>
+        <button type="submit" class="button-secondary">Upload</button>
+    </form>
+    {% endif %}
+    {% endfor %}
+    <div class="action-row">
+        {% if application.status == 'draft' %}
+        <form method="post" action="/applications/{{ application.id }}/submit">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <button type="submit" class="button-primary">Submit application</button>
+        </form>
+        {% else %}
+        <form method="post" action="/applications/{{ application.id }}/respond" class="editor-form">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <button type="submit" class="button-primary">Send response</button>
+        </form>
+        <p class="field-hint">Save your answers above first, then send your response.</p>
+        {% endif %}
+        <form method="post" action="/applications/{{ application.id }}/withdraw">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <button type="submit" class="button-secondary">Withdraw application</button>
+        </form>
+    </div>
+    {% else %}
+    <dl class="detail-list">
+        {% for field in fields %}
+        <div class="detail-row"><dt>{{ field.label }}</dt><dd>{% if field.type == 'document' %}{% if documents[field.key]|default(null) %}<a href="/media/{{ documents[field.key] }}">View uploaded document</a>{% else %}—{% endif %}{% elseif field.type == 'checkbox' %}{{ answers[field.key]|default(false) ? 'Yes' : 'No' }}{% else %}{{ answers[field.key]|default('—') }}{% endif %}</dd></div>
+        {% endfor %}
+    </dl>
+    {% endif %}
+</section>
+{% endblock %}

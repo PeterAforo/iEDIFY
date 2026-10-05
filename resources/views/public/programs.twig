@@ -1,0 +1,25 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Programs | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container public-page">
+    <h1>Programs</h1>
+    <p class="page-lead">Current iEDIFY Africa programs and open application intakes.</p>
+    <div class="card-grid">
+        {% for program in programs %}
+        <article class="card">
+            <h2><a href="/programs/{{ program.slug }}">{{ program.title }}</a></h2>
+            <p>{{ program.summary }}</p>
+            <p><strong>Eligibility:</strong> {{ program.eligibility_summary }}</p>
+            {% if program.intake_id %}
+            <p class="intake-open">Applications open: {{ program.intake_name }} · closes {{ program.closes_at|date('j M Y') }}{% if program.seats %} · {{ program.seats }} places{% endif %}</p>
+            <p><a class="button-primary" href="/apply/{{ program.intake_id }}">Apply to {{ program.intake_name }}</a></p>
+            {% else %}
+            <p class="intake-closed">No intake is accepting applications right now.</p>
+            {% endif %}
+        </article>
+        {% else %}
+        <p>No programs are open at the moment. Check back soon or <a href="/contact">contact the team</a>.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

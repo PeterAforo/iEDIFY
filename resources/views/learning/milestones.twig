@@ -1,0 +1,46 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Milestones | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Milestones</h1>
+    <table class="admin-table">
+        <thead><tr><th scope="col">Title</th><th scope="col">Startup</th><th scope="col">Due</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+        <tbody>
+            {% for milestone in milestones %}
+            <tr>
+                <td>{{ milestone.title }}</td>
+                <td>{{ milestone.startup_name ?? '—' }}</td>
+                <td>{{ milestone.due_on|date('j M Y') }}</td>
+                <td>{{ milestone.status|replace({'_': ' '}) }}</td>
+                <td>
+                    {% if milestone.status in ['pending', 'in_progress', 'changes_requested'] %}
+                    <details>
+                        <summary>Submit evidence</summary>
+                        <form method="post" action="/milestones/{{ milestone.id }}/evidence">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <input type="hidden" name="version" value="{{ milestone.version }}">
+                            <label>Evidence<textarea name="evidence" required maxlength="4000"></textarea></label>
+                            <button type="submit" class="button-secondary">Submit for review</button>
+                        </form>
+                    </details>
+                    {% elseif milestone.evidence %}
+                    <p>{{ milestone.evidence }}</p>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">No milestones yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>New milestone</h2>
+    <form method="post" action="/milestones" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <label>Title<input type="text" name="title" required maxlength="255"></label>
+        <label>Description<textarea name="description" maxlength="4000"></textarea></label>
+        <label>Due date<input type="date" name="due_on" required></label>
+        <button type="submit" class="button-secondary">Create milestone</button>
+    </form>
+    <p><a href="/account">Back to account</a></p>
+</section>
+{% endblock %}

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'super_administrator' => ['privileged' => true, 'permissions' => ['identity.manage', 'settings.manage', 'operations.manage', 'cms.edit', 'cms.review', 'cms.publish', 'cms.restore']],
+    'super_administrator' => ['privileged' => true, 'permissions' => ['identity.manage', 'settings.manage', 'operations.manage', 'cms.edit', 'cms.review', 'cms.publish', 'cms.restore', 'media.manage', 'program.manage', 'application.decide', 'application.review', 'cohort.manage', 'learning.manage', 'mentoring.coordinate', 'community.moderate']],
     'content_editor' => ['privileged' => true, 'permissions' => ['cms.edit', 'media.manage']],
     'content_publisher' => ['privileged' => true, 'permissions' => ['cms.edit', 'cms.review', 'cms.publish', 'cms.restore', 'media.manage']],
     'program_manager' => ['privileged' => true, 'permissions' => ['program.manage', 'application.decide', 'cohort.manage']],

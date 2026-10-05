@@ -1,0 +1,25 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Notifications | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Notifications</h1>
+    <ul class="notification-list">
+        {% for notification in notifications %}
+        <li class="notification{% if not notification.read_at %} notification-unread{% endif %}">
+            <a href="{{ notification.target_path }}">{{ notification.title }}</a>
+            <span class="field-hint">{{ notification.type }} · {{ notification.created_at }}</span>
+            {% if not notification.read_at %}
+            <form method="post" action="/account/notifications/read" class="inline-form">
+                <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                <input type="hidden" name="id" value="{{ notification.id }}">
+                <button type="submit" class="button-secondary">Mark read</button>
+            </form>
+            {% endif %}
+        </li>
+        {% else %}
+        <li>No notifications yet.</li>
+        {% endfor %}
+    </ul>
+    <p><a href="/account">Back to account</a></p>
+</section>
+{% endblock %}

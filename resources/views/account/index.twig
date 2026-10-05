@@ -18,6 +18,15 @@
         <dt>Email</dt><dd>{{ user.email }}</dd>
         <dt>Member since</dt><dd>{{ user.created_at|date('j F Y', 'Africa/Accra') }}</dd>
     </dl>
+    <h2>Your activity</h2>
+    <ul>
+        <li><a href="/account/applications">My applications</a></li>
+        <li><a href="/learn">My learning</a></li>
+        <li><a href="/account/mentoring">Mentoring</a></li>
+        <li><a href="/account/milestones">Milestones</a></li>
+        <li><a href="/community">Community</a></li>
+        <li><a href="/account/notifications">Notifications</a></li>
+    </ul>
     <h2>Security</h2>
     <p><a href="/account/security">Manage multi-factor authentication</a></p>
     {% if actor.privileged %}<p><a href="/admin">Go to the administration area</a></p>{% endif %}

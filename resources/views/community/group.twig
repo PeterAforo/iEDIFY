@@ -1,0 +1,53 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}{{ group.name }} | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>{{ group.name }}</h1>
+    <p>{{ group.visibility }} group{% if group.sector %} — {{ group.sector }}{% endif %}</p>
+    {% if group.description %}<p>{{ group.description }}</p>{% endif %}
+    {% if membership is null %}
+    <form method="post" action="/community/groups/{{ group.id }}/join">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <button type="submit" class="button-primary">{% if group.visibility == 'private' %}Request membership{% else %}Join group{% endif %}</button>
+    </form>
+    {% elseif membership.status == 'pending' %}
+    <p>Your membership request is awaiting moderator review.</p>
+    {% endif %}
+    {% if pending %}
+    <h2>Pending requests</h2>
+    <ul>
+        {% for request in pending %}
+        <li>
+            {{ request.name }}
+            <form method="post" action="/community/groups/{{ group.id }}/members/{{ request.user_id }}" class="inline-form">
+                <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                <button type="submit" name="decision" value="approve" class="button-secondary">Approve</button>
+                <button type="submit" name="decision" value="reject" class="button-secondary">Reject</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <h2>Posts</h2>
+    <ul class="card-list">
+        {% for post in posts %}
+        <li>
+            <h3><a href="/community/posts/{{ post.id }}">{{ post.title }}</a></h3>
+            <p>by {{ post.author ?? 'Member' }} — {{ post.created_at|date('j M Y') }}</p>
+        </li>
+        {% else %}
+        <li>No posts yet.</li>
+        {% endfor %}
+    </ul>
+    {% if membership and membership.status == 'active' %}
+    <h2>New post</h2>
+    <form method="post" action="/community/groups/{{ group.id }}/posts" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <label>Title<input type="text" name="title" required maxlength="255"></label>
+        <label>Body<textarea name="body" required maxlength="50000"></textarea></label>
+        <button type="submit" class="button-secondary">Post</button>
+    </form>
+    {% endif %}
+    <p><a href="/community">Back to community</a></p>
+</section>
+{% endblock %}

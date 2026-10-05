@@ -1,0 +1,111 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Mentoring | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Mentoring</h1>
+    <h2>Matches</h2>
+    <table class="admin-table">
+        <thead><tr><th scope="col">Mentor</th><th scope="col">Participant</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+        <tbody>
+            {% for match in matches %}
+            <tr>
+                <td>{{ match.mentor_name }}</td>
+                <td>{{ match.participant_name }}</td>
+                <td>{{ match.status }}</td>
+                <td>
+                    {% if match.status == 'proposed' and (match.mentor_id == actor.id or match.participant_id == actor.id) %}
+                    <form method="post" action="/mentoring/matches/{{ match.id }}/respond" class="inline-form">
+                        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                        <button type="submit" name="decision" value="accepted" class="button-secondary">Accept</button>
+                        <button type="submit" name="decision" value="declined" class="button-secondary">Decline</button>
+                    </form>
+                    {% endif %}
+                    {% if match.status == 'accepted' %}
+                    <details>
+                        <summary>Schedule session</summary>
+                        <form method="post" action="/mentoring/matches/{{ match.id }}/sessions">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <label>When (UTC)<input type="datetime-local" name="scheduled_at" required></label>
+                            <label>Minutes<input type="number" name="duration" min="15" max="480" value="60" required></label>
+                            <label>Agenda<input type="text" name="agenda" maxlength="500"></label>
+                            <label>Meeting link (https)<input type="url" name="meeting_link"></label>
+                            <button type="submit" class="button-secondary">Schedule</button>
+                        </form>
+                    </details>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">No matches yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>Sessions</h2>
+    <table class="admin-table">
+        <thead><tr><th scope="col">When (UTC)</th><th scope="col">Duration</th><th scope="col">Status</th><th scope="col">Agenda</th><th scope="col"></th></tr></thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ session.scheduled_at }}</td>
+                <td>{{ session.duration_minutes }} min</td>
+                <td>{{ session.status }}</td>
+                <td>{{ session.agenda ?? '—' }}{% if session.meeting_link %} · <a href="{{ session.meeting_link }}" rel="noopener noreferrer">Join</a>{% endif %}</td>
+                <td>
+                    {% if session.status == 'scheduled' %}
+                    <details>
+                        <summary>Manage</summary>
+                        <form method="post" action="/mentoring/sessions/{{ session.id }}/reschedule">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <label>New time (UTC)<input type="datetime-local" name="scheduled_at" required></label>
+                            <button type="submit" class="button-secondary">Reschedule</button>
+                        </form>
+                        <form method="post" action="/mentoring/sessions/{{ session.id }}/cancel">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <button type="submit" class="button-secondary">Cancel</button>
+                        </form>
+                        {% if is_mentor %}
+                        <form method="post" action="/mentoring/sessions/{{ session.id }}/complete">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <label>Outcome<textarea name="outcome" required maxlength="4000"></textarea></label>
+                            <label>Notes<textarea name="notes" maxlength="4000"></textarea></label>
+                            <label>Notes visibility
+                                <select name="visibility"><option value="shared">Shared with participant</option><option value="private">Staff only</option></select>
+                            </label>
+                            <button type="submit" class="button-secondary">Record outcome</button>
+                        </form>
+                        {% endif %}
+                    </details>
+                    {% elseif session.outcome %}
+                    <p>{{ session.outcome }}</p>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">No sessions scheduled.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if is_mentor %}
+    <h2>Mentor profile</h2>
+    <form method="post" action="/mentoring/profile" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <label>Expertise<textarea name="expertise" required maxlength="4000">{{ profile.expertise ?? '' }}</textarea></label>
+        <label>Sectors<input type="text" name="sectors" maxlength="500" value="{{ profile.sectors ?? '' }}"></label>
+        <label>Availability notes<textarea name="availability" maxlength="1000">{{ profile.availability_notes ?? '' }}</textarea></label>
+        <label>Mentee capacity<input type="number" name="capacity" min="0" max="50" value="{{ profile.capacity ?? 2 }}"></label>
+        <label><input type="checkbox" name="discoverable" value="1"{% if profile is null or profile.discoverable %} checked{% endif %}> List me in the mentor directory</label>
+        <button type="submit" class="button-secondary">Save profile</button>
+    </form>
+    {% endif %}
+    {% if can_coordinate %}
+    <h2>Propose a match</h2>
+    <form method="post" action="/mentoring/matches/propose" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <label>Mentor user ID<input type="number" name="mentor_id" required min="1"></label>
+        <label>Participant user ID<input type="number" name="participant_id" required min="1"></label>
+        <button type="submit" class="button-secondary">Propose match</button>
+    </form>
+    {% endif %}
+    <p><a href="/account">Back to account</a></p>
+</section>
+{% endblock %}

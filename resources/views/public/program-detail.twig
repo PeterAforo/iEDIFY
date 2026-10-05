@@ -1,0 +1,23 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}{{ program.title }} | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container public-page">
+    <h1>{{ program.title }}</h1>
+    <p class="page-lead">{{ program.summary }}</p>
+    <h2>Eligibility</h2>
+    <p>{{ program.eligibility_summary }}</p>
+    <h2>Intakes</h2>
+    <ul class="intake-list">
+        {% for intake in intakes %}
+        <li>
+            <strong>{{ intake.name }}</strong> · opens {{ intake.opens_at|date('j M Y') }} · closes {{ intake.closes_at|date('j M Y') }}{% if intake.seats %} · {{ intake.seats }} places{% endif %}
+            {% if intake.status == 'open' and intake.opens_at <= 'now'|date('Y-m-d H:i:s') and intake.closes_at > 'now'|date('Y-m-d H:i:s') %}
+                — <a class="button-secondary" href="/apply/{{ intake.id }}">Apply now</a>
+            {% endif %}
+        </li>
+        {% else %}
+        <li>No intakes are scheduled yet.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

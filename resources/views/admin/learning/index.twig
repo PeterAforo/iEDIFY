@@ -1,0 +1,28 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Learning | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Learning</h1>
+<table class="admin-table">
+    <thead><tr><th scope="col">Course</th><th scope="col">Status</th><th scope="col">Enrolled</th><th scope="col">Updated</th></tr></thead>
+    <tbody>
+        {% for course in courses %}
+        <tr>
+            <td><a href="/admin/courses/{{ course.id }}">{{ course.title }}</a></td>
+            <td>{{ course.status }}</td>
+            <td>{{ course.enrolled }}</td>
+            <td>{{ course.updated_at|date('j M Y') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No courses yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>New course</h2>
+<form method="post" action="/admin/courses" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="120"></label>
+    <label>Title<input type="text" name="title" required maxlength="255"></label>
+    <label>Summary<textarea name="summary" maxlength="4000"></textarea></label>
+    <button type="submit" class="button-secondary">Create course</button>
+</form>
+{% endblock %}

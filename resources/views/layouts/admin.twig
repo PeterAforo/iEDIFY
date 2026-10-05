@@ -7,6 +7,11 @@
             <li><a href="/admin/content"{% if current_path starts with '/admin/content' %} aria-current="page"{% endif %}>Content</a></li>
             <li><a href="/admin/media"{% if current_path starts with '/admin/media' %} aria-current="page"{% endif %}>Media</a></li>
             <li><a href="/admin/flags"{% if current_path starts with '/admin/flags' %} aria-current="page"{% endif %}>Review flags</a></li>
+            <li><a href="/admin/programs"{% if current_path starts with '/admin/programs' %} aria-current="page"{% endif %}>Programs</a></li>
+            <li><a href="/admin/applications"{% if current_path starts with '/admin/applications' %} aria-current="page"{% endif %}>Applications</a></li>
+            <li><a href="/admin/learning"{% if current_path starts with '/admin/learning' or current_path starts with '/admin/courses' %} aria-current="page"{% endif %}>Learning</a></li>
+            <li><a href="/admin/milestones"{% if current_path starts with '/admin/milestones' %} aria-current="page"{% endif %}>Milestones</a></li>
+            <li><a href="/admin/moderation"{% if current_path starts with '/admin/moderation' %} aria-current="page"{% endif %}>Moderation</a></li>
         </ul>
     </nav>
     <div class="admin-main">{% block admin %}{% endblock %}</div>

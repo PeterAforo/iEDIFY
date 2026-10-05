@@ -1,0 +1,27 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}{{ event.title }} | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>{{ event.title }}</h1>
+    <p><strong>When:</strong> {{ event.starts_at|date('j M Y H:i', 'Africa/Accra') }}{% if event.ends_at %} – {{ event.ends_at|date('j M Y H:i', 'Africa/Accra') }}{% endif %}</p>
+    <p><strong>Where:</strong> {{ event.location }}</p>
+    <div>{{ event.description|nl2br }}</div>
+    {% if actor %}
+        {% if registered %}
+        <p>You are registered for this event.</p>
+        <form method="post" action="/events/{{ event.id }}/cancel">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <button type="submit" class="button-secondary">Cancel registration</button>
+        </form>
+        {% else %}
+        <form method="post" action="/events/{{ event.id }}/register">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <button type="submit" class="button-primary">Register</button>
+        </form>
+        {% endif %}
+    {% else %}
+    <p><a href="/sign-in">Sign in</a> to register for this event.</p>
+    {% endif %}
+    <p><a href="/events">All events</a></p>
+</section>
+{% endblock %}

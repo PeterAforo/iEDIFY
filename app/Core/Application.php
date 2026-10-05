@@ -85,6 +85,41 @@ final class Application
         return new CmsService($this->pdo());
     }
 
+    public function programs(): \IEdify\Modules\Programs\Services\ProgramService
+    {
+        return new \IEdify\Modules\Programs\Services\ProgramService($this->pdo());
+    }
+
+    public function applications(): \IEdify\Modules\Programs\Services\ApplicationService
+    {
+        return new \IEdify\Modules\Programs\Services\ApplicationService($this->pdo());
+    }
+
+    public function learning(): \IEdify\Modules\Learning\Services\LearningService
+    {
+        return new \IEdify\Modules\Learning\Services\LearningService($this->pdo());
+    }
+
+    public function mentoring(): \IEdify\Modules\Learning\Services\MentorshipService
+    {
+        return new \IEdify\Modules\Learning\Services\MentorshipService($this->pdo());
+    }
+
+    public function milestones(): \IEdify\Modules\Learning\Services\MilestoneService
+    {
+        return new \IEdify\Modules\Learning\Services\MilestoneService($this->pdo());
+    }
+
+    public function events(): \IEdify\Modules\Community\Services\EventService
+    {
+        return new \IEdify\Modules\Community\Services\EventService($this->pdo());
+    }
+
+    public function community(): \IEdify\Modules\Community\Services\CommunityService
+    {
+        return new \IEdify\Modules\Community\Services\CommunityService($this->pdo());
+    }
+
     public function policy(): Policy
     {
         return new Policy();

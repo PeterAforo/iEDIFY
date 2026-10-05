@@ -1,0 +1,68 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Moderation | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Moderation</h1>
+<h2>Open reports</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Target</th><th scope="col">Reporter</th><th scope="col">Reason</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for report in reports %}
+        <tr>
+            <td>{{ report.target_type }} #{{ report.target_id }}</td>
+            <td>{{ report.reporter }}</td>
+            <td>{{ report.reason }}</td>
+            <td>
+                <form method="post" action="/admin/moderation/{{ report.id }}" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <label>Note<input type="text" name="note" maxlength="1000"></label>
+                    <button type="submit" name="action" value="hide" class="button-secondary">Hide</button>
+                    <button type="submit" name="action" value="remove" class="button-secondary">Remove</button>
+                    <button type="submit" name="action" value="dismiss" class="button-secondary">Dismiss</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No open reports.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% if events is defined %}
+<h2>Events</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Event</th><th scope="col">Starts (UTC)</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for event in events %}
+        <tr>
+            <td>{{ event.title }}</td>
+            <td>{{ event.starts_at }}</td>
+            <td>{{ event.status }}</td>
+            <td>
+                <form method="post" action="/admin/events/{{ event.id }}/status" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="version" value="{{ event.version }}">
+                    <select name="status">
+                        {% for s in ['draft','published','cancelled'] %}<option value="{{ s }}"{% if event.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+                    </select>
+                    <button type="submit" class="button-secondary">Update</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No events yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>New event</h2>
+<form method="post" action="/admin/events" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="160"></label>
+    <label>Title<input type="text" name="title" required maxlength="255"></label>
+    <label>Description<textarea name="description" maxlength="20000"></textarea></label>
+    <label>Location<input type="text" name="location" maxlength="255"></label>
+    <label>Starts (UTC)<input type="datetime-local" name="starts_at" required></label>
+    <label>Ends (UTC)<input type="datetime-local" name="ends_at"></label>
+    <label>Capacity<input type="number" name="capacity" min="0"></label>
+    <button type="submit" class="button-secondary">Create event</button>
+</form>
+{% endif %}
+{% endblock %}

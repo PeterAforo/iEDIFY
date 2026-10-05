@@ -1,0 +1,49 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}{{ post.title }} | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>{{ post.title }}</h1>
+    <p>by {{ post.author ?? 'Member' }} — {{ post.created_at|date('j M Y H:i', 'Africa/Accra') }}</p>
+    <div>{{ post.body|nl2br }}</div>
+    <form method="post" action="/community/posts/{{ post.id }}/bookmark" class="inline-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        {% if post.bookmarked %}<input type="hidden" name="remove" value="1">{% endif %}
+        <button type="submit" class="button-secondary">{{ post.bookmarked ? 'Remove bookmark' : 'Bookmark' }}</button>
+    </form>
+    <details>
+        <summary>Report this post</summary>
+        <form method="post" action="/community/posts/{{ post.id }}/report">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <label>Reason<textarea name="reason" required maxlength="1000"></textarea></label>
+            <button type="submit" class="button-secondary">Submit report</button>
+        </form>
+    </details>
+    <h2>Comments</h2>
+    <ul class="comment-list">
+        {% for comment in post.comments %}
+        <li>
+            <p><strong>{{ comment.author ?? 'Member' }}</strong> — {{ comment.created_at|date('j M Y H:i', 'Africa/Accra') }}</p>
+            <p>{{ comment.body }}</p>
+            <details>
+                <summary>Report</summary>
+                <form method="post" action="/community/comments/{{ comment.id }}/report">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <label>Reason<textarea name="reason" required maxlength="1000"></textarea></label>
+                    <button type="submit" class="button-secondary">Submit report</button>
+                </form>
+            </details>
+        </li>
+        {% else %}
+        <li>No comments yet.</li>
+        {% endfor %}
+    </ul>
+    {% if can_comment %}
+    <form method="post" action="/community/posts/{{ post.id }}/comments" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <label>Add a comment<textarea name="body" required maxlength="4000"></textarea></label>
+        <button type="submit" class="button-secondary">Comment</button>
+    </form>
+    {% endif %}
+    <p><a href="/community/groups/{{ post.group_id }}">Back to group</a></p>
+</section>
+{% endblock %}

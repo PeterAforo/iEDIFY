@@ -21,11 +21,8 @@ final class MediaController extends Controller
             throw new HttpError(404, 'This file is not available.');
         }
         $approved = $asset['classification'] === 'public_content' && $asset['review_status'] === 'approved';
-        if (!$approved) {
-            $actor = $this->app->actor();
-            if (!$this->app->policy()->allows($actor, 'media.manage')) {
-                throw new HttpError(404, 'This file is not available.');
-            }
+        if (!$approved && !$this->maySeePrivate((int) $asset['id'])) {
+            throw new HttpError(404, 'This file is not available.');
         }
         $directory = $this->app->config->string('CONTENT_STORAGE', $this->app->root . '/storage/private/content');
         $path = realpath($directory . '/' . basename($asset['storage_path']));
@@ -39,5 +36,33 @@ final class MediaController extends Controller
         ]);
         $response->headers->set('Content-Disposition', 'inline; filename="' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $asset['original_filename']) . '"');
         return $response;
+    }
+
+    /**
+     * Private assets (application documents) are visible to media managers,
+     * program staff, the owning applicant and their assigned reviewers.
+     */
+    private function maySeePrivate(int $mediaId): bool
+    {
+        $actor = $this->app->actor();
+        if ($actor === null) {
+            return false;
+        }
+        $policy = $this->app->policy();
+        if ($policy->allows($actor, 'media.manage') || $policy->allows($actor, 'program.manage') || $policy->allows($actor, 'application.decide')) {
+            return true;
+        }
+        $statement = $this->app->pdo()->prepare('SELECT a.user_id FROM application_documents d JOIN applications a ON a.id = d.application_id WHERE d.media_id = ? LIMIT 1');
+        $statement->execute([$mediaId]);
+        $ownerId = $statement->fetchColumn();
+        if ($ownerId !== false && (int) $ownerId === $actor->id) {
+            return true;
+        }
+        if ($policy->allows($actor, 'application.review')) {
+            $assigned = $this->app->pdo()->prepare('SELECT r.id FROM review_assignments r JOIN application_documents d ON d.application_id = r.application_id WHERE d.media_id = ? AND r.reviewer_id = ? LIMIT 1');
+            $assigned->execute([$mediaId, $actor->id]);
+            return $assigned->fetchColumn() !== false;
+        }
+        return false;
     }
 }

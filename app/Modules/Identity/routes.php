@@ -28,6 +28,8 @@ return [
     ['POST', '/sign-out', [AccountController::class, 'signOut'], ['auth' => true]],
     ['GET', '/account', [AccountController::class, 'index'], ['auth' => true]],
     ['POST', '/account/email/resend', [AccountController::class, 'resendVerification'], ['auth' => true]],
+    ['GET', '/account/notifications', [AccountController::class, 'notifications'], ['auth' => true]],
+    ['POST', '/account/notifications/read', [AccountController::class, 'markNotificationRead'], ['auth' => true]],
     ['GET', '/account/security', [AccountController::class, 'security'], ['auth' => true]],
     ['POST', '/account/security/mfa/begin', [AccountController::class, 'mfaBegin'], ['auth' => true]],
     ['POST', '/account/security/mfa/confirm', [AccountController::class, 'mfaConfirm'], ['auth' => true]],

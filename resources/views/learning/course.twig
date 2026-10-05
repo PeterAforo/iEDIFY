@@ -1,0 +1,27 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}{{ course.title }} | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>{{ course.title }}</h1>
+    <p>{{ course.summary }}</p>
+    <ol class="lesson-list">
+        {% for lesson in course.lessons %}
+        <li>
+            <strong>{{ lesson.title }}</strong>
+            {% if lesson.done %}<span class="badge-complete">Completed</span>{% endif %}
+            {% if lesson.body %}<p>{{ lesson.body }}</p>{% endif %}
+            {% if lesson.external_url %}<p><a href="{{ lesson.external_url }}" rel="noopener noreferrer">Open resource</a></p>{% endif %}
+            {% if not lesson.done %}
+            <form method="post" action="/learn/lessons/{{ lesson.id }}/complete">
+                <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                <button type="submit" class="button-secondary">Mark complete</button>
+            </form>
+            {% endif %}
+        </li>
+        {% else %}
+        <li>No lessons are published yet.</li>
+        {% endfor %}
+    </ol>
+    <p><a href="/learn">Back to my learning</a></p>
+</section>
+{% endblock %}

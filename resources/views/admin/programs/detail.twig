@@ -1,0 +1,98 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}{{ program.title }} | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>{{ program.title }}</h1>
+<p><code>{{ program.slug }}</code> · status {{ program.status }} · version {{ program.version }}</p>
+<form method="post" action="/admin/programs/{{ program.id }}/status" class="filter-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <input type="hidden" name="version" value="{{ program.version }}">
+    <label for="p-status">Status</label>
+    <select id="p-status" name="status">
+        {% for s in ['draft','open','closed','archived'] %}<option value="{{ s }}"{% if program.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="button-secondary">Update status</button>
+</form>
+
+<h2>Intakes</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Name</th><th scope="col">Opens</th><th scope="col">Closes</th><th scope="col">Seats</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for intake in intakes %}
+        <tr>
+            <td>{{ intake.name }}</td>
+            <td>{{ intake.opens_at|date('Y-m-d') }}</td>
+            <td>{{ intake.closes_at|date('Y-m-d') }}</td>
+            <td>{{ intake.seats ?? '—' }}</td>
+            <td>{{ intake.status }}</td>
+            <td>
+                <form method="post" action="/admin/intakes/{{ intake.id }}/status" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="version" value="{{ intake.version }}">
+                    <select name="status" aria-label="Intake status">
+                        {% for s in ['draft','open','closed'] %}<option value="{{ s }}"{% if intake.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+                    </select>
+                    <button type="submit" class="button-secondary">Update</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">No intakes yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h3>Create an intake</h3>
+<form method="post" action="/admin/programs/{{ program.id }}/intakes" class="editor-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <div class="field"><label for="i-name">Name</label><input id="i-name" name="name" type="text" required maxlength="180"></div>
+    <div class="field"><label for="i-open">Opens (YYYY-MM-DD)</label><input id="i-open" name="opens_at" type="date" required></div>
+    <div class="field"><label for="i-close">Closes (YYYY-MM-DD)</label><input id="i-close" name="closes_at" type="date" required></div>
+    <div class="field"><label for="i-seats">Seats (optional)</label><input id="i-seats" name="seats" type="number" min="1"></div>
+    <div class="field"><label for="i-rules">Eligibility rules (JSON)</label><textarea id="i-rules" name="eligibility_rules" rows="4">[]</textarea>
+        <p class="field-hint">Allowed operators: eq, ne, gte, lte, in. Example: [{"field":"age","op":"gte","value":16,"label":"Minimum age 16"}]</p></div>
+    <button type="submit" class="button-primary">Create intake</button>
+</form>
+
+<h2>Cohorts</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Name</th><th scope="col">Dates</th><th scope="col">Status</th><th scope="col">Members</th></tr></thead>
+    <tbody>
+        {% for cohort in cohorts %}
+        <tr><td>{{ cohort.name }}</td><td>{{ cohort.starts_on ?? '—' }} – {{ cohort.ends_on ?? '—' }}</td><td>{{ cohort.status }}</td><td>{{ cohort.members }}</td></tr>
+        {% else %}
+        <tr><td colspan="4">No cohorts yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h3>Create a cohort</h3>
+<form method="post" action="/admin/programs/{{ program.id }}/cohorts" class="editor-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <div class="field"><label for="c-name">Name</label><input id="c-name" name="name" type="text" required maxlength="180"></div>
+    <div class="field"><label for="c-start">Starts</label><input id="c-start" name="starts_on" type="date"></div>
+    <div class="field"><label for="c-end">Ends</label><input id="c-end" name="ends_on" type="date"></div>
+    <button type="submit" class="button-primary">Create cohort</button>
+</form>
+
+<h2>Application forms</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Intake</th><th scope="col">Version</th><th scope="col">Status</th><th scope="col">Fields</th></tr></thead>
+    <tbody>
+        {% for form in forms %}
+        <tr><td>{{ form.intake_id }}</td><td>{{ form.version }}</td><td>{{ form.status }}</td><td>{{ form.schema_json|json_encode|length }} chars</td></tr>
+        {% else %}
+        <tr><td colspan="4">No forms yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h3>Publish a form version</h3>
+<form method="post" action="/admin/intakes/{{ intakes|first.id|default(0) }}/forms" class="editor-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <div class="field"><label for="f-intake">Intake</label>
+        <select id="f-intake" name="intake" onchange="this.form.action='/admin/intakes/'+this.value+'/forms'">
+            {% for intake in intakes %}<option value="{{ intake.id }}">{{ intake.name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="field"><label for="f-fields">Fields (JSON)</label><textarea id="f-fields" name="fields" rows="10" required>[]</textarea>
+        <p class="field-hint">Field types: text, number, date, select, checkbox, document. Example: [{"key":"venture","label":"Venture name","type":"text","required":true}]</p></div>
+    <button type="submit" class="button-primary"{% if intakes is empty %} disabled{% endif %}>Publish form</button>
+</form>
+{% endblock %}

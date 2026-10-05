@@ -12,7 +12,7 @@ The complete core master prompt, phases A–F, is approved. Twig/plain PHP/PDO/M
 |---|---|---|---|
 | A: environment and foundation | Baseline gate complete | Foundation PHP tests, PHPStan, dependency audits, build and six desktop/mobile browser tests pass | Local PHP/MySQL working; production host unknown |
 | B: identity/CMS/public website | HTTP kernel/controller dispatch, session auth guards, CSRF/flash, identity flows (register, sign-in/out, verify, reset, MFA challenge+setup+recovery), first-admin command, CMS admin UI (edit/review/publish/revisions/flags/media), public chrome + published-page rendering + controlled media serving, enquiry/newsletter persistence, mail capture + outbox worker | Current suite: 41 tests / 198 assertions passed; PHPStan passed; 6/6 browser checks pass including axe | Editorial/legal review required before imported content publishes |
-| C: participant and community workflows | Not started | Not run | Program rules required |
+| C: participant and community workflows | Programs/intakes/cohorts, versioned constrained application forms, draft/submit/withdraw/info-request lifecycle, document uploads via private media route, reviewer assignment isolation, manager decisions and cohort enrollment, courses/lessons/enrollment/attendance/completion, mentor profiles/matches/sessions with private staff notes, startup/personal milestones with evidence and staff review, public events with capacity-safe registration, community profiles/directory/groups/membership/posts/comments/bookmarks/reports/moderation — all over HTTP with transactional services | Current suite: 52 tests / 275 assertions passed; PHPStan clean; HTTP smoke check of new routes passed | Program rules and browser journeys remain |
 | D: funding/impact/partners | Not started | Not run | Funding and reporting approvals required |
 | E: operations/hardening/recovery | Not started | Not run | SMTP/scanning/off-host storage unconfigured |
 | F: staging/UAT/handover | Not started | Not run | Staging access and release authorization absent |
@@ -27,7 +27,7 @@ PHP 8.5.11, Composer 2.10.3 and MySQL Community 8.4.11 are installed under ignor
 
 ### Verification evidence so far
 
-- Latest full PHPUnit suite: **41 tests, 198 assertions passed** on PHP 8.5.11 and MySQL 8.4.11. Includes outbox rollback/deduplication, CMS permissions/revision history/locking, content import repeatability and changed-source preservation, signup/email verification, MFA replay/recovery and CSV formula protection, plus end-to-end HTTP journeys for sign-in/MFA/admin gating, contact enquiry + newsletter persistence, and the flag-gated CMS publish journey (review → blocked by open editorial flags → flag resolution → publish → public render → state restore).
+- Latest full PHPUnit suite: **52 tests, 275 assertions passed** on PHP 8.5.11 and MySQL 8.4.11. Includes outbox rollback/deduplication, CMS permissions/revision history/locking, content import repeatability and changed-source preservation, signup/email verification, MFA replay/recovery and CSV formula protection, plus end-to-end HTTP journeys for sign-in/MFA/admin gating, contact enquiry + newsletter persistence, the flag-gated CMS publish journey, and the full apply→review→enroll journey over HTTP (journeys 2–3). Phase C service tests cover training completion/attendance, mentor match/session lifecycle, milestone evidence/review, community groups/posts/reports/moderation and event capacity/cancellation.
 - Latest PHPStan level 5 run: **no errors**.
 - PHP syntax checks and strict Composer manifest validation passed.
 - Vite production asset build passed; only compiled assets are served. Local XAMPP Apache HEAD checks returned 403 for `.env`, `.runtime/mysql-admin.ini` and the master-prompt source path, confirming root protection on this machine; cPanel configuration remains unverified.
@@ -43,7 +43,7 @@ PHP 8.5.11, Composer 2.10.3 and MySQL Community 8.4.11 are installed under ignor
 
 ### Next implementation work (not an external blocker)
 
-Phase B remains open pending: password-reset/profile/preferences browser journeys, CMS scheduling UI, media review browser journey, and editorial review of imported flags. Then implement all tracked Phase C–F modules and evidence. The supported local environment is available; these tasks are outstanding implementation, not missing-credential excuses.
+Phase B remains open pending: password-reset/profile/preferences browser journeys, CMS scheduling UI, media review browser journey, and editorial review of imported flags. Phase C browser journeys (learning/mentoring/milestones/events/community), upload/download authorization tests, notification-preferences wiring, search/export integration and UI polish remain outstanding. Then implement all tracked Phase D–F modules and evidence. The supported local environment is available; these tasks are outstanding implementation, not missing-credential excuses.
 
 ## Source discrepancies
 

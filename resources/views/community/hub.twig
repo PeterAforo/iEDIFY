@@ -1,0 +1,51 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Community | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Community</h1>
+    <p><a href="/community/directory">Member directory</a></p>
+    <h2>Groups</h2>
+    <table class="admin-table">
+        <thead><tr><th scope="col">Group</th><th scope="col">Visibility</th><th scope="col">Members</th><th scope="col">Your status</th></tr></thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td><a href="/community/groups/{{ group.id }}">{{ group.name }}</a></td>
+                <td>{{ group.visibility }}</td>
+                <td>{{ group.member_count }}</td>
+                <td>{{ group.membership ?? '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">No groups yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if bookmarks %}
+    <h2>Your bookmarks</h2>
+    <ul>{% for post in bookmarks %}<li><a href="/community/posts/{{ post.id }}">{{ post.title }}</a></li>{% endfor %}</ul>
+    {% endif %}
+    <h2>Create a group</h2>
+    <form method="post" action="/community/groups" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <label>Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="120"></label>
+        <label>Name<input type="text" name="name" required maxlength="200"></label>
+        <label>Description<textarea name="description" maxlength="4000"></textarea></label>
+        <label>Sector<input type="text" name="sector" maxlength="120"></label>
+        <label>Visibility
+            <select name="visibility"><option value="public">Public — anyone can join</option><option value="private">Private — moderated membership</option></select>
+        </label>
+        <button type="submit" class="button-secondary">Create group</button>
+    </form>
+    <h2>Your profile</h2>
+    <form method="post" action="/community/profile" class="stacked-form">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <label>Display name<input type="text" name="display_name" required maxlength="120" value="{{ profile.display_name ?? '' }}"></label>
+        <label>Bio<textarea name="bio" maxlength="4000">{{ profile.bio ?? '' }}</textarea></label>
+        <label>Sector<input type="text" name="sector" maxlength="120" value="{{ profile.sector ?? '' }}"></label>
+        <label>Location<input type="text" name="location" maxlength="120" value="{{ profile.location ?? '' }}"></label>
+        <label><input type="checkbox" name="discoverable" value="1"{% if profile and profile.discoverable %} checked{% endif %}> Show me in the member directory</label>
+        <button type="submit" class="button-secondary">Save profile</button>
+    </form>
+    <p><a href="/account">Back to account</a></p>
+</section>
+{% endblock %}

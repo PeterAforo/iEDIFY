@@ -1,0 +1,46 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Milestone review | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Milestone review</h1>
+<h2>Awaiting review</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Title</th><th scope="col">Owner</th><th scope="col">Startup</th><th scope="col">Evidence</th><th scope="col"></th></tr></thead>
+    <tbody>
+        {% for milestone in submitted %}
+        <tr>
+            <td>{{ milestone.title }}</td>
+            <td>{{ milestone.owner_name ?? '—' }}</td>
+            <td>{{ milestone.startup_name ?? '—' }}</td>
+            <td>{{ milestone.evidence ?? '' }}</td>
+            <td>
+                <form method="post" action="/admin/milestones/{{ milestone.id }}/review" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="version" value="{{ milestone.version }}">
+                    <button type="submit" name="decision" value="approved" class="button-secondary">Approve</button>
+                    <button type="submit" name="decision" value="changes_requested" class="button-secondary">Request changes</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">Nothing awaiting review.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Overdue</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Title</th><th scope="col">Owner</th><th scope="col">Startup</th><th scope="col">Due</th><th scope="col">Status</th></tr></thead>
+    <tbody>
+        {% for milestone in overdue %}
+        <tr>
+            <td>{{ milestone.title }}</td>
+            <td>{{ milestone.owner_name ?? '—' }}</td>
+            <td>{{ milestone.startup_name ?? '—' }}</td>
+            <td>{{ milestone.due_on|date('j M Y') }}</td>
+            <td>{{ milestone.status|replace({'_': ' '}) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No overdue milestones.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -39,6 +39,22 @@ final class AccountController extends Controller
         return $this->redirect('/');
     }
 
+    public function notifications(): Response
+    {
+        $actor = $this->requireActor();
+        $statement = $this->app->pdo()->prepare('SELECT id, type, title, target_path, read_at, created_at FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT 100');
+        $statement->execute([$actor->id]);
+        return $this->render('account/notifications.twig', ['notifications' => $statement->fetchAll()]);
+    }
+
+    public function markNotificationRead(): Response
+    {
+        $actor = $this->requireActor();
+        $id = (int) $this->request->request->get('id');
+        $this->app->pdo()->prepare('UPDATE notifications SET read_at = UTC_TIMESTAMP(6) WHERE id = ? AND user_id = ? AND read_at IS NULL')->execute([$id, $actor->id]);
+        return $this->redirect('/account/notifications');
+    }
+
     public function security(): Response
     {
         $actor = $this->requireActor();

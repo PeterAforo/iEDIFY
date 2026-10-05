@@ -1,0 +1,76 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}{{ course.title }} | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>{{ course.title }}</h1>
+<p>Status: {{ course.status }}</p>
+<form method="post" action="/admin/courses/{{ course.id }}/status" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <select name="status">
+        {% for s in ['draft','published','archived'] %}<option value="{{ s }}"{% if course.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="button-secondary">Update status</button>
+</form>
+<h2>Lessons</h2>
+<ol>
+    {% for lesson in course.lessons %}<li>{{ lesson.title }}{% if lesson.external_url %} — <a href="{{ lesson.external_url }}" rel="noopener noreferrer">resource</a>{% endif %}</li>{% else %}<li>No lessons yet.</li>{% endfor %}
+</ol>
+<form method="post" action="/admin/courses/{{ course.id }}/lessons" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Position<input type="number" name="position" min="1" max="500" required></label>
+    <label>Title<input type="text" name="title" required maxlength="255"></label>
+    <label>Body<textarea name="body" maxlength="50000"></textarea></label>
+    <label>External URL (https)<input type="url" name="external_url"></label>
+    <button type="submit" class="button-secondary">Save lesson</button>
+</form>
+<h2>Sessions</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Label</th><th scope="col">When (UTC)</th><th scope="col">Recorded</th></tr></thead>
+    <tbody>
+        {% for session in sessions %}
+        <tr><td>{{ session.label }}</td><td>{{ session.session_at }}</td><td>{{ session.recorded }}</td></tr>
+        {% else %}
+        <tr><td colspan="3">No sessions scheduled.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form method="post" action="/admin/courses/{{ course.id }}/sessions" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Label<input type="text" name="label" required maxlength="255"></label>
+    <label>When (UTC)<input type="datetime-local" name="session_at" required></label>
+    <button type="submit" class="button-secondary">Add session</button>
+</form>
+<h2>Enrolled participants</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Status</th><th scope="col">Attendance</th></tr></thead>
+    <tbody>
+        {% for row in enrolled %}
+        <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.email }}</td>
+            <td>{{ row.status }}</td>
+            <td>
+                {% if sessions %}
+                <form method="post" action="/admin/sessions/{{ sessions[0].id }}/attendance" class="inline-form">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="user_id" value="{{ row.user_id }}">
+                    <select name="status">
+                        {% for s in ['present','absent','excused'] %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+                    </select>
+                    <button type="submit" class="button-secondary">Record for latest session</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No enrollments yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form method="post" action="/admin/courses/{{ course.id }}/enroll" class="inline-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>User ID<input type="number" name="user_id" required min="1"></label>
+    <label>Cohort ID (optional)<input type="number" name="cohort_id" min="0"></label>
+    <button type="submit" class="button-secondary">Enroll participant</button>
+</form>
+<p><a href="/admin/learning">Back to learning</a></p>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Programs | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Programs</h1>
+<table class="admin-table">
+    <thead><tr><th scope="col">Title</th><th scope="col">Slug</th><th scope="col">Status</th><th scope="col">Intakes</th><th scope="col">Updated (UTC)</th></tr></thead>
+    <tbody>
+        {% for program in programs %}
+        <tr>
+            <td><a href="/admin/programs/{{ program.id }}">{{ program.title }}</a></td>
+            <td><code>{{ program.slug }}</code></td>
+            <td>{{ program.status }}</td>
+            <td>{{ program.intakes }}</td>
+            <td>{{ program.updated_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No programs yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Create a program</h2>
+<form method="post" action="/admin/programs" class="editor-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <div class="field"><label for="p-slug">Slug</label><input id="p-slug" name="slug" type="text" required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="191"></div>
+    <div class="field"><label for="p-title">Title</label><input id="p-title" name="title" type="text" required maxlength="255"></div>
+    <div class="field"><label for="p-summary">Summary</label><textarea id="p-summary" name="summary" rows="3" required></textarea></div>
+    <div class="field"><label for="p-elig">Eligibility summary</label><textarea id="p-elig" name="eligibility_summary" rows="3" required></textarea></div>
+    <button type="submit" class="button-primary">Create program</button>
+</form>
+{% endblock %}

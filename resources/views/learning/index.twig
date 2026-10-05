@@ -1,0 +1,23 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}My learning | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>My learning</h1>
+    <table class="admin-table">
+        <thead><tr><th scope="col">Course</th><th scope="col">Progress</th><th scope="col">Status</th><th scope="col">Enrolled</th></tr></thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td><a href="/learn/{{ course.id }}">{{ course.title }}</a></td>
+                <td>{{ course.completed_count }} / {{ course.lesson_count }} lessons</td>
+                <td>{{ course.enrollment_status|replace({'_': ' '}) }}</td>
+                <td>{{ course.enrolled_at|date('j M Y') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">You are not enrolled in any courses yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><a href="/account">Back to account</a></p>
+</section>
+{% endblock %}

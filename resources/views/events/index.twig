@@ -1,0 +1,17 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Events | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Upcoming events</h1>
+    <ul class="card-list">
+        {% for event in events %}
+        <li>
+            <h2><a href="/events/{{ event.slug }}">{{ event.title }}</a></h2>
+            <p>{{ event.starts_at|date('j M Y H:i', 'Africa/Accra') }} — {{ event.location }}</p>
+        </li>
+        {% else %}
+        <li>No upcoming events are published yet.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}My applications | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>My applications</h1>
+    <table class="admin-table">
+        <thead><tr><th scope="col">Program</th><th scope="col">Intake</th><th scope="col">Status</th><th scope="col">Submitted</th><th scope="col"></th></tr></thead>
+        <tbody>
+            {% for application in applications %}
+            <tr>
+                <td>{{ application.program_title }}</td>
+                <td>{{ application.intake_name }}</td>
+                <td>{{ application.status|replace({'_': ' '}) }}</td>
+                <td>{{ application.submitted_at ? application.submitted_at|date('j M Y') : '—' }}</td>
+                <td>{% if application.status in ['draft','request_info'] %}<a href="/apply/{{ application.intake_id }}">Continue</a>{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">You have no applications yet. <a href="/programs">Browse open programs</a>.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><a href="/account">Back to account</a></p>
+</section>
+{% endblock %}

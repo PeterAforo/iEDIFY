@@ -1,0 +1,100 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Application #{{ application.id }} | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Application #{{ application.id }}</h1>
+<p>{{ intake.name }} · status <strong>{{ application.status|replace({'_': ' '}) }}</strong> · version {{ application.version }} · submitted {{ application.submitted_at ?? '—' }}</p>
+
+<h2>Answers</h2>
+<dl class="detail-list">
+    {% for field in fields %}
+    <div class="detail-row"><dt>{{ field.label }}</dt><dd>{% if field.type == 'document' %}{% set doc = documents|filter(d => d.field_key == field.key)|first %}{% if doc %}<a href="/media/{{ doc.media_id }}">{{ doc.original_filename }}</a>{% else %}—{% endif %}{% elseif field.type == 'checkbox' %}{{ answers[field.key]|default(false) ? 'Yes' : 'No' }}{% else %}{{ answers[field.key]|default('—') }}{% endif %}</dd></div>
+    {% endfor %}
+</dl>
+{% if application.eligibility_snapshot %}
+<h2>Eligibility check (frozen at submission)</h2>
+<pre class="code-block">{{ application.eligibility_snapshot }}</pre>
+{% endif %}
+
+<h2>Status history</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">By</th><th scope="col">Note</th><th scope="col">When (UTC)</th></tr></thead>
+    <tbody>
+        {% for event in application.history %}
+        <tr><td>{{ event.from_status ?? '—' }}</td><td>{{ event.to_status }}</td><td>{{ event.actor_name ?? 'System' }}</td><td>{{ event.note ?? '' }}</td><td>{{ event.created_at }}</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if can_manage %}
+<h2>Workflow</h2>
+<form method="post" action="/admin/applications/{{ application.id }}/transition" class="editor-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <input type="hidden" name="version" value="{{ application.version }}">
+    <div class="field"><label for="t-status">Move to</label>
+        <select id="t-status" name="status">
+            <option value="screening">Screening</option>
+            <option value="under_review">Under review</option>
+            <option value="request_info">Request information</option>
+            {% if can_decide %}<option value="shortlisted">Shortlist</option><option value="waitlisted">Waitlist</option><option value="accepted">Accept</option><option value="rejected">Reject</option>{% endif %}
+        </select>
+    </div>
+    <div class="field"><label for="t-note">Note (required for information requests; visible to staff)</label><textarea id="t-note" name="note" rows="2" maxlength="1000"></textarea></div>
+    <button type="submit" class="button-primary">Update status</button>
+</form>
+
+<h2>Reviewer assignments</h2>
+<ul>
+    {% for assignment in assignments %}
+    <li>{{ assignment.name }} ({{ assignment.email }}){% if assignment.completed_at %} — review submitted{% endif %}</li>
+    {% else %}
+    <li>No reviewers assigned.</li>
+    {% endfor %}
+</ul>
+<form method="post" action="/admin/applications/{{ application.id }}/assign" class="filter-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label for="r-id">Reviewer</label>
+    <select id="r-id" name="reviewer_id">
+        {% for reviewer in reviewers %}<option value="{{ reviewer.id }}">{{ reviewer.name }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="button-secondary">Assign</button>
+</form>
+{% endif %}
+
+{% if can_review %}
+<h2>Your review</h2>
+<form method="post" action="/admin/applications/{{ application.id }}/review" class="editor-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <div class="field"><label for="rv-score">Score (0–100)</label><input id="rv-score" name="score" type="number" min="0" max="100" required></div>
+    <div class="field"><label for="rv-int">Internal notes (confidential — never shown to the applicant)</label><textarea id="rv-int" name="internal_notes" rows="3"></textarea></div>
+    <div class="field"><label for="rv-pub">Applicant feedback (may be shared)</label><textarea id="rv-pub" name="applicant_feedback" rows="3"></textarea></div>
+    <div class="field"><label for="rv-rec">Recommendation</label>
+        <select id="rv-rec" name="recommendation"><option value="shortlist">Shortlist</option><option value="waitlist">Waitlist</option><option value="accept">Accept</option><option value="reject">Reject</option></select>
+    </div>
+    <button type="submit" class="button-primary">Record review</button>
+</form>
+{% endif %}
+
+{% if application.reviews %}
+<h2>Recorded reviews</h2>
+<table class="admin-table">
+    <thead><tr><th scope="col">Reviewer</th><th scope="col">Score</th><th scope="col">Recommendation</th><th scope="col">When (UTC)</th></tr></thead>
+    <tbody>
+        {% for review in application.reviews %}
+        <tr><td>{{ review.reviewer_name }}</td><td>{{ review.score }}</td><td>{{ review.recommendation }}</td><td>{{ review.created_at }}</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if can_enroll and application.status == 'accepted' %}
+<h2>Enrollment</h2>
+<form method="post" action="/admin/applications/{{ application.id }}/enroll" class="filter-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label for="e-cohort">Cohort</label>
+    <select id="e-cohort" name="cohort_id">
+        {% for cohort in cohorts %}<option value="{{ cohort.id }}">{{ cohort.name }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="button-primary"{% if cohorts is empty %} disabled{% endif %}>Enroll</button>
+</form>
+{% endif %}
+{% endblock %}

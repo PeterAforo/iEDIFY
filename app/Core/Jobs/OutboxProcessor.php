@@ -110,6 +110,13 @@ final class OutboxProcessor
                     'unsubscribe_url' => '/newsletter/unsubscribe/' . $this->secrets->decrypt($payload['unsubscribe_ciphertext']),
                 ]);
                 break;
+            case 'notification.send':
+                $this->mailer()->send($this->userEmail((int) $payload['user_id']), (string) $payload['subject'], 'notification', [
+                    'subject' => (string) $payload['subject'],
+                    'body' => (string) $payload['body'],
+                    'link' => (string) ($payload['link'] ?? ''),
+                ]);
+                break;
             default:
                 throw new \RuntimeException('No handler for outbox event type.');
         }

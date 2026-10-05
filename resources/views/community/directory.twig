@@ -1,0 +1,24 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Member directory | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Member directory</h1>
+    <form method="get" action="/community/directory" class="filter-form">
+        <label for="dir-q">Search</label>
+        <input id="dir-q" type="search" name="q" maxlength="80" value="{{ query }}">
+        <button type="submit" class="button-secondary">Search</button>
+    </form>
+    <ul class="card-list">
+        {% for member in members %}
+        <li>
+            <h2>{{ member.display_name }}</h2>
+            <p>{{ member.sector ?? '' }}{% if member.location %} — {{ member.location }}{% endif %}</p>
+            {% if member.bio %}<p>{{ member.bio }}</p>{% endif %}
+        </li>
+        {% else %}
+        <li>No discoverable members match.</li>
+        {% endfor %}
+    </ul>
+    <p><a href="/community">Back to community</a></p>
+</section>
+{% endblock %}
