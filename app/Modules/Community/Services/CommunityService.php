@@ -207,6 +207,48 @@ final readonly class CommunityService
         return $record;
     }
 
+    /** Public board of currently open opportunities. */
+    public function openOpportunities(): array
+    {
+        return $this->pdo->query("SELECT * FROM opportunities WHERE status = 'open' AND (deadline IS NULL OR deadline >= UTC_DATE()) ORDER BY deadline IS NULL, deadline, id DESC LIMIT 200")->fetchAll();
+    }
+
+    public function opportunity(int $id): array
+    {
+        $statement = $this->pdo->prepare("SELECT * FROM opportunities WHERE id = ? AND status = 'open'");
+        $statement->execute([$id]);
+        $row = $statement->fetch();
+        if ($row === false) {
+            throw new HttpError(404, 'Opportunity was not found.');
+        }
+        return $row;
+    }
+
+    public function createOpportunity(Actor $actor, array $data): int
+    {
+        $this->authorize($actor, 'program.manage');
+        $title = trim((string) ($data['title'] ?? ''));
+        $summary = trim((string) ($data['summary'] ?? ''));
+        if ($title === '' || mb_strlen($title) > 255 || $summary === '') {
+            throw new \InvalidArgumentException('A title and summary are required.');
+        }
+        $deadline = trim((string) ($data['deadline'] ?? ''));
+        if ($deadline !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
+            throw new \InvalidArgumentException('Deadline must be a date.');
+        }
+        $category = trim((string) ($data['category'] ?? 'general'));
+        if ($category === '' || mb_strlen($category) > 60) {
+            throw new \InvalidArgumentException('Category is too long.');
+        }
+        return (new Transaction($this->pdo))->run(function () use ($actor, $title, $category, $summary, $data, $deadline): int {
+            $this->pdo->prepare('INSERT INTO opportunities (title, category, summary, details, deadline, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))')
+                ->execute([$title, $category, $summary, trim((string) ($data['details'] ?? '')) !== '' ? trim((string) $data['details']) : null, $deadline !== '' ? $deadline : null, $actor->id]);
+            $id = (int) $this->pdo->lastInsertId();
+            $this->audit($actor, 'opportunity.created', $id);
+            return $id;
+        });
+    }
+
     public function openReports(): array
     {
         return $this->pdo->query("SELECT r.*, u.email AS reporter FROM moderation_reports r JOIN users u ON u.id = r.reporter_id WHERE r.status = 'open' ORDER BY r.id LIMIT 200")->fetchAll();

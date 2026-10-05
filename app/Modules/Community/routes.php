@@ -11,6 +11,8 @@ return [
     ['GET', '/events/{slug:[a-z0-9-]+}', [EventController::class, 'show']],
     ['POST', '/events/{id:\d+}/register', [EventController::class, 'register'], ['auth' => true]],
     ['POST', '/events/{id:\d+}/cancel', [EventController::class, 'cancel'], ['auth' => true]],
+    ['GET', '/opportunities', [EventController::class, 'opportunities']],
+    ['GET', '/opportunities/{id:\d+}', [EventController::class, 'opportunity']],
     ['GET', '/community', [CommunityController::class, 'hub']],
     ['GET', '/community/directory', [CommunityController::class, 'directory'], ['permission' => 'community.member']],
     ['POST', '/community/profile', [CommunityController::class, 'saveProfile'], ['permission' => 'community.member']],
@@ -28,4 +30,5 @@ return [
     ['POST', '/admin/moderation/{id:\d+}', [ModerationController::class, 'action'], ['permission' => 'community.moderate']],
     ['POST', '/admin/events', [ModerationController::class, 'createEvent'], ['permission' => 'program.manage']],
     ['POST', '/admin/events/{id:\d+}/status', [ModerationController::class, 'eventStatus'], ['permission' => 'program.manage']],
+    ['POST', '/admin/opportunities', [ModerationController::class, 'createOpportunity'], ['permission' => 'program.manage']],
 ];

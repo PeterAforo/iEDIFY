@@ -137,7 +137,9 @@ final class OutboxProcessor
 
     private function fail(array $event, Throwable $error): void
     {
-        $attempts = (int) $event['attempts'];
+        // $event['attempts'] is the count before this claim's increment, so
+        // this delivery is attempt $attempts + 1.
+        $attempts = (int) $event['attempts'] + 1;
         if ($attempts >= self::MAX_ATTEMPTS) {
             $this->pdo->prepare("UPDATE outbox_events SET status = 'failed', last_error_code = ?, lease_token = NULL, lease_until = NULL WHERE id = ?")->execute([$error::class, $event['id']]);
         } else {

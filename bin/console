@@ -149,6 +149,46 @@ $app->add((new Command('outbox:run'))
         $output->writeln('Processed ' . $stats['processed'] . ', failed ' . $stats['failed'] . '.');
         return $stats['failed'] > 0 ? Command::FAILURE : Command::SUCCESS;
     }));
+$app->add((new Command('backup:create'))
+    ->setDescription('Dump the whole database to a gzipped JSON-lines archive under storage/private/backups')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        $config->validate();
+        $service = new IEdify\Services\Backup\BackupService();
+        $path = $service->create(Connection::open($config), $root . '/storage/private/backups');
+        $output->writeln('Backup written to ' . $path . ' (' . filesize($path) . ' bytes).');
+        $output->writeln('Copy it off-host now; schedule this command via cron. See docs/operations/BACKUP_RESTORE.md.');
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('backup:restore'))
+    ->setDescription('Restore a backup archive into the configured database (destructive) or rehearse with a table prefix')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->addOption('file', null, InputOption::VALUE_REQUIRED, 'Backup archive path')
+    ->addOption('prefix', null, InputOption::VALUE_REQUIRED, 'Table prefix for rehearsal restores (empty = real restore)', 'rehearse_')
+    ->addOption('i-understand', null, InputOption::VALUE_NONE, 'Confirm a real (prefix-less) restore')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $file = $input->getOption('file');
+        $prefix = (string) $input->getOption('prefix');
+        if (!is_string($file) || !is_file($file)) {
+            $output->writeln('Provide an existing --file.');
+            return Command::FAILURE;
+        }
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        if ($prefix === '') {
+            if (!$input->getOption('i-understand')) {
+                $output->writeln('A real restore drops and replaces every table. Re-run with --i-understand, or use --prefix=rehearse_ for a non-destructive rehearsal.');
+                return Command::FAILURE;
+            }
+            if (!in_array($config->environment(), ['local', 'test'], true)) {
+                $output->writeln('Production restores follow the approved runbook and are not run from this command.');
+                return Command::FAILURE;
+            }
+        }
+        $count = (new IEdify\Services\Backup\BackupService())->restore(Connection::open($config), $file, $prefix);
+        $output->writeln(($prefix === '' ? 'Restored' : 'Rehearsed restore into ' . $prefix . '* tables') . ': ' . $count . ' statements replayed.');
+        return Command::SUCCESS;
+    }));
 $app->add((new Command('local:seal'))
     ->setDescription('Remove the one-use database bootstrap secret after successful local provisioning')
     ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {

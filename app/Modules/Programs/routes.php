@@ -26,6 +26,7 @@ return [
     ['POST', '/admin/intakes/{id:\d+}/forms', [ProgramAdminController::class, 'createForm'], ['permission' => 'program.manage']],
     ['POST', '/admin/programs/{id:\d+}/cohorts', [ProgramAdminController::class, 'createCohort'], ['permission' => 'cohort.manage']],
     ['GET', '/admin/applications', [ApplicationAdminController::class, 'index'], ['permission' => 'application.review']],
+    ['GET', '/admin/applications/export.csv', [ApplicationAdminController::class, 'exportCsv'], ['permission' => 'application.review']],
     ['GET', '/admin/applications/{id:\d+}', [ApplicationAdminController::class, 'show'], ['permission' => 'application.review']],
     ['POST', '/admin/applications/{id:\d+}/transition', [ApplicationAdminController::class, 'transition'], ['privileged' => true]],
     ['POST', '/admin/applications/{id:\d+}/assign', [ApplicationAdminController::class, 'assign'], ['permission' => 'program.manage']],

@@ -1,0 +1,18 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Opportunities | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Open opportunities</h1>
+    <ul class="card-list">
+        {% for item in opportunities %}
+        <li>
+            <h2><a href="/opportunities/{{ item.id }}">{{ item.title }}</a></h2>
+            <p>{{ item.category }}{% if item.deadline %} &mdash; apply by {{ item.deadline|date('j M Y') }}{% endif %}</p>
+            <p>{{ item.summary|nl2br }}</p>
+        </li>
+        {% else %}
+        <li>No open opportunities at the moment.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

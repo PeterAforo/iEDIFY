@@ -27,6 +27,7 @@ abstract class Controller
             'chrome' => $this->chrome(),
             'flashes' => $this->app->flashes()->peekAll(),
             'current_path' => $this->request->getPathInfo(),
+            'canonical_url' => rtrim($this->app->config->string('APP_URL'), '/') . $this->request->getPathInfo(),
             'environment' => $this->app->config->environment(),
         ], $status);
     }

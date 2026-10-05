@@ -19,6 +19,24 @@ final class ApplicationAdminController extends Controller
         ]);
     }
 
+    /** CSV export follows the same visibility rules as the list: reviewers only export assigned applications. */
+    public function exportCsv(): Response
+    {
+        $status = (string) $this->request->query->get('status', '');
+        $rows = $this->app->applications()->forStaff($this->requireActor(), $status !== '' ? $status : null);
+        // Sensitive export: record who exported what scope in the audit trail.
+        $actor = $this->requireActor();
+        (new \IEdify\Core\Database\Transaction($this->app->pdo()))->run(function () use ($actor, $status): void {
+            (new \IEdify\Core\Audit\AuditLog($this->app->pdo()))->record($actor->id, 'export.applications_csv', 'applications', $status !== '' ? $status : 'all');
+        });
+        $stream = fopen('php://temp', 'r+b');
+        \IEdify\Services\Exports\Csv::write($stream, ['id', 'program_title', 'intake_name', 'email', 'status', 'submitted_at', 'created_at'], array_map(static fn (array $row): array => [
+            'id' => $row['id'], 'program_title' => $row['program_title'], 'intake_name' => $row['intake_name'], 'email' => $row['email'], 'status' => $row['status'], 'submitted_at' => $row['submitted_at'], 'created_at' => $row['created_at'],
+        ], $rows));
+        rewind($stream);
+        return new Response((string) stream_get_contents($stream), 200, ['Content-Type' => 'text/csv; charset=utf-8', 'Content-Disposition' => 'attachment; filename="applications.csv"']);
+    }
+
     public function show(): Response
     {
         $application = $this->app->applications()->findForStaff($this->requireActor(), (int) $this->vars['id']);

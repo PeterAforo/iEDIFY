@@ -42,6 +42,23 @@ final class ModerationController extends Controller
         return $this->redirect('/admin/moderation');
     }
 
+    public function createOpportunity(): Response
+    {
+        try {
+            $this->app->community()->createOpportunity($this->requireActor(), [
+                'title' => $this->input('title'),
+                'category' => $this->input('category'),
+                'summary' => $this->input('summary'),
+                'details' => $this->input('details'),
+                'deadline' => $this->input('deadline'),
+            ]);
+            $this->flash('success', 'Opportunity published.');
+        } catch (HttpError|\InvalidArgumentException $error) {
+            $this->flash('error', $error->getMessage());
+        }
+        return $this->redirect('/admin/moderation');
+    }
+
     public function eventStatus(): Response
     {
         try {

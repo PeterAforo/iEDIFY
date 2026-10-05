@@ -55,6 +55,16 @@ final class EventController extends Controller
         return $this->redirect('/events/' . $this->slugFor($id));
     }
 
+    public function opportunities(): Response
+    {
+        return $this->render('events/opportunities.twig', ['opportunities' => $this->app->community()->openOpportunities()]);
+    }
+
+    public function opportunity(): Response
+    {
+        return $this->render('events/opportunity.twig', ['opportunity' => $this->app->community()->opportunity((int) $this->vars['id'])]);
+    }
+
     private function slugFor(int $eventId): string
     {
         $statement = $this->app->pdo()->prepare('SELECT slug FROM events WHERE id = ?');

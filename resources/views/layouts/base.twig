@@ -4,6 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{% block description %}iEDIFY Africa — youth innovation and entrepreneurship.{% endblock %}">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <meta property="og:title" content="{% block og_title %}iEDIFY Africa{% endblock %}">
+    <meta property="og:description" content="{{ block('description') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ canonical_url }}">
     <title>{% block title %}iEDIFY Africa{% endblock %}</title>
     {% for stylesheet in asset_styles('resources/assets/scripts/app.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
     <script type="module" src="{{ asset('resources/assets/scripts/app.js') }}"></script>

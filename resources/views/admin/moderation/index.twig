@@ -64,5 +64,15 @@
     <label>Capacity<input type="number" name="capacity" min="0"></label>
     <button type="submit" class="button-secondary">Create event</button>
 </form>
+<h2>New opportunity</h2>
+<form method="post" action="/admin/opportunities" class="stacked-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <label>Title<input type="text" name="title" required maxlength="255"></label>
+    <label>Category<input type="text" name="category" maxlength="60" value="general"></label>
+    <label>Summary<textarea name="summary" required maxlength="20000"></textarea></label>
+    <label>Details<textarea name="details" maxlength="20000"></textarea></label>
+    <label>Deadline<input type="date" name="deadline"></label>
+    <button type="submit" class="button-secondary">Publish opportunity</button>
+</form>
 {% endif %}
 {% endblock %}
