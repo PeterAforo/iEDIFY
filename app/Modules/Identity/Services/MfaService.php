@@ -100,6 +100,27 @@ final readonly class MfaService
         });
     }
 
+    /**
+     * Provisioning URI for an enrollment that was started but not yet confirmed.
+     */
+    public function pendingSetup(int $userId): ?string
+    {
+        $factor = $this->factor($userId);
+        if ($factor === null || $factor['confirmed_at'] !== null) {
+            return null;
+        }
+        $query = $this->pdo->prepare('SELECT email FROM users WHERE id = ?');
+        $query->execute([$userId]);
+        $email = $query->fetchColumn();
+        if (!is_string($email)) {
+            return null;
+        }
+        $totp = TOTP::createFromSecret($this->secrets->decrypt($factor['secret_ciphertext']), $this->clock);
+        $totp->setIssuer('iEDIFY Africa');
+        $totp->setLabel($email);
+        return $totp->getProvisioningUri();
+    }
+
     public function enabled(int $userId): bool
     {
         $factor = $this->factor($userId);

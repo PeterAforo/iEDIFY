@@ -1,0 +1,38 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Content | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Content</h1>
+<form method="get" action="/admin/content" class="filter-form">
+    <label for="f-status">Status</label>
+    <select id="f-status" name="status">
+        <option value="">All</option>
+        {% for s in ['draft','review','published','archived'] %}<option value="{{ s }}"{% if filters.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <label for="f-type">Type</label>
+    <select id="f-type" name="type">
+        <option value="">All</option>
+        {% for t in ['page','legal','team','program','pillar','news','story','faq','event','opportunity','publication','hero','auth_copy'] %}<option value="{{ t }}"{% if filters.type == t %} selected{% endif %}>{{ t }}</option>{% endfor %}
+    </select>
+    <label for="f-q">Search</label>
+    <input id="f-q" name="q" type="search" maxlength="120" value="{{ filters.q }}">
+    <button type="submit" class="button-secondary">Filter</button>
+</form>
+<table class="admin-table">
+    <thead><tr><th scope="col">Title</th><th scope="col">Slug</th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Draft state</th><th scope="col">Flags</th><th scope="col">Updated (UTC)</th></tr></thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td><a href="/admin/content/{{ item.id }}">{{ item.title }}</a></td>
+            <td><code>{{ item.slug }}</code></td>
+            <td>{{ item.content_type }}</td>
+            <td>{{ item.status }}</td>
+            <td>{{ item.working_state }}</td>
+            <td>{% if item.open_flags > 0 %}<span class="flag-open">{{ item.open_flags }} open</span>{% else %}—{% endif %}</td>
+            <td>{{ item.updated_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">No content matches the current filters.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

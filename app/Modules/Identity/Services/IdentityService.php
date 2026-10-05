@@ -55,6 +55,34 @@ final readonly class IdentityService
         }
     }
 
+    /**
+     * Provision a verified privileged account (console/operator use). The
+     * account must still enroll MFA before privileged routes are reachable.
+     */
+    public function registerAdmin(string $email, string $name, string $password): ?int
+    {
+        $this->validatePassword($password);
+        try {
+            return (new Transaction($this->pdo))->run(function () use ($email, $name, $password): int {
+                $statement = $this->pdo->prepare('INSERT INTO users (public_id, email, name, password_hash, email_verified_at, created_at, updated_at) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))');
+                $statement->execute([bin2hex(random_bytes(16)), $email, $name, password_hash($password, PASSWORD_DEFAULT)]);
+                $id = (int) $this->pdo->lastInsertId();
+                $statement = $this->pdo->prepare("INSERT INTO user_roles (user_id, role_id) SELECT ?, id FROM roles WHERE name = 'super_administrator'");
+                $statement->execute([$id]);
+                if ($statement->rowCount() !== 1) {
+                    throw new \RuntimeException('Identity roles have not been provisioned.');
+                }
+                (new AuditLog($this->pdo))->record(null, 'identity.admin_provisioned', 'user', (string) $id);
+                return $id;
+            });
+        } catch (PDOException $error) {
+            if (($error->errorInfo[1] ?? null) === 1062) {
+                return null;
+            }
+            throw $error;
+        }
+    }
+
     public function authenticate(string $email, string $password): ?array
     {
         $fallbackHash = password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT);
@@ -86,6 +114,79 @@ final readonly class IdentityService
             $this->pdo->prepare('UPDATE auth_tokens SET consumed_at = UTC_TIMESTAMP(6) WHERE id = ?')->execute([$record['id']]);
             $this->pdo->prepare('UPDATE users SET email_verified_at = COALESCE(email_verified_at, UTC_TIMESTAMP(6)), updated_at = UTC_TIMESTAMP(6) WHERE id = ?')->execute([$record['user_id']]);
             (new AuditLog($this->pdo))->record((int) $record['user_id'], 'identity.email_verified', 'user', (string) $record['user_id']);
+            return true;
+        });
+    }
+
+    public function currentVersion(int $userId): ?int
+    {
+        $query = $this->pdo->prepare("SELECT version FROM users WHERE id = ? AND status = 'active'");
+        $query->execute([$userId]);
+        $version = $query->fetchColumn();
+        return $version === false ? null : (int) $version;
+    }
+
+    /**
+     * Issue a one-use password reset token. Always returns without revealing
+     * whether the address is registered; mail is dispatched by the outbox.
+     */
+    public function requestPasswordReset(string $email): void
+    {
+        $email = strtolower(trim($email));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+        (new Transaction($this->pdo))->run(function () use ($email): void {
+            $statement = $this->pdo->prepare("SELECT id FROM users WHERE email = ? AND status = 'active'");
+            $statement->execute([$email]);
+            $userId = $statement->fetchColumn();
+            if ($userId === false) {
+                return;
+            }
+            $this->pdo->prepare("UPDATE auth_tokens SET consumed_at = UTC_TIMESTAMP(6) WHERE user_id = ? AND purpose = 'password_reset' AND consumed_at IS NULL")->execute([$userId]);
+            $token = bin2hex(random_bytes(32));
+            $this->pdo->prepare("INSERT INTO auth_tokens (user_id, purpose, token_hash, expires_at, created_at) VALUES (?, 'password_reset', ?, DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 1 HOUR), UTC_TIMESTAMP(6))")->execute([$userId, hash('sha256', $token)]);
+            (new Outbox($this->pdo))->record('identity.reset.' . $userId . '.' . substr(hash('sha256', $token), 0, 12), 'identity.password_reset', ['user_id' => (int) $userId, 'token_ciphertext' => $this->secrets->encrypt($token)]);
+            (new AuditLog($this->pdo))->record((int) $userId, 'identity.password_reset_requested', 'user', (string) $userId);
+        });
+    }
+
+    public function resetPassword(string $token, string $password): bool
+    {
+        if (!preg_match('/^[a-f0-9]{64}$/D', $token)) {
+            return false;
+        }
+        $this->validatePassword($password);
+        return (new Transaction($this->pdo))->run(function () use ($token, $password): bool {
+            $statement = $this->pdo->prepare("SELECT t.id, t.user_id FROM auth_tokens t JOIN users u ON u.id = t.user_id WHERE t.token_hash = ? AND t.purpose = 'password_reset' AND t.consumed_at IS NULL AND t.expires_at > UTC_TIMESTAMP(6) AND u.status = 'active' FOR UPDATE");
+            $statement->execute([hash('sha256', $token)]);
+            $record = $statement->fetch();
+            if ($record === false) {
+                return false;
+            }
+            $this->pdo->prepare('UPDATE auth_tokens SET consumed_at = UTC_TIMESTAMP(6) WHERE id = ?')->execute([$record['id']]);
+            $this->pdo->prepare("UPDATE auth_tokens SET consumed_at = UTC_TIMESTAMP(6) WHERE user_id = ? AND purpose = 'password_reset' AND consumed_at IS NULL")->execute([$record['user_id']]);
+            $this->pdo->prepare('UPDATE users SET password_hash = ?, version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?')->execute([password_hash($password, PASSWORD_DEFAULT), $record['user_id']]);
+            (new AuditLog($this->pdo))->record((int) $record['user_id'], 'identity.password_reset', 'user', (string) $record['user_id']);
+            return true;
+        });
+    }
+
+    /**
+     * Issue a fresh verification token for an unverified account.
+     */
+    public function resendVerification(int $userId): bool
+    {
+        return (new Transaction($this->pdo))->run(function () use ($userId): bool {
+            $statement = $this->pdo->prepare("SELECT id FROM users WHERE id = ? AND status = 'active' AND email_verified_at IS NULL FOR UPDATE");
+            $statement->execute([$userId]);
+            if ($statement->fetch() === false) {
+                return false;
+            }
+            $token = bin2hex(random_bytes(32));
+            $this->pdo->prepare("INSERT INTO auth_tokens (user_id, purpose, token_hash, expires_at, created_at) VALUES (?, 'email_verify', ?, DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 24 HOUR), UTC_TIMESTAMP(6))")->execute([$userId, hash('sha256', $token)]);
+            (new Outbox($this->pdo))->record('identity.verify.' . $userId . '.' . substr(hash('sha256', $token), 0, 12), 'identity.verify_email', ['user_id' => $userId, 'token_ciphertext' => $this->secrets->encrypt($token)]);
+            (new AuditLog($this->pdo))->record($userId, 'identity.verify_resent', 'user', (string) $userId);
             return true;
         });
     }

@@ -1,0 +1,46 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Edit {{ item.title }} | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Edit content</h1>
+<p><code>{{ item.slug }}</code> · {{ item.content_type }} · status {{ item.status }} · draft state {{ item.working_state }} · version {{ item.version }}</p>
+{% if flags %}
+<section class="flag-list" aria-labelledby="flags-heading">
+    <h2 id="flags-heading">Editorial flags</h2>
+    <ul>
+        {% for flag in flags %}
+        <li>{{ flag.code }} — {{ flag.message }} <em>({{ flag.status }})</em></li>
+        {% endfor %}
+    </ul>
+    <p><a href="/admin/flags">Resolve flags</a></p>
+</section>
+{% endif %}
+<form method="post" action="/admin/content/{{ item.id }}/revise" class="editor-form">
+    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+    <input type="hidden" name="version" value="{{ item.version }}">
+    <div class="field">
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text" required maxlength="255" value="{{ latest.title|default(item.title) }}">
+    </div>
+    <div class="field">
+        <label for="sections">Sections (JSON)</label>
+        <textarea id="sections" name="sections" rows="24" required>{{ latest ? latest.sections|json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES')) : '[]' }}</textarea>
+        <p class="field-hint">Blocks: heading, text, rich_text, image, quote, cta, statistic, cards, gallery, accordion, timeline.</p>
+    </div>
+    <button type="submit" class="button-primary">Save draft</button>
+</form>
+<div class="action-row">
+    <form method="post" action="/admin/content/{{ item.id }}/submit-review">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <input type="hidden" name="version" value="{{ item.version }}">
+        <button type="submit" class="button-secondary"{% if item.working_state != 'draft' %} disabled{% endif %}>Submit for review</button>
+    </form>
+    {% if can_publish %}
+    <form method="post" action="/admin/content/{{ item.id }}/publish">
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <input type="hidden" name="version" value="{{ item.version }}">
+        <button type="submit" class="button-primary"{% if item.working_state != 'review' %} disabled{% endif %}>Publish current revision</button>
+    </form>
+    {% endif %}
+    <p><a href="/admin/content/{{ item.id }}/revisions">Revision history</a></p>
+</div>
+{% endblock %}

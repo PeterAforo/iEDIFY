@@ -30,6 +30,6 @@ test('essential preview content works without JavaScript', async ({ browser }) =
   const page = await context.newPage();
   await page.goto('http://127.0.0.1:8080/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'info@iedifyafrica.org' })).toHaveAttribute('href', 'mailto:info@iedifyafrica.org');
+  await expect(page.locator('#main-content').getByRole('link', { name: 'info@iedifyafrica.org' })).toHaveAttribute('href', 'mailto:info@iedifyafrica.org');
   await context.close();
 });

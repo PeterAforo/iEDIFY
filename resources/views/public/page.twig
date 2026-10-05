@@ -1,0 +1,27 @@
+{% extends 'layouts/base.twig' %}
+{% import 'public/_sections.twig' as ui %}
+{% block title %}{{ page.title }} | iEDIFY Africa{% endblock %}
+{% block content %}
+<article class="page">
+    <header class="page-header container">
+        <h1>{{ page.title }}</h1>
+    </header>
+    <div class="container page-body">
+        {{ ui.render(sections, media) }}
+    </div>
+    {% if roster is defined %}
+    <section class="container roster" aria-label="Team roster">
+        {% for member in roster %}
+        <article class="roster-card">
+            {% if member.portrait_asset_id and media[member.portrait_asset_id]|default(null) %}
+            <img src="{{ media[member.portrait_asset_id] }}" alt="Portrait of {{ member.display_name }}" loading="lazy">
+            {% endif %}
+            <h2><a href="{{ member.slug }}">{{ member.display_name }}</a></h2>
+            <p class="roster-role">{{ member.role_label }}</p>
+            {% if member.youth_adviser %}<p class="roster-badge">Youth advisory board</p>{% endif %}
+        </article>
+        {% endfor %}
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Recovery codes | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Save your recovery codes</h1>
+    <p class="auth-lead">Each code works once. Store them somewhere safe — you will not see them again.</p>
+    <ol class="recovery-codes">
+        {% for code in codes %}<li><code>{{ code }}</code></li>{% endfor %}
+    </ol>
+    <p><a class="button-primary" href="/account">Continue to your account</a></p>
+</section>
+{% endblock %}

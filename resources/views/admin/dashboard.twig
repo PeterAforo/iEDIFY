@@ -1,0 +1,28 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Administration | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Administration</h1>
+<div class="admin-cards">
+    <section class="admin-card">
+        <h2>Content</h2>
+        <ul>
+            {% for row in counts.content %}<li>{{ row.status }}: {{ row.total }}</li>{% endfor %}
+        </ul>
+        <p><a href="/admin/content">Manage content</a></p>
+    </section>
+    <section class="admin-card">
+        <h2>Review flags</h2>
+        <p>{{ counts.flags }} open</p>
+        <p><a href="/admin/flags">Review flags</a></p>
+    </section>
+    <section class="admin-card">
+        <h2>Media review</h2>
+        <p>{{ counts.media_pending }} pending</p>
+        <p><a href="/admin/media">Review media</a></p>
+    </section>
+    <section class="admin-card">
+        <h2>Outgoing mail</h2>
+        <p>{{ counts.outbox_pending }} queued</p>
+    </section>
+</div>
+{% endblock %}

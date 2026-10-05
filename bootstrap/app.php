@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use IEdify\Core\Application;
 use IEdify\Core\Config;
 use IEdify\Core\Http\Kernel;
 use IEdify\Core\View\View;
@@ -29,4 +30,4 @@ $session = new Session(new NativeSessionStorage([
     'use_only_cookies' => true,
     'gc_maxlifetime' => 1800,
 ], new NativeFileSessionHandler($root . '/storage/sessions')));
-return new Kernel($config, new View($root), $session, $logger);
+return new Kernel(new Application($config, new View($root), $session, $logger, $root));

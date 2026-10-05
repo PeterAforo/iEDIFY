@@ -91,6 +91,64 @@ $app->add((new Command('content:reconcile'))
         }
         return Command::SUCCESS;
     }));
+$app->add((new Command('identity:seed-roles'))
+    ->setDescription('Seed the role and permission matrix (idempotent)')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $pdo = Connection::open(Config::load($root, $input->getOption('env') === 'test'));
+        (new IEdify\Modules\Identity\Services\RoleSeeder($pdo))->seed();
+        $output->writeln('Roles and permissions seeded.');
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('identity:create-admin'))
+    ->setDescription('Provision a super administrator with verified email; MFA is enforced at first sign-in')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->addOption('email', null, InputOption::VALUE_REQUIRED, 'Administrator email')
+    ->addOption('name', null, InputOption::VALUE_REQUIRED, 'Administrator name')
+    ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Initial password (omit to be prompted)')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $helper = new Symfony\Component\Console\Helper\QuestionHelper();
+        $email = $input->getOption('email');
+        $name = $input->getOption('name');
+        $password = $input->getOption('password');
+        if (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL) || !is_string($name) || trim($name) === '') {
+            $output->writeln('Provide --email and --name.');
+            return Command::FAILURE;
+        }
+        if (!is_string($password) || $password === '') {
+            $question = new Symfony\Component\Console\Question\Question('Initial password (min 12 chars): ');
+            $question->setHidden(true)->setHiddenFallback(false);
+            $password = $helper->ask($input, $output, $question);
+        }
+        if (!is_string($password) || strlen($password) < 12 || strlen($password) > 72) {
+            $output->writeln('Password must be 12–72 characters.');
+            return Command::FAILURE;
+        }
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        $pdo = Connection::open($config);
+        (new IEdify\Modules\Identity\Services\RoleSeeder($pdo))->seed();
+        $identity = new IEdify\Modules\Identity\Services\IdentityService($pdo, new IEdify\Core\Security\SecretBox($config->string('APP_KEY')));
+        $userId = $identity->registerAdmin(strtolower(trim($email)), trim($name), $password);
+        if ($userId === null) {
+            $output->writeln('An account already exists for this email.');
+            return Command::FAILURE;
+        }
+        $output->writeln('Super administrator created (user #' . $userId . '). They must complete MFA enrollment at first sign-in.');
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('outbox:run'))
+    ->setDescription('Process pending outbox events through the configured transports')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Maximum events per run', '20')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        $logger = new Monolog\Logger('iedify-outbox');
+        $logger->pushHandler(new Monolog\Handler\StreamHandler($root . '/storage/logs/application.log', Monolog\Level::Warning, true, 0600));
+        $processor = new IEdify\Core\Jobs\OutboxProcessor(Connection::open($config), $config, new IEdify\Core\Security\SecretBox($config->string('APP_KEY')), $logger, $root);
+        $stats = $processor->run(max(1, (int) $input->getOption('limit')));
+        $output->writeln('Processed ' . $stats['processed'] . ', failed ' . $stats['failed'] . '.');
+        return $stats['failed'] > 0 ? Command::FAILURE : Command::SUCCESS;
+    }));
 $app->add((new Command('local:seal'))
     ->setDescription('Remove the one-use database bootstrap secret after successful local provisioning')
     ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {

@@ -1,0 +1,40 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Create account | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Create your account</h1>
+    <p class="auth-lead">Join the iEDIFY Africa community.</p>
+    <form method="post" action="/sign-up" class="auth-form" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <div class="field">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" required autocomplete="name" maxlength="180" value="{{ data.name|default('') }}">
+        </div>
+        <div class="field">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" required autocomplete="email" maxlength="254" value="{{ data.email|default('') }}">
+        </div>
+        <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required autocomplete="new-password" minlength="12" aria-describedby="password-hint">
+            <p id="password-hint" class="field-hint">At least 12 characters.</p>
+        </div>
+        <div class="field-honeypot" aria-hidden="true">
+            <label for="fax">Company fax</label>
+            <input id="fax" name="fax" type="text" tabindex="-1" autocomplete="off">
+            <label for="department">Department code</label>
+            <input id="department" name="department" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <div class="field field-check">
+            <input id="terms_accepted" name="terms_accepted" type="checkbox" required value="1">
+            <label for="terms_accepted">I accept the <a href="/legal/terms">terms of use</a> and <a href="/legal/privacy">privacy policy</a> (version {{ policy_version }}).</label>
+        </div>
+        <div class="field field-check">
+            <input id="age_attested" name="age_attested" type="checkbox" required value="1">
+            <label for="age_attested">I confirm I am at least 16 years old.</label>
+        </div>
+        <button type="submit" class="button-primary">Create account</button>
+    </form>
+    <p>Already registered? <a href="/sign-in">Sign in</a>.</p>
+</section>
+{% endblock %}

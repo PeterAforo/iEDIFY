@@ -1,0 +1,14 @@
+{% extends 'layouts/base.twig' %}
+{% block content %}
+<div class="container admin-layout">
+    <nav class="admin-nav" aria-label="Administration">
+        <ul>
+            <li><a href="/admin"{% if current_path == '/admin' %} aria-current="page"{% endif %}>Overview</a></li>
+            <li><a href="/admin/content"{% if current_path starts with '/admin/content' %} aria-current="page"{% endif %}>Content</a></li>
+            <li><a href="/admin/media"{% if current_path starts with '/admin/media' %} aria-current="page"{% endif %}>Media</a></li>
+            <li><a href="/admin/flags"{% if current_path starts with '/admin/flags' %} aria-current="page"{% endif %}>Review flags</a></li>
+        </ul>
+    </nav>
+    <div class="admin-main">{% block admin %}{% endblock %}</div>
+</div>
+{% endblock %}

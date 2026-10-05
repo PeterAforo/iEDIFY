@@ -1,0 +1,27 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Security check | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Security check</h1>
+    <p class="auth-lead">Enter the six-digit code from your authenticator app.</p>
+    <form method="post" action="/sign-in/mfa" class="auth-form" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <div class="field">
+            <label for="code">Authentication code</label>
+            <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" required autocomplete="one-time-code" maxlength="6">
+        </div>
+        <button type="submit" class="button-primary">Verify</button>
+    </form>
+    <details class="recovery-details">
+        <summary>Use a recovery code instead</summary>
+        <form method="post" action="/sign-in/mfa/recovery" class="auth-form" novalidate>
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="field">
+                <label for="recovery_code">Recovery code</label>
+                <input id="recovery_code" name="recovery_code" type="text" required autocomplete="off">
+            </div>
+            <button type="submit" class="button-secondary">Use recovery code</button>
+        </form>
+    </details>
+</section>
+{% endblock %}

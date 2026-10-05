@@ -1,0 +1,27 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Review flags | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Editorial review flags</h1>
+<p>Open flags block publication until a reviewer resolves them.</p>
+<table class="admin-table">
+    <thead><tr><th scope="col">Flag</th><th scope="col">Message</th><th scope="col">Source</th><th scope="col">Content</th><th scope="col">Action</th></tr></thead>
+    <tbody>
+        {% for flag in flags %}
+        <tr>
+            <td><code>{{ flag.code }}</code></td>
+            <td>{{ flag.message }}</td>
+            <td><code>{{ flag.source_key }}</code></td>
+            <td>{% if flag.content_id %}<a href="/admin/content/{{ flag.content_id }}">{{ flag.content_title }}</a>{% else %}—{% endif %}</td>
+            <td>
+                <form method="post" action="/admin/flags/{{ flag.id }}/resolve">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <button type="submit" class="button-secondary">Resolve</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No open flags.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

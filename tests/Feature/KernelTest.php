@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IEdify\Tests\Feature;
 
+use IEdify\Core\Application;
 use IEdify\Core\Config;
 use IEdify\Core\Http\Kernel;
 use IEdify\Core\View\View;
@@ -17,7 +18,9 @@ final class KernelTest extends TestCase
 {
     private function kernel(): Kernel
     {
-        return new Kernel(new Config(['APP_ENV' => 'test', 'APP_URL' => 'http://localhost']), new View(dirname(__DIR__, 2)), new Session(new MockArraySessionStorage()), new NullLogger());
+        $root = dirname(__DIR__, 2);
+        $config = new Config(['APP_ENV' => 'test', 'APP_URL' => 'http://localhost']);
+        return new Kernel(new Application($config, new View($root), new Session(new MockArraySessionStorage()), new NullLogger(), $root));
     }
 
     public function testHealthCheckDoesNotExposeConfiguration(): void
@@ -30,7 +33,7 @@ final class KernelTest extends TestCase
 
     public function testUnknownRouteReturns404AndNoIndex(): void
     {
-        $response = $this->kernel()->handle(Request::create('http://localhost/not-a-route'));
+        $response = $this->kernel()->handle(Request::create('http://localhost/not_a_route'));
         self::assertSame(404, $response->getStatusCode());
         self::assertSame('noindex, nofollow', $response->headers->get('X-Robots-Tag'));
     }

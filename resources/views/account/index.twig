@@ -1,0 +1,25 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Your account | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Your account</h1>
+    {% if not actor.verified %}
+    <div class="status-panel" role="status">
+        <h2>Verify your email</h2>
+        <p>Confirm your email address to use applications, programs and community features.</p>
+        <form method="post" action="/account/email/resend">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <button type="submit" class="button-secondary">Resend verification email</button>
+        </form>
+    </div>
+    {% endif %}
+    <dl class="account-details">
+        <dt>Name</dt><dd>{{ user.name }}</dd>
+        <dt>Email</dt><dd>{{ user.email }}</dd>
+        <dt>Member since</dt><dd>{{ user.created_at|date('j F Y', 'Africa/Accra') }}</dd>
+    </dl>
+    <h2>Security</h2>
+    <p><a href="/account/security">Manage multi-factor authentication</a></p>
+    {% if actor.privileged %}<p><a href="/admin">Go to the administration area</a></p>{% endif %}
+</section>
+{% endblock %}

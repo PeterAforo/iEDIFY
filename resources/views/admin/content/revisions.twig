@@ -1,0 +1,29 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Revisions for {{ item.title }} | iEDIFY Africa{% endblock %}
+{% block admin %}
+<h1>Revisions — {{ item.title }}</h1>
+<p><a href="/admin/content/{{ item.id }}">Back to editor</a></p>
+<table class="admin-table">
+    <thead><tr><th scope="col">Revision</th><th scope="col">Title</th><th scope="col">Author</th><th scope="col">Created (UTC)</th><th scope="col">Live</th><th scope="col">Action</th></tr></thead>
+    <tbody>
+        {% for revision in revisions %}
+        <tr>
+            <td>{{ revision.revision_number }}</td>
+            <td>{{ revision.title }}</td>
+            <td>{{ revision.author|default('Import') }}</td>
+            <td>{{ revision.created_at }}</td>
+            <td>{% if revision.is_live %}Live{% endif %}</td>
+            <td>
+                {% if can_restore %}
+                <form method="post" action="/admin/content/{{ item.id }}/revisions/{{ revision.revision_number }}/restore">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="version" value="{{ item.version }}">
+                    <button type="submit" class="button-secondary">Restore as draft</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

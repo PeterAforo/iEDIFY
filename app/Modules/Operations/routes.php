@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-use FastRoute\RouteCollector;
+use IEdify\Modules\Operations\Http\HealthController;
 
-return static function (RouteCollector $routes): void {
-    $routes->addRoute('GET', '/health', 'operations.health');
-    $routes->addRoute('GET', '/', 'operations.setup');
-};
+return [
+    ['GET', '/health', [HealthController::class, 'show']],
+];

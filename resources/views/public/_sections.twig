@@ -1,0 +1,38 @@
+{% macro render(blocks, media) %}
+    {% for block in blocks %}
+        {% if block.type == 'heading' %}
+            <h2 class="section-heading">{{ block.text }}</h2>
+        {% elseif block.type == 'text' %}
+            <div class="prose">{{ block.text|nl2br }}</div>
+        {% elseif block.type == 'rich_text' %}
+            <div class="prose">{{ block.html|raw }}</div>
+        {% elseif block.type == 'image' and media[block.media_id]|default(null) %}
+            <figure class="section-image"><img src="{{ media[block.media_id] }}" alt="{{ block.alt }}" loading="lazy"></figure>
+        {% elseif block.type == 'quote' %}
+            <blockquote class="section-quote"><p>{{ block.text }}</p><cite>{{ block.attribution }}</cite></blockquote>
+        {% elseif block.type == 'cta' %}
+            <p class="section-cta"><a class="button-primary" href="{{ block.url }}">{{ block.label }}</a></p>
+        {% elseif block.type == 'statistic' %}
+            <div class="statistic statistic-{{ block.kind }}">
+                <p class="statistic-value">{{ block.value }}</p>
+                <p class="statistic-label">{{ block.label }}</p>
+                <p class="statistic-meta">{{ block.kind == 'target' ? 'Target' : 'Context' }} — {{ block.source }}, {{ block.period }}</p>
+            </div>
+        {% elseif block.type in ['cards', 'accordion', 'timeline'] %}
+            <div class="section-{{ block.type }}">
+                {% for item in block.items %}
+                <article class="collection-item">
+                    <h3>{{ item.title }}</h3>
+                    <div class="prose">{{ item.text|nl2br }}</div>
+                </article>
+                {% endfor %}
+            </div>
+        {% elseif block.type == 'gallery' %}
+            <div class="section-gallery">
+                {% for item in block.items %}{% if media[item.media_id]|default(null) %}
+                <figure><img src="{{ media[item.media_id] }}" alt="{{ item.alt }}" loading="lazy"></figure>
+                {% endif %}{% endfor %}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endmacro %}

@@ -3,15 +3,85 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="iEDIFY Africa — youth innovation and entrepreneurship.">
+    <meta name="description" content="{% block description %}iEDIFY Africa — youth innovation and entrepreneurship.{% endblock %}">
     <title>{% block title %}iEDIFY Africa{% endblock %}</title>
     {% for stylesheet in asset_styles('resources/assets/scripts/app.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
     <script type="module" src="{{ asset('resources/assets/scripts/app.js') }}"></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
-    <header class="site-header"><div class="container"><a class="brand-name" href="/">iEDIFY Africa</a><span class="environment-label">Development preview</span></div></header>
+    <header class="site-header">
+        <div class="container site-header-inner">
+            <a class="brand" href="/" aria-label="iEDIFY Africa home">
+                {% if chrome.logo_url %}<img class="brand-logo" src="{{ chrome.logo_url }}" alt="iEDIFY Africa" width="160" height="71">{% else %}<span class="brand-name">iEDIFY Africa</span>{% endif %}
+            </a>
+            {% if environment != 'production' %}<span class="environment-label">Development preview</span>{% endif %}
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" x-data x-on:click="$el.setAttribute('aria-expanded', $el.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'); document.getElementById('site-nav').classList.toggle('nav-open')">
+                <span class="nav-toggle-label">Menu</span>
+            </button>
+            <nav id="site-nav" class="site-nav" aria-label="Main navigation">
+                <ul>
+                    {% for item in chrome.nav %}
+                    <li><a href="{{ item[0] }}"{% if current_path == item[0] %} aria-current="page"{% endif %}>{{ item[1] }}</a></li>
+                    {% endfor %}
+                </ul>
+                <ul class="nav-account">
+                    {% if actor %}
+                    <li><a href="/account">Account</a></li>
+                    {% if actor.privileged %}<li><a href="/admin">Admin</a></li>{% endif %}
+                    <li>
+                        <form method="post" action="/sign-out"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><button type="submit" class="nav-button">Sign out</button></form>
+                    </li>
+                    {% else %}
+                    <li><a href="/sign-in">Sign in</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+    {% if flashes %}
+    <div class="container flashes" aria-live="polite">
+        {% for type, messages in flashes %}{% for message in messages %}
+        <p class="flash flash-{{ type }}" role="status">{{ message }}</p>
+        {% endfor %}{% endfor %}
+    </div>
+    {% endif %}
     <main id="main-content" tabindex="-1">{% block content %}{% endblock %}</main>
-    <footer class="site-footer"><div class="container">International Entrepreneurial Development and Innovation Fund for Youth in Africa</div></footer>
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <p class="footer-org">iEDIFY Africa</p>
+                <p>International Entrepreneurial Development and Innovation Fund for Youth in Africa</p>
+                <address>
+                    {{ chrome.contact.address }}<br>
+                    <a href="mailto:{{ chrome.contact.email }}">{{ chrome.contact.email }}</a><br>
+                    {{ chrome.contact.phone }}
+                </address>
+            </div>
+            <nav aria-label="Footer navigation">
+                <ul class="footer-links">
+                    <li><a href="/legal/privacy">Privacy</a></li>
+                    <li><a href="/legal/terms">Terms</a></li>
+                    <li><a href="/legal/cookies">Cookies</a></li>
+                </ul>
+            </nav>
+            <div>
+                <p class="footer-heading">Follow</p>
+                <ul class="footer-links">
+                    {% for social in chrome.social %}<li><a href="{{ social[1] }}" rel="noopener noreferrer">{{ social[0] }}</a></li>{% endfor %}
+                </ul>
+            </div>
+            <form class="newsletter-form" method="post" action="/newsletter/subscribe" aria-label="Newsletter signup">
+                <label for="footer-newsletter-email">Newsletter</label>
+                <div class="newsletter-row">
+                    <input id="footer-newsletter-email" type="email" name="email" required maxlength="254" autocomplete="email" placeholder="you@example.org">
+                    <button type="submit">Subscribe</button>
+                </div>
+                <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                <input type="hidden" name="consent" value="1">
+                <p class="newsletter-note">By subscribing you agree to receive iEDIFY Africa updates. Unsubscribe anytime.</p>
+            </form>
+        </div>
+    </footer>
 </body>
 </html>

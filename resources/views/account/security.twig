@@ -1,0 +1,22 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Security | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Security</h1>
+    <h2>Multi-factor authentication</h2>
+    {% if mfa_enabled %}
+    <p>Multi-factor authentication is enabled for this account.</p>
+    {% else %}
+    <p>Add a second layer of protection with an authenticator app.</p>
+    <form method="post" action="/account/security/mfa/begin" class="auth-form" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <div class="field">
+            <label for="password">Confirm your password</label>
+            <input id="password" name="password" type="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="button-primary">Start setup</button>
+    </form>
+    {% endif %}
+    <p><a href="/account">Back to your account</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'layouts/base.twig' %}
+{% block title %}Set up multi-factor authentication | iEDIFY Africa{% endblock %}
+{% block content %}
+<section class="container auth-page">
+    <h1>Set up multi-factor authentication</h1>
+    <p class="auth-lead">Staff and privileged accounts require an authenticator app. Add this account in your app, then enter the code it shows.</p>
+    <div class="field">
+        <label for="uri">Setup link</label>
+        <input id="uri" type="text" readonly value="{{ uri }}" onclick="this.select()">
+        <p class="field-hint">Paste this link into your authenticator app, or scan it where supported.</p>
+    </div>
+    <form method="post" action="/sign-in/mfa/setup" class="auth-form" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <div class="field">
+            <label for="code">Authentication code</label>
+            <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" required autocomplete="one-time-code" maxlength="6">
+        </div>
+        <button type="submit" class="button-primary">Confirm setup</button>
+    </form>
+</section>
+{% endblock %}
