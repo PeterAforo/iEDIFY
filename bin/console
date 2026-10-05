@@ -1,0 +1,110 @@
+<?php
+
+declare(strict_types=1);
+
+use IEdify\Core\Config;
+use IEdify\Core\Database\Connection;
+use IEdify\Core\Database\MigrationRunner;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+
+$root = dirname(__DIR__);
+require $root . '/vendor/autoload.php';
+$app = new Application('iEDIFY Africa', '0.1.0');
+$app->add((new Command('app:doctor'))
+    ->setDescription('Validate runtime, configuration, storage and database without exposing secrets')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $failed = false;
+        foreach (['pdo_mysql', 'mbstring', 'intl', 'fileinfo', 'openssl', 'sodium', 'bcmath', 'dom', 'gd', 'curl', 'zip'] as $extension) {
+            $ok = extension_loaded($extension);
+            $failed = $failed || !$ok;
+            $output->writeln(($ok ? 'OK ' : 'FAIL ') . $extension);
+        }
+        $output->writeln('PHP ' . PHP_VERSION);
+        $failed = $failed || PHP_VERSION_ID < 80400;
+        try {
+            $config = Config::load($root, $input->getOption('env') === 'test');
+            $config->validate();
+            $pdo = Connection::open($config);
+            $output->writeln('OK MySQL ' . $pdo->query('SELECT VERSION()')->fetchColumn());
+            foreach (['private', 'quarantine', 'logs', 'cache', 'exports', 'sessions'] as $path) {
+                if (!is_writable($root . '/storage/' . $path)) {
+                    $failed = true;
+                    $output->writeln('FAIL storage/' . $path);
+                }
+            }
+            $output->writeln('Environment: ' . $config->environment());
+            $output->writeln('External mail: ' . ($config->boolean('MAIL_LIVE_ENABLED') ? 'enabled' : 'disabled'));
+        } catch (Throwable $error) {
+            $failed = true;
+            $output->writeln('FAIL configuration/database validation (' . $error::class . '). Check local configuration; credentials are not displayed.');
+        }
+        return $failed ? Command::FAILURE : Command::SUCCESS;
+    }));
+$app->add((new Command('database:migrate'))
+    ->setDescription('Apply forward migrations under a database migration lock')
+    ->addOption('env', null, InputOption::VALUE_REQUIRED, 'Environment: configured or test')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root, $input->getOption('env') === 'test');
+        $config->validate();
+        if (!in_array($config->environment(), ['local', 'test'], true)) {
+            $output->writeln('Remote/production migrations require the approved release procedure.');
+            return Command::FAILURE;
+        }
+        (new MigrationRunner($root, $config))->migrate($input, $output);
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('content:import'))
+    ->setDescription('Import captured public content as review-gated drafts without changing source files')
+    ->addOption('source', null, InputOption::VALUE_REQUIRED, 'Content pack directory', $root . '/iEDIFY_Website_Content_Pack')
+    ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Validate and reconcile without writing database records or files')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root);
+        $config->validate();
+        if ($config->environment() !== 'local') {
+            throw new RuntimeException('Non-local content imports require the approved release procedure.');
+        }
+        $importer = new IEdify\Modules\CMS\Services\ContentPackImporter(Connection::open($config), $root . '/storage/private/content');
+        $report = $importer->import((string) $input->getOption('source'), (bool) $input->getOption('dry-run'));
+        $output->writeln(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('content:reconcile'))
+    ->setDescription('Report source URLs, destination paths, record IDs and editorial status')
+    ->addOption('save', null, InputOption::VALUE_NONE, 'Save a private CSV report instead of printing JSON')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $config = Config::load($root);
+        $importer = new IEdify\Modules\CMS\Services\ContentPackImporter(Connection::open($config), $root . '/storage/private/content');
+        $rows = $importer->reconciliation();
+        if ($input->getOption('save')) {
+            $path = $root . '/storage/exports/content-reconciliation-' . gmdate('Ymd-His') . '-' . bin2hex(random_bytes(4)) . '.csv';
+            $stream = fopen($path, 'xb');
+            IEdify\Services\Exports\Csv::write($stream, ['source_key', 'source_url', 'destination_path', 'content_id', 'media_id', 'source_checksum', 'review_status', 'open_flags'], $rows);
+            fclose($stream);
+            $output->writeln('Saved ' . count($rows) . ' source mappings to ' . $path);
+        } else {
+            $output->writeln(json_encode($rows, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+        }
+        return Command::SUCCESS;
+    }));
+$app->add((new Command('local:seal'))
+    ->setDescription('Remove the one-use database bootstrap secret after successful local provisioning')
+    ->setCode(static function (InputInterface $input, OutputInterface $output) use ($root): int {
+        $local = Config::load($root);
+        if ($local->environment() !== 'local' || $local->string('DB_HOST') !== '127.0.0.1' || $local->integer('DB_PORT', 3306) !== 3307) {
+            throw new RuntimeException('This command only applies to the isolated local instance.');
+        }
+        Connection::open($local);
+        Connection::open(Config::load($root, true));
+        $path = $root . '/.runtime/mysql-init.sql';
+        if (is_file($path) && !unlink($path)) {
+            throw new RuntimeException('Could not remove the generated one-use bootstrap file.');
+        }
+        $output->writeln('Local bootstrap sealed. Restart MySQL without --init-file.');
+        return Command::SUCCESS;
+    }));
+exit($app->run());

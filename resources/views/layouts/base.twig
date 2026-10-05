@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="iEDIFY Africa — youth innovation and entrepreneurship.">
+    <title>{% block title %}iEDIFY Africa{% endblock %}</title>
+    {% for stylesheet in asset_styles('resources/assets/scripts/app.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
+    <script type="module" src="{{ asset('resources/assets/scripts/app.js') }}"></script>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header"><div class="container"><a class="brand-name" href="/">iEDIFY Africa</a><span class="environment-label">Development preview</span></div></header>
+    <main id="main-content" tabindex="-1">{% block content %}{% endblock %}</main>
+    <footer class="site-footer"><div class="container">International Entrepreneurial Development and Innovation Fund for Youth in Africa</div></footer>
+</body>
+</html>

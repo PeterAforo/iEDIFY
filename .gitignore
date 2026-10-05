@@ -1,0 +1,17 @@
+/vendor/
+/node_modules/
+/.env
+/.env.*
+!/.env.example
+!/.env.test.example
+/.runtime/
+/storage/
+/public/build/
+/test-results/
+/playwright-report/
+/coverage/
+/.phpunit.cache/
+/.phpstan-cache/
+*.log
+*.sql.gz
+*.zip

@@ -1,0 +1,16 @@
+{
+  "/": {"start": "YOUTH INNOVATION & ENTREPRENEURSHIP", "type": "page", "flags": ["context_statistics", "availability_review"]},
+  "/about": {"start": "ABOUT US", "type": "page", "flags": ["context_statistics", "story_review"]},
+  "/programs": {"start": "OUR PROGRAMS", "type": "page", "flags": ["availability_review"]},
+  "/community": {"start": "IEDIFY AFRICA COMMUNITY", "type": "page", "flags": ["unsupported_legacy_features"]},
+  "/team": {"start": "OUR TEAM", "type": "page", "flags": ["roster_review"]},
+  "/at-a-glance": {"start": "AT A GLANCE", "type": "page", "flags": ["targets_not_actuals", "context_statistics"]},
+  "/impact": {"start": "OUR IMPACT", "type": "page", "flags": ["context_statistics", "story_review"]},
+  "/publications": {"start": "KNOWLEDGE HUB", "type": "page", "flags": ["missing_documents"]},
+  "/contact": {"start": "CONTACT US", "type": "page", "flags": ["contact_form_review", "anti_spam_labels", "unsupported_legacy_features", "response_promise_review"]},
+  "/legal/privacy": {"start": "LEGAL", "type": "legal", "flags": ["legal_review", "age_policy_review"]},
+  "/legal/terms": {"start": "LEGAL", "type": "legal", "flags": ["legal_review"]},
+  "/legal/cookies": {"start": "LEGAL", "type": "legal", "flags": ["legal_review", "unsupported_legacy_features"]},
+  "/auth/sign-in": {"type": "auth_copy", "flags": ["auth_copy_review"]},
+  "/auth/sign-up": {"type": "auth_copy", "flags": ["auth_copy_review", "anti_spam_labels", "age_policy_review"]}
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php" colors="true" cacheDirectory=".phpunit.cache" failOnWarning="true" failOnRisky="true">
+    <testsuites>
+        <testsuite name="Unit"><directory>tests/Unit</directory></testsuite>
+        <testsuite name="Integration"><directory>tests/Integration</directory></testsuite>
+        <testsuite name="Feature"><directory>tests/Feature</directory></testsuite>
+    </testsuites>
+    <source><include><directory>app</directory></include></source>
+    <php><env name="APP_ENV" value="test" force="true"/><env name="MAIL_LIVE_ENABLED" value="false" force="true"/></php>
+</phpunit>

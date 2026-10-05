@@ -1,0 +1,27 @@
+$primary: #245c38;
+$body-color: #202820;
+$body-bg: #ffffff;
+$font-family-sans-serif: "Segoe UI", system-ui, sans-serif;
+$link-color: #245c38;
+$border-radius: .4rem;
+@import "bootstrap/scss/bootstrap";
+
+:root { --brand-panel: #173d29; --warm-surface: #f7f8f2; }
+body { min-width: 20rem; line-height: 1.65; }
+a { text-underline-offset: .2em; }
+:focus-visible { outline: 3px solid #b84d00; outline-offset: 4px; }
+.skip-link { position: absolute; top: -6rem; left: 1rem; z-index: 1000; padding: 1rem; background: white; color: #173d29; }
+.skip-link:focus { top: 1rem; }
+.site-header { background: var(--brand-panel); color: white; padding: 1.4rem 0; }
+.site-header .container { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+.brand-name { color: white; font-size: 1.4rem; font-weight: 700; text-decoration: none; }
+.brand-name:hover { color: white; text-decoration: underline; }
+.environment-label { align-self: center; font-size: .85rem; }
+.setup-page { padding-block: clamp(3rem, 8vw, 7rem); max-width: 60rem; }
+.setup-page h1 { max-width: 17ch; font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.08; font-weight: 700; letter-spacing: -.035em; margin-bottom: 1.6rem; }
+.eyebrow { text-transform: uppercase; font-size: .85rem; letter-spacing: .12em; font-weight: 700; color: $primary; }
+.status-panel { padding: 1.5rem; border-left: .3rem solid $primary; background: var(--warm-surface); margin-block: 2rem; }
+.status-panel h2 { font-size: 1.25rem; }
+.status-panel p { margin-bottom: 0; }
+.site-footer { padding: 2rem 0; border-top: 1px solid #dce3dc; font-size: .9rem; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }

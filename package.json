@@ -1,0 +1,28 @@
+{
+  "name": "iedify-africa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12 <23 || >=24 <25"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test accessibility",
+    "test:performance": "lighthouse http://127.0.0.1:8080 --output=json --output-path=./storage/lighthouse.json --chrome-flags=--headless"
+  },
+  "dependencies": {
+    "@alpinejs/csp": "3.15.0",
+    "bootstrap": "5.3.8",
+    "chart.js": "4.5.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.55.1",
+    "lighthouse": "13.5.0",
+    "sass": "1.93.2",
+    "vite": "8.3.1"
+  }
+}
