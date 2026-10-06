@@ -40,6 +40,10 @@ final class PageController extends Controller
         if ($slug === '/') {
             return $this->render('public/home.twig', $this->homeData($data));
         }
+        if ($slug === '/about') {
+            $data['about'] = \IEdify\Modules\Web\Services\AboutLayout::build($sections);
+            return $this->render('public/about.twig', $data);
+        }
         if ($slug === '/team') {
             $data['roster'] = $this->roster();
             $portraits = array_values(array_filter(array_map(static fn (array $m): int => (int) $m['portrait_asset_id'], $data['roster'])));
@@ -79,9 +83,14 @@ final class PageController extends Controller
             'media' => $this->mediaUrls($sections),
             'preview' => ['status' => $item['status'], 'state' => $item['working_state'], 'revision' => (int) $revision['revision_number']],
         ];
-        $response = $item['slug'] === '/'
-            ? $this->render('public/home.twig', $this->homeData($data))
-            : $this->render('public/page.twig', $data);
+        if ($item['slug'] === '/') {
+            $response = $this->render('public/home.twig', $this->homeData($data));
+        } elseif ($item['slug'] === '/about') {
+            $data['about'] = \IEdify\Modules\Web\Services\AboutLayout::build($sections);
+            $response = $this->render('public/about.twig', $data);
+        } else {
+            $response = $this->render('public/page.twig', $data);
+        }
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         $response->headers->set('Cache-Control', 'private, no-store');
         return $response;

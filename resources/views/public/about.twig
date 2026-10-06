@@ -1,0 +1,234 @@
+{% extends 'layouts/base.twig' %}
+{% import 'public/_sections.twig' as ui %}
+{% import 'partials/icons.twig' as icons %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set a = about.slots %}
+{% block title %}{{ page.title }} | iEDIFY Africa{% endblock %}
+{% block content %}
+{% if preview is defined %}
+<div class="preview-banner" role="status">Draft preview — status {{ preview.status }}, state {{ preview.state }}, revision {{ preview.revision }}. This page is not public.</div>
+{% endif %}
+{{ africa.defs() }}
+<article class="home about">
+
+    {# ---------- Hero ---------- #}
+    {% if a.intro is defined %}
+    <section class="about-hero" aria-labelledby="about-title">
+        <svg class="home-hero-backdrop" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <div class="container about-hero-inner">
+            <p class="home-eyebrow">{{ a.intro.heading }}</p>
+            <h1 id="about-title" class="about-title">{{ a.intro.title }}</h1>
+            {% if a.intro.lead %}<p class="about-hero-lead">{{ a.intro.lead }}</p>{% endif %}
+            {% for text in a.intro.texts %}<p class="about-hero-lead">{{ text }}</p>{% endfor %}
+            {% if a.intro.stats %}
+            <ul class="about-stats" data-reveal-group>
+                {% for stat in a.intro.stats %}
+                <li class="about-stat">
+                    <p class="about-stat-value"><span class="statistic-value" data-count>{{ stat.value }}</span></p>
+                    <p class="about-stat-label">{{ stat.label }}</p>
+                    <p class="about-stat-meta">{{ stat.source }}, {{ stat.period }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Our Reflections — the founding story ---------- #}
+    {% if a.reflections is defined %}
+    <section class="home-section about-story" aria-labelledby="story-heading">
+        <div class="container">
+            <div class="about-story-panel weave-texture" data-reveal>
+                <p class="about-eyebrow-light">{{ a.reflections.heading }}</p>
+                {% if a.reflections.texts[0] is defined %}<h2 id="story-heading">{{ a.reflections.texts[0] }}</h2>{% endif %}
+                <div class="about-story-body">
+                    {% for text in a.reflections.texts|slice(1) %}
+                        {% for para in text|split("\n")|filter(p => p|trim is not empty) %}<p>{{ para }}</p>{% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Concept of intervention ---------- #}
+    {% if a.concept is defined %}
+    <section class="home-section about-concept" aria-labelledby="concept-heading">
+        <div class="container about-concept-inner">
+            <p class="home-eyebrow">Our approach</p>
+            <h2 id="concept-heading">{{ a.concept.heading }}</h2>
+            <div class="about-dropcap">
+                {% for text in a.concept.texts %}
+                    {% for para in text|split("\n")|filter(p => p|trim is not empty) %}<p>{{ para }}</p>{% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Vision ---------- #}
+    {% if a.vision is defined %}
+    <section class="home-section about-vision" aria-labelledby="vision-heading">
+        <div class="container">
+            <div class="about-vision-banner" data-reveal>
+                <p class="about-eyebrow-light">{{ a.vision.heading }}</p>
+                {% if a.vision.quotes[0] is defined %}
+                <blockquote>
+                    <p id="vision-heading">{{ a.vision.quotes[0].text }}</p>
+                    {% if a.vision.quotes[0].attribution %}<cite>{{ a.vision.quotes[0].attribution }}</cite>{% endif %}
+                </blockquote>
+                {% endif %}
+                {% for text in a.vision.texts %}<p>{{ text }}</p>{% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Mission + strategic perspective ---------- #}
+    {% if a.mission is defined %}
+    <section class="home-section about-mission" aria-labelledby="mission-heading">
+        <div class="container about-mission-grid">
+            <div data-reveal>
+                <p class="home-eyebrow">Why we exist</p>
+                <h2 id="mission-heading">{{ a.mission.heading }}</h2>
+                {% for text in a.mission.texts %}
+                    {% for para in text|split("\n")|filter(p => p|trim is not empty) %}<p>{{ para }}</p>{% endfor %}
+                {% endfor %}
+            </div>
+            {% if a.mission.note is defined %}
+            <aside class="about-note" data-reveal>
+                <h3>{{ a.mission.note.title }}</h3>
+                {% for para in a.mission.note.text|split("\n")|filter(p => p|trim is not empty) %}<p>{{ para }}</p>{% endfor %}
+            </aside>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Values ---------- #}
+    {% if a.values is defined and a.values.cards %}
+    <section class="home-section" aria-labelledby="values-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">Our values</p>
+                <h2 id="values-heading">{{ a.values.heading }}</h2>
+            </header>
+            {% for set in a.values.cards %}
+            <div class="value-grid" data-reveal-group>
+                {% for item in set %}
+                <article class="value-card">
+                    <span class="value-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.text }}</p>
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Program pillars ---------- #}
+    {% if a.pillars is defined and a.pillars.cards %}
+    <section class="home-section" aria-labelledby="pillars-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">What we do</p>
+                <h2 id="pillars-heading">{{ a.pillars.heading }}</h2>
+                {% for text in a.pillars.texts %}<p>{{ text }}</p>{% endfor %}
+            </header>
+            {% for set in a.pillars.cards %}
+            <div class="pillar-grid" data-reveal-group>
+                {% for item in set %}
+                <article class="pillar-card">
+                    <div class="pillar-body">
+                        <p class="pillar-number">Pillar {{ '%02d'|format(loop.index) }}</p>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                    <a class="pillar-more" href="/programs" aria-label="Explore programs: {{ item.title }}">+</a>
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Communities & partners ---------- #}
+    {% if a.communities is defined or a.partners is defined %}
+    <section class="home-section" aria-labelledby="people-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">Our people</p>
+                <h2 id="people-heading">{{ a.communities.heading|default('Our Communities') }}</h2>
+            </header>
+            {% for set in a.communities.cards|default([]) %}
+            <div class="audience-grid" data-reveal-group>
+                {% for item in set %}
+                <article class="audience-card">
+                    <span class="audience-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                    <div>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            {% if a.partners is defined %}
+            <header class="home-section-head about-partners-head">
+                <p class="home-eyebrow">Alongside us</p>
+                <h2>{{ a.partners.heading }}</h2>
+            </header>
+            <div class="about-partners-grid" data-reveal-group>
+                {% for set in a.partners.cards %}
+                    {% for item in set %}
+                    <article class="audience-card">
+                        <span class="audience-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                        <div>
+                            <h3>{{ item.title }}</h3>
+                            <p>{{ item.text }}</p>
+                        </div>
+                    </article>
+                    {% endfor %}
+                {% endfor %}
+                {% for text in a.partners.texts %}
+                <article class="audience-card about-note-card">
+                    <span class="audience-icon">{{ icons.icon('governance') }}</span>
+                    <div><p>{{ text }}</p></div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Closing CTAs ---------- #}
+    {% if a.team is defined or a.theory is defined %}
+    <section class="home-section" aria-labelledby="about-cta-heading">
+        <div class="container">
+            <div class="theory-banner" data-reveal>
+                <div>
+                    <h2 id="about-cta-heading">{{ a.team.heading|default('Meet Our Team') }}</h2>
+                    {% for text in a.theory.texts|default([]) %}<p>{{ text }}</p>{% endfor %}
+                </div>
+                <div class="btn-row">
+                    {% for cta in a.team.ctas|default([]) %}<a class="btn-pill btn-sun" href="{{ cta.url }}">{{ cta.label }} <span aria-hidden="true">&rarr;</span></a>{% endfor %}
+                    {% for cta in a.theory.ctas|default([]) %}<a class="btn-pill btn-outline-light" href="{{ cta.url }}">{{ cta.label }} <span aria-hidden="true">&rarr;</span></a>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if about.leftover %}
+    <section class="home-section">
+        <div class="container page-body">{{ ui.render(about.leftover, media) }}</div>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

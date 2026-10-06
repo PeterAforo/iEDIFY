@@ -115,8 +115,10 @@ html:not(.js) .home-hero-slide + .home-hero-slide { grid-area: auto; margin-top:
 .hero-controls { position: relative; z-index: 2; display: flex; align-items: center; gap: 1rem; margin-top: 2rem; padding-inline: var(--gutter); max-width: 80rem; margin-inline: auto; }
 @media (min-width: 56rem) { .hero-controls { margin-top: -4.25rem; } }
 .hero-dots { display: flex; gap: .5rem; }
-.hero-dot { width: .65rem; height: .65rem; padding: 0; border-radius: 50%; border: 0; background: var(--line-strong); cursor: pointer; transition: background .2s, transform .2s var(--ease-spring); }
-.hero-dot.is-active { background: var(--sun); transform: scale(1.3); }
+// Buttons keep a >=24px hit target (WCAG 2.5.8); the visible dot is a ::before.
+.hero-dot { width: 1.5rem; height: 1.5rem; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; display: grid; place-items: center; }
+.hero-dot::before { content: ''; width: .65rem; height: .65rem; border-radius: 50%; background: var(--line-strong); transition: background .2s, transform .2s var(--ease-spring); }
+.hero-dot.is-active::before { background: var(--sun); transform: scale(1.3); }
 .hero-arrow { width: 2.4rem; height: 2.4rem; display: inline-grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-strong); background: #fff; color: var(--ink); cursor: pointer; }
 .hero-arrow:hover { border-color: var(--forest); }
 

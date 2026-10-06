@@ -88,6 +88,26 @@ by `node bin/generate-africa-svg.mjs` from Natural Earth (public domain).
 `public/images/logo-dark.png` is the dark-ink logo for the light header (the
 CMS logo setting supplies the white variant used in the forest footer).
 
+## About page layout
+
+`/about` renders `public/about.twig`. `Web\Services\AboutLayout` reuses the
+shared `SectionMap` chunking and maps these headings (case-insensitive):
+
+| Heading | About section |
+|---|---|
+| About Us | Hero: first text block splits into h1 title + lead (`\n\n` break); statistic blocks become chips |
+| Our Reflections | Forest story panel: first text = headline, rest = two-column body with drop cap |
+| Our Concept of Intervention | Narrow editorial column with drop cap |
+| Our Vision | Sun quote banner (first quote block) |
+| Our Mission | Text column; a text block starting `Label\n\n…` (≤60 chars, no period) becomes the side note |
+| What Guides Us | Value cards with icons |
+| Program Pillars | Numbered pillar cards (texts render as section lead) |
+| Our Communities | Audience cards |
+| Our Partners | Audience cards + remaining texts as note cards |
+| Meet Our Team / Theory of Change | Combined closing banner with both CTAs |
+
+Unmapped headings and duplicate chunks fall back to the generic renderer.
+
 ## Gotchas
 
 - `Config::load($root, true)` requires `.env.test` with `_test` DB and

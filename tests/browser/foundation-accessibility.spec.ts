@@ -25,6 +25,19 @@ test('preview is honest, accessible and keyboard navigable', async ({ page }) =>
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 });
 
+test('about page is accessible', async ({ page }) => {
+  await page.goto('/about');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('[data-reveal], [data-reveal-group] > *')].every((el) => {
+      const opacity = Number.parseFloat(getComputedStyle(el).opacity);
+      return opacity === 0 || opacity === 1;
+    }),
+  );
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(results.violations).toEqual([]);
+});
+
 test('private source paths are not served', async ({ request }) => {
   for (const path of ['/.env', '/.env.test', '/composer.json', '/storage/private/file.pdf', '/build/.vite/manifest.json', '/.runtime/mysql-init.sql']) {
     const response = await request.get(path);
