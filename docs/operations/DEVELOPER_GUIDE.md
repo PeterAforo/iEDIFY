@@ -85,8 +85,8 @@ Renamed or new headings are never dropped — they render through the generic
 section renderer below the designed sections. The hero comes from
 `/admin/hero`. The Africa silhouette (`partials/africa-defs.twig`) is generated
 by `node bin/generate-africa-svg.mjs` from Natural Earth (public domain).
-`public/images/logo-dark.png` is a recoloured stand-in for the white logo on the
-light header; replace it with an official dark logo when supplied.
+`public/images/logo-dark.png` is the dark-ink logo for the light header (the
+CMS logo setting supplies the white variant used in the forest footer).
 
 ## Gotchas
 
