@@ -4,6 +4,12 @@ import { Chart, registerables } from 'chart.js';
 // equivalent HTML table rendered alongside it.
 Chart.register(...registerables);
 
+Chart.defaults.font.family = "'Instrument Sans', 'Segoe UI', sans-serif";
+Chart.defaults.color = '#4b4638';
+Chart.defaults.borderColor = 'rgba(23, 61, 41, .12)';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.boxWidth = 8;
+
 for (const canvas of document.querySelectorAll('canvas[data-chart]')) {
   try {
     const config = JSON.parse(canvas.dataset.chart);

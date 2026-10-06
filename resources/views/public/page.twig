@@ -7,37 +7,48 @@
 {% endif %}
 <article class="page">
     {% if hero_slides is defined %}
-    <section class="hero-slides" aria-label="Featured">
+    <section class="hero weave-texture" aria-label="Featured">
+        <canvas class="hero-canvas" aria-hidden="true"></canvas>
+        <div class="container hero-slides">
         {% for slide in hero_slides %}
         <div class="hero-slide">
-            {% if slide.media_id %}<img src="/media/{{ slide.media_id }}" alt="" loading="{{ loop.first ? 'eager' : 'lazy' }}" fetchpriority="{{ loop.first ? 'high' : 'auto' }}"{% if slide.width and slide.height %} width="{{ slide.width }}" height="{{ slide.height }}"{% endif %}>{% endif %}
             <div class="hero-slide-body">
                 {% if slide.kicker %}<p class="eyebrow">{{ slide.kicker }}</p>{% endif %}
-                <h1>{{ slide.title }}</h1>
+                {% if loop.first %}<h1>{{ slide.title }}</h1>{% else %}<h2 class="hero-slide-title">{{ slide.title }}</h2>{% endif %}
                 {% if slide.body %}<p>{{ slide.body }}</p>{% endif %}
-                {% if slide.cta_url %}<a class="button-primary" href="{{ slide.cta_url }}">{{ slide.cta_label ?: 'Learn more' }}</a>{% endif %}
+                {% if slide.cta_url %}<a class="button-primary button-clay" href="{{ slide.cta_url }}">{{ slide.cta_label ?: 'Learn more' }}</a>{% endif %}
             </div>
+            {% if slide.media_id %}
+            <div class="hero-figure">
+                <img src="/media/{{ slide.media_id }}" alt="" loading="{{ loop.first ? 'eager' : 'lazy' }}" fetchpriority="{{ loop.first ? 'high' : 'auto' }}"{% if slide.width and slide.height %} width="{{ slide.width }}" height="{{ slide.height }}"{% endif %}>
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
+        </div>
     </section>
     {% endif %}
+    {% if hero_slides is not defined %}
     <header class="page-header container">
         <h1>{{ page.title }}</h1>
     </header>
+    {% endif %}
     <div class="container page-body">
         {{ ui.render(sections, media) }}
     </div>
     {% if roster is defined %}
-    <section class="container roster" aria-label="Team roster">
+    <section class="container roster" aria-label="Team roster" data-reveal-group>
         {% for member in roster %}
         <article class="roster-card">
             {% if member.portrait_asset_id and media[member.portrait_asset_id]|default(null) %}
             {% set m = media[member.portrait_asset_id] %}
             <img src="{{ m.url }}" alt="Portrait of {{ member.display_name }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
             {% endif %}
-            <h2><a href="{{ member.slug }}">{{ member.display_name }}</a></h2>
-            <p class="roster-role">{{ member.role_label }}</p>
-            {% if member.youth_adviser %}<p class="roster-badge">Youth advisory board</p>{% endif %}
+            <div class="roster-card-body">
+                <h2><a href="{{ member.slug }}">{{ member.display_name }}</a></h2>
+                <p class="roster-role">{{ member.role_label }}</p>
+                {% if member.youth_adviser %}<p class="roster-badge">Youth advisory board</p>{% endif %}
+            </div>
         </article>
         {% endfor %}
     </section>

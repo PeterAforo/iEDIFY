@@ -1,0 +1,16 @@
+// Print — readable document output for reports and pages.
+
+@media print {
+  .site-header, .site-footer, nav, .filter-form, .action-row, form,
+  .button-primary, .button-secondary, .button-ghost, .preview-banner,
+  .hero-controls, .hero-canvas, .weave-band, .skip-link, .nav-backdrop { display: none !important; }
+  .impact-charts { display: none; }
+  .hero { background: none; color: #000; }
+  .hero-slide { display: block; }
+  html.js .hero-slide { opacity: 1; visibility: visible; }
+  .section-quote { background: none; color: #000; border: 1px solid #999; }
+  body { background: #fff; color: #000; }
+  a[href^='/']::after { content: ' (' attr(href) ')'; font-size: .8em; }
+  .admin-table, table { border-collapse: collapse; }
+  .admin-table th, .admin-table td, table th, table td { border: 1px solid #999; padding: .35rem .5rem; }
+}

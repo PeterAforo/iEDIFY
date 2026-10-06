@@ -1,17 +1,20 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}Opportunities | iEDIFY Africa{% endblock %}
 {% block content %}
-<section class="container auth-page">
-    <h1>Open opportunities</h1>
-    <ul class="card-list">
+<section class="container public-page">
+    <header class="page-header">
+        <h1>Open opportunities</h1>
+        <p class="page-lead">Calls, grants and openings for young entrepreneurs and partners.</p>
+    </header>
+    <ul class="card-list" data-reveal-group>
         {% for item in opportunities %}
-        <li>
+        <li class="card card-hover">
+            <p><span class="pill pill-clay">{{ item.category }}</span>{% if item.deadline %} <span class="pill pill-line">Apply by {{ item.deadline|date('j M Y') }}</span>{% endif %}</p>
             <h2><a href="/opportunities/{{ item.id }}">{{ item.title }}</a></h2>
-            <p>{{ item.category }}{% if item.deadline %} &mdash; apply by {{ item.deadline|date('j M Y') }}{% endif %}</p>
             <p>{{ item.summary|nl2br }}</p>
         </li>
         {% else %}
-        <li>No open opportunities at the moment.</li>
+        <li class="card">No open opportunities at the moment.</li>
         {% endfor %}
     </ul>
 </section>

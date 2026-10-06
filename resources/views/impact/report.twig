@@ -1,9 +1,11 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}{{ report.title }} | iEDIFY Africa{% endblock %}
 {% block content %}
-<div class="container">
-<h1>{{ report.title }}</h1>
-<p><em>{{ report.period }} · {{ report.summary }}</em></p>
+<div class="container public-page">
+<header class="page-header">
+    <h1>{{ report.title }}</h1>
+    <p class="page-lead">{{ report.period }} — {{ report.summary }}</p>
+</header>
 <div class="prose">{{ report.body|nl2br }}</div>
 </div>
 {% endblock %}

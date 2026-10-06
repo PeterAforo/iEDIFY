@@ -1,7 +1,6 @@
-{% extends 'layouts/base.twig' %}
+﻿{% extends 'layouts/auth.twig' %}
 {% block title %}Security check | iEDIFY Africa{% endblock %}
-{% block content %}
-<section class="container auth-page">
+{% block auth %}
     <h1>Security check</h1>
     <p class="auth-lead">Enter the six-digit code from your authenticator app.</p>
     <form method="post" action="/sign-in/mfa" class="auth-form" novalidate>
@@ -23,5 +22,4 @@
             <button type="submit" class="button-secondary">Use recovery code</button>
         </form>
     </details>
-</section>
 {% endblock %}

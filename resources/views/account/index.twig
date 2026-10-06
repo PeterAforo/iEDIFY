@@ -1,8 +1,15 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}Your account | iEDIFY Africa{% endblock %}
 {% block content %}
-<section class="container auth-page">
-    <h1>Your account</h1>
+<section class="container public-page">
+    <header class="page-header">
+        <p class="eyebrow">Account</p>
+        <h1>Hello, {{ user.name }}</h1>
+        <dl class="account-details detail-row">
+            <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
+            <div><dt>Member since</dt><dd>{{ user.created_at|date('j F Y', 'Africa/Accra') }}</dd></div>
+        </dl>
+    </header>
     {% if not actor.verified %}
     <div class="status-panel" role="status">
         <h2>Verify your email</h2>
@@ -13,31 +20,27 @@
         </form>
     </div>
     {% endif %}
-    <dl class="account-details">
-        <dt>Name</dt><dd>{{ user.name }}</dd>
-        <dt>Email</dt><dd>{{ user.email }}</dd>
-        <dt>Member since</dt><dd>{{ user.created_at|date('j F Y', 'Africa/Accra') }}</dd>
-    </dl>
-    <h2>Your activity</h2>
-    <ul>
-        <li><a href="/account/applications">My applications</a></li>
-        <li><a href="/learn">My learning</a></li>
-        <li><a href="/account/mentoring">Mentoring</a></li>
-        <li><a href="/account/milestones">Milestones</a></li>
-        <li><a href="/community">Community</a></li>
-        <li><a href="/account/notifications">Notifications</a></li>
-    </ul>
-    <h2>Security</h2>
-    <p><a href="/account/security">Manage multi-factor authentication</a></p>
-    <h2>Your data</h2>
-    <p>Request a copy of your personal data or ask for your account to be deleted. Requests are reviewed by the team; audit and financial records are retained as required.</p>
+    <h2 class="section-heading">Your activity</h2>
+    <div class="card-grid">
+        <a class="card card-hover" href="/account/applications"><h3>My applications</h3><p>Draft, submit and track program applications.</p></a>
+        <a class="card card-hover" href="/learn"><h3>My learning</h3><p>Continue enrolled courses and lessons.</p></a>
+        <a class="card card-hover" href="/account/mentoring"><h3>Mentoring</h3><p>Matches, sessions and scheduling.</p></a>
+        <a class="card card-hover" href="/account/milestones"><h3>Milestones</h3><p>Startup goals and evidence submissions.</p></a>
+        <a class="card card-hover" href="/community"><h3>Community</h3><p>Groups, directory and discussions.</p></a>
+        <a class="card card-hover" href="/account/funding"><h3>Funding requests</h3><p>Track requests across open rounds.</p></a>
+        <a class="card card-hover" href="/account/notifications"><h3>Notifications</h3><p>In-app alerts and email preferences.</p></a>
+    </div>
+    <h2 class="section-heading">Security</h2>
+    <p><a class="link-arrow" href="/account/security">Manage multi-factor authentication</a></p>
+    <h2 class="section-heading">Your data</h2>
+    <div class="prose"><p>Request a copy of your personal data or ask for your account to be deleted. Requests are reviewed by the team; audit and financial records are retained as required.</p></div>
     <div class="action-row">
         <form method="post" action="/account/data-request">
             <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
             <button type="submit" name="type" value="export" class="button-secondary">Request data export</button>
-            <button type="submit" name="type" value="deletion" class="button-secondary">Request account deletion</button>
+            <button type="submit" name="type" value="deletion" class="button-ghost">Request account deletion</button>
         </form>
     </div>
-    {% if actor.privileged %}<p><a href="/admin">Go to the administration area</a></p>{% endif %}
+    {% if actor.privileged %}<p><a class="link-arrow" href="/admin">Go to the administration area</a></p>{% endif %}
 </section>
 {% endblock %}

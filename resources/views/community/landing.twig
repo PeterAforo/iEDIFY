@@ -2,13 +2,17 @@
 {% block title %}Community | iEDIFY Africa{% endblock %}
 {% block content %}
 <section class="container auth-page">
-    <h1>Community</h1>
-    <p>The iEDIFY Africa community connects participants, alumni, mentors and partners across the continent.</p>
-    <p>Member groups, the directory and discussions are available to verified participants and alumni.</p>
-    {% if actor %}
-    <p>Your account does not have community membership yet. Community access is granted through program participation.</p>
-    {% else %}
-    <p><a href="/sign-in">Sign in</a> to access member groups, or <a href="/programs">apply to a program</a> to join.</p>
-    {% endif %}
+    <header class="page-header">
+        <h1>Community</h1>
+        <p class="page-lead">The iEDIFY Africa community connects participants, alumni, mentors and partners across the continent.</p>
+    </header>
+    <div class="prose">
+        <p>Member groups, the directory and discussions are available to verified participants and alumni.</p>
+        {% if actor %}
+        <p>Your account does not have community membership yet. Community access is granted through program participation.</p>
+        {% else %}
+        <p><a href="/sign-in">Sign in</a> to access member groups, or <a href="/programs">apply to a program</a> to join.</p>
+        {% endif %}
+    </div>
 </section>
 {% endblock %}

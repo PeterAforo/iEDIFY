@@ -1,10 +1,13 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}{{ round.title }} | iEDIFY Africa{% endblock %}
 {% block content %}
-<div class="container">
-<h1>{{ round.title }}</h1>
+<div class="container auth-page">
+<header class="page-header">
+    <p class="eyebrow">Funding round</p>
+    <h1>{{ round.title }}</h1>
+</header>
 <div class="prose">{{ round.description|nl2br }}</div>
-<p>Opens {{ round.opens_at }} UTC · closes {{ round.closes_at }} UTC · Currency: {{ round.currency }}{% if round.max_award is not null %} · maximum award {{ round.max_award }} {{ round.currency }}{% endif %}</p>
+<p class="detail-row"><span>Opens {{ round.opens_at }} UTC</span><span>Closes {{ round.closes_at }} UTC</span><span>Currency: {{ round.currency }}</span>{% if round.max_award is not null %}<span>Maximum award {{ round.max_award }} {{ round.currency }}</span>{% endif %}</p>
 {% if actor %}
 <form method="post" action="/funding/rounds/{{ round.id }}/requests" class="stacked-form" enctype="multipart/form-data">
     <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
@@ -24,7 +27,7 @@
         {% if field.help %}<p class="field-hint">{{ field.help }}</p>{% endif %}
     {% endfor %}
     <label>Budget document (PDF/PNG/JPEG, optional)<input type="file" name="budget_document" accept=".pdf,.png,.jpg,.jpeg"></label>
-    <button type="submit" class="button-secondary">Submit request</button>
+    <button type="submit" class="button-primary">Submit request</button>
 </form>
 {% else %}
 <p><a href="/sign-in">Sign in</a> to submit a funding request.</p>

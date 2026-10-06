@@ -4,23 +4,26 @@
     <nav class="admin-nav" aria-label="Administration">
         <ul>
             <li><a href="/admin"{% if current_path == '/admin' %} aria-current="page"{% endif %}>Overview</a></li>
+            <li><p class="admin-nav-label" aria-hidden="true">Content</p></li>
             <li><a href="/admin/content"{% if current_path starts with '/admin/content' %} aria-current="page"{% endif %}>Content</a></li>
             <li><a href="/admin/media"{% if current_path starts with '/admin/media' %} aria-current="page"{% endif %}>Media</a></li>
             <li><a href="/admin/flags"{% if current_path starts with '/admin/flags' %} aria-current="page"{% endif %}>Review flags</a></li>
+            <li><a href="/admin/menus"{% if current_path starts with '/admin/menus' %} aria-current="page"{% endif %}>Menus</a></li>
+            <li><a href="/admin/hero"{% if current_path starts with '/admin/hero' %} aria-current="page"{% endif %}>Hero</a></li>
+            <li><a href="/admin/settings"{% if current_path starts with '/admin/settings' %} aria-current="page"{% endif %}>Settings</a></li>
+            <li><p class="admin-nav-label" aria-hidden="true">Programs</p></li>
             <li><a href="/admin/programs"{% if current_path starts with '/admin/programs' %} aria-current="page"{% endif %}>Programs</a></li>
             <li><a href="/admin/applications"{% if current_path starts with '/admin/applications' %} aria-current="page"{% endif %}>Applications</a></li>
             <li><a href="/admin/learning"{% if current_path starts with '/admin/learning' or current_path starts with '/admin/courses' %} aria-current="page"{% endif %}>Learning</a></li>
             <li><a href="/admin/milestones"{% if current_path starts with '/admin/milestones' %} aria-current="page"{% endif %}>Milestones</a></li>
             <li><a href="/admin/moderation"{% if current_path starts with '/admin/moderation' %} aria-current="page"{% endif %}>Moderation</a></li>
+            <li><p class="admin-nav-label" aria-hidden="true">Operations</p></li>
             <li><a href="/admin/funding"{% if current_path starts with '/admin/funding' %} aria-current="page"{% endif %}>Funding</a></li>
             <li><a href="/admin/impact"{% if current_path starts with '/admin/impact' %} aria-current="page"{% endif %}>Impact</a></li>
             <li><a href="/admin/partners"{% if current_path starts with '/admin/partners' %} aria-current="page"{% endif %}>Partners</a></li>
             <li><a href="/admin/requests"{% if current_path starts with '/admin/requests' %} aria-current="page"{% endif %}>Data requests</a></li>
             <li><a href="/admin/invitations"{% if current_path starts with '/admin/invitations' %} aria-current="page"{% endif %}>Invitations</a></li>
             <li><a href="/admin/outbox"{% if current_path starts with '/admin/outbox' %} aria-current="page"{% endif %}>Outbox</a></li>
-            <li><a href="/admin/menus"{% if current_path starts with '/admin/menus' %} aria-current="page"{% endif %}>Menus</a></li>
-            <li><a href="/admin/hero"{% if current_path starts with '/admin/hero' %} aria-current="page"{% endif %}>Hero</a></li>
-            <li><a href="/admin/settings"{% if current_path starts with '/admin/settings' %} aria-current="page"{% endif %}>Settings</a></li>
         </ul>
     </nav>
     <div class="admin-main">{% block admin %}{% endblock %}</div>

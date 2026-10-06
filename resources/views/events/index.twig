@@ -1,16 +1,25 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}Events | iEDIFY Africa{% endblock %}
 {% block content %}
-<section class="container auth-page">
-    <h1>Upcoming events</h1>
-    <ul class="card-list">
+<section class="container public-page">
+    <header class="page-header">
+        <h1>Upcoming events</h1>
+        <p class="page-lead">Workshops, sessions and gatherings across the iEDIFY Africa community.</p>
+    </header>
+    <ul class="card-list" data-reveal-group>
         {% for event in events %}
-        <li>
-            <h2><a href="/events/{{ event.slug }}">{{ event.title }}</a></h2>
-            <p>{{ event.starts_at|date('j M Y H:i', 'Africa/Accra') }} — {{ event.location }}</p>
+        <li class="card event-card">
+            <p class="event-date" aria-hidden="true">
+                <span class="event-day">{{ event.starts_at|date('j', 'Africa/Accra') }}</span>
+                <span class="event-month">{{ event.starts_at|date('M', 'Africa/Accra') }}</span>
+            </p>
+            <div>
+                <h2><a href="/events/{{ event.slug }}">{{ event.title }}</a></h2>
+                <p>{{ event.starts_at|date('j M Y H:i', 'Africa/Accra') }} — {{ event.location }}</p>
+            </div>
         </li>
         {% else %}
-        <li>No upcoming events are published yet.</li>
+        <li class="card">No upcoming events are published yet.</li>
         {% endfor %}
     </ul>
 </section>

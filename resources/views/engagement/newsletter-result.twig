@@ -1,9 +1,7 @@
-{% extends 'layouts/base.twig' %}
+{% extends 'layouts/auth.twig' %}
 {% block title %}{{ heading }} | iEDIFY Africa{% endblock %}
-{% block content %}
-<section class="container auth-page">
+{% block auth %}
     <h1>{{ heading }}</h1>
     <p class="auth-lead">{{ message }}</p>
-    <p><a href="/">Return to the homepage</a></p>
-</section>
+    <p><a class="link-arrow" href="/">Return to the homepage</a></p>
 {% endblock %}

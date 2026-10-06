@@ -9,39 +9,51 @@
     <div class="container page-body">
         {{ ui.render(sections, media) }}
     </div>
-    <section class="container contact-form-section" aria-labelledby="contact-form-heading">
-        <h2 id="contact-form-heading">Send us a message</h2>
-        <p>We read every message. Expect a reply within a few working days.</p>
-        <form method="post" action="/enquiries" class="auth-form" novalidate>
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <div class="field">
-                <label for="enquiry-name">Your name</label>
-                <input id="enquiry-name" name="name" type="text" required maxlength="180" autocomplete="name">
+    <section class="container contact-section" aria-labelledby="contact-form-heading">
+        <div class="contact-grid">
+            <div class="contact-info weave-texture">
+                <h2 class="contact-info-title">Talk to the team</h2>
+                <p>We read every message. Expect a reply within a few working days.</p>
+                <dl class="contact-details">
+                    <div><dt>Email</dt><dd><a href="mailto:{{ chrome.contact.email }}">{{ chrome.contact.email }}</a></dd></div>
+                    <div><dt>Phone</dt><dd>{{ chrome.contact.phone }}</dd></div>
+                    <div><dt>Address</dt><dd>{{ chrome.contact.address }}</dd></div>
+                </dl>
             </div>
-            <div class="field">
-                <label for="enquiry-email">Email address</label>
-                <input id="enquiry-email" name="email" type="email" required maxlength="254" autocomplete="email">
+            <div class="contact-form-card">
+                <h2 id="contact-form-heading">Send us a message</h2>
+                <form method="post" action="/enquiries" class="auth-form" novalidate>
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <div class="field">
+                        <label for="enquiry-name">Your name</label>
+                        <input id="enquiry-name" name="name" type="text" required maxlength="180" autocomplete="name">
+                    </div>
+                    <div class="field">
+                        <label for="enquiry-email">Email address</label>
+                        <input id="enquiry-email" name="email" type="email" required maxlength="254" autocomplete="email">
+                    </div>
+                    <div class="field">
+                        <label for="enquiry-subject">Subject</label>
+                        <input id="enquiry-subject" name="subject" type="text" required maxlength="180">
+                    </div>
+                    <div class="field">
+                        <label for="enquiry-message">Message</label>
+                        <textarea id="enquiry-message" name="message" required rows="6" maxlength="8000"></textarea>
+                    </div>
+                    <div class="field-honeypot" aria-hidden="true">
+                        <label for="enquiry-fax">Company fax</label>
+                        <input id="enquiry-fax" name="fax" type="text" tabindex="-1" autocomplete="off">
+                        <label for="enquiry-department">Department code</label>
+                        <input id="enquiry-department" name="department" type="text" tabindex="-1" autocomplete="off">
+                    </div>
+                    <div class="field field-check">
+                        <input id="enquiry-consent" name="consent" type="checkbox" required value="1">
+                        <label for="enquiry-consent">I agree to iEDIFY Africa storing this message to respond to my enquiry.</label>
+                    </div>
+                    <button type="submit" class="button-primary">Send message</button>
+                </form>
             </div>
-            <div class="field">
-                <label for="enquiry-subject">Subject</label>
-                <input id="enquiry-subject" name="subject" type="text" required maxlength="180">
-            </div>
-            <div class="field">
-                <label for="enquiry-message">Message</label>
-                <textarea id="enquiry-message" name="message" required rows="6" maxlength="8000"></textarea>
-            </div>
-            <div class="field-honeypot" aria-hidden="true">
-                <label for="enquiry-fax">Company fax</label>
-                <input id="enquiry-fax" name="fax" type="text" tabindex="-1" autocomplete="off">
-                <label for="enquiry-department">Department code</label>
-                <input id="enquiry-department" name="department" type="text" tabindex="-1" autocomplete="off">
-            </div>
-            <div class="field field-check">
-                <input id="enquiry-consent" name="consent" type="checkbox" required value="1">
-                <label for="enquiry-consent">I agree to iEDIFY Africa storing this message to respond to my enquiry.</label>
-            </div>
-            <button type="submit" class="button-primary">Send message</button>
-        </form>
+        </div>
     </section>
 </article>
 {% endblock %}

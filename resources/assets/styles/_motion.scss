@@ -1,0 +1,42 @@
+// Motion — reveal-on-scroll, keyframes, reduced-motion safety.
+// Everything is opt-in via html.js so content is fully visible without JS.
+
+html.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(1.4rem);
+  transition: opacity .6s var(--ease-out), transform .6s var(--ease-out);
+}
+html.js [data-reveal].is-visible { opacity: 1; transform: none; }
+
+// Sibling stagger for grouped reveals.
+html.js [data-reveal-group] > * { opacity: 0; transform: translateY(1.4rem); transition: opacity .55s var(--ease-out), transform .55s var(--ease-out); }
+html.js [data-reveal-group].is-visible > * { opacity: 1; transform: none; }
+html.js [data-reveal-group].is-visible > *:nth-child(1) { transition-delay: 0ms; }
+html.js [data-reveal-group].is-visible > *:nth-child(2) { transition-delay: 70ms; }
+html.js [data-reveal-group].is-visible > *:nth-child(3) { transition-delay: 140ms; }
+html.js [data-reveal-group].is-visible > *:nth-child(4) { transition-delay: 210ms; }
+html.js [data-reveal-group].is-visible > *:nth-child(5) { transition-delay: 280ms; }
+html.js [data-reveal-group].is-visible > *:nth-child(6) { transition-delay: 350ms; }
+html.js [data-reveal-group].is-visible > *:nth-child(7) { transition-delay: 420ms; }
+html.js [data-reveal-group].is-visible > *:nth-child(n+8) { transition-delay: 490ms; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(1rem); }
+  to { opacity: 1; transform: none; }
+}
+
+html.js .hero-slide.is-active .hero-slide-body .eyebrow { animation: fade-up .6s var(--ease-out) both; }
+html.js .hero-slide.is-active .hero-slide-body h1 { animation: fade-up .6s .1s var(--ease-out) both; }
+html.js .hero-slide.is-active .hero-slide-body > p { animation: fade-up .6s .2s var(--ease-out) both; }
+html.js .hero-slide.is-active .hero-slide-body .section-cta, html.js .hero-slide.is-active .hero-slide-body > a { animation: fade-up .6s .3s var(--ease-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  html.js [data-reveal], html.js [data-reveal-group] > * { opacity: 1; transform: none; }
+  html.js .hero-slide.is-active img { animation: none; }
+}

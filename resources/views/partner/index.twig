@@ -1,35 +1,40 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}Partner portal | iEDIFY Africa{% endblock %}
 {% block content %}
-<div class="container">
-<h1>Partner portal</h1>
+<div class="container public-page">
+<header class="page-header">
+    <p class="eyebrow">Partner portal</p>
+    <h1>Partner portal</h1>
+    <p class="page-lead">Reports, documents and proposals shared between iEDIFY Africa and your organization.</p>
+</header>
 {% for data in orgs %}
-<section>
-    <h2>{{ data.org.name }} <small>({{ data.org.org_type }})</small></h2>
+<section class="partner-org">
+    <h2 class="section-heading">{{ data.org.name }} <small class="pill pill-sand">{{ data.org.org_type }}</small></h2>
     <h3>Shared with you</h3>
-    <ul>
+    <ul class="card-list">
         {% for item in data.shared %}
         <li>
-            {% if item.resource_type == 'report' %}<a href="/partner/reports/{{ item.resource_id }}">{{ item.title }}</a> (report)
-            {% elseif item.resource_type == 'document' %}<a href="/partner/documents/{{ item.resource_id }}">{{ item.title }}</a> (document)
-            {% else %}{{ item.title }} (project){% endif %}
+            {% if item.resource_type == 'report' %}<a href="/partner/reports/{{ item.resource_id }}">{{ item.title }}</a> <span class="pill pill-leaf">report</span>
+            {% elseif item.resource_type == 'document' %}<a href="/partner/documents/{{ item.resource_id }}">{{ item.title }}</a> <span class="pill pill-sand">document</span>
+            {% else %}{{ item.title }} <span class="pill pill-line">project</span>{% endif %}
         </li>
         {% else %}
         <li>Nothing has been shared with this organization yet.</li>
         {% endfor %}
     </ul>
     <h3>Your proposals</h3>
+    <div class="table-scroll">
     <table class="admin-table">
         <thead><tr><th scope="col">Title</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
         <tbody>
             {% for proposal in data.proposals %}
             <tr>
-                <td>{{ proposal.title }}</td><td>{{ proposal.status }}</td>
+                <td>{{ proposal.title }}</td><td><span class="pill pill-line">{{ proposal.status }}</span></td>
                 <td>
                     {% if proposal.status == 'draft' %}
                     <form method="post" action="/partner/proposals/{{ proposal.id }}/status" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ proposal.version }}"><button type="submit" name="status" value="submitted" class="button-secondary">Submit</button></form>
                     {% elseif proposal.status in ['draft','submitted'] %}
-                    <form method="post" action="/partner/proposals/{{ proposal.id }}/status" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ proposal.version }}"><button type="submit" name="status" value="withdrawn" class="button-secondary">Withdraw</button></form>
+                    <form method="post" action="/partner/proposals/{{ proposal.id }}/status" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><input type="hidden" name="version" value="{{ proposal.version }}"><button type="submit" name="status" value="withdrawn" class="button-ghost">Withdraw</button></form>
                     {% endif %}
                 </td>
             </tr>
@@ -38,6 +43,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     <form method="post" action="/partner/proposals" class="stacked-form">
         <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
         <input type="hidden" name="org_id" value="{{ data.org.org_id }}">
@@ -46,6 +52,7 @@
         <button type="submit" class="button-secondary">Draft proposal</button>
     </form>
     <h3>Commitments</h3>
+    <div class="table-scroll">
     <table class="admin-table">
         <thead><tr><th scope="col">Date</th><th scope="col">Committed</th><th scope="col">Received</th><th scope="col">Status</th></tr></thead>
         <tbody>
@@ -56,6 +63,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 </section>
 {% else %}
 <p>Your account is not a member of any partner organization.</p>

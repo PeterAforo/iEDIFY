@@ -12,17 +12,20 @@
     </section>
     <section class="admin-card">
         <h2>Review flags</h2>
-        <p>{{ counts.flags }} open</p>
-        <p><a href="/admin/flags">Review flags</a></p>
+        <p class="admin-card-value">{{ counts.flags }}</p>
+        <p>open</p>
+        <p><a class="link-arrow" href="/admin/flags">Review flags</a></p>
     </section>
     <section class="admin-card">
         <h2>Media review</h2>
-        <p>{{ counts.media_pending }} pending</p>
-        <p><a href="/admin/media">Review media</a></p>
+        <p class="admin-card-value">{{ counts.media_pending }}</p>
+        <p>pending</p>
+        <p><a class="link-arrow" href="/admin/media">Review media</a></p>
     </section>
     <section class="admin-card">
         <h2>Outgoing mail</h2>
-        <p>{{ counts.outbox_pending }} queued</p>
+        <p class="admin-card-value">{{ counts.outbox_pending }}</p>
+        <p>queued</p>
     </section>
 </div>
 {% endblock %}

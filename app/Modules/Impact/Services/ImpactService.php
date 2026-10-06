@@ -229,8 +229,8 @@ final readonly class ImpactService
                     'data' => [
                         'labels' => $data['labels'],
                         'datasets' => [
-                            ['label' => 'Actual', 'data' => $data['actual'], 'backgroundColor' => '#1f6b3f'],
-                            ['label' => 'Target', 'data' => $data['target'], 'backgroundColor' => '#9dbba8'],
+                            ['label' => 'Actual', 'data' => $data['actual'], 'backgroundColor' => '#245c38', 'borderRadius' => 6],
+                            ['label' => 'Target', 'data' => $data['target'], 'backgroundColor' => '#c9ddba', 'borderRadius' => 6],
                         ],
                     ],
                     'options' => ['responsive' => true, 'plugins' => ['legend' => ['position' => 'top']]],

@@ -1,8 +1,12 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}My funding requests | iEDIFY Africa{% endblock %}
 {% block content %}
-<div class="container">
-<h1>My funding requests</h1>
+<div class="container public-page">
+<header class="page-header">
+    <p class="eyebrow">Account</p>
+    <h1>My funding requests</h1>
+</header>
+<div class="table-scroll">
 <table class="admin-table">
     <thead><tr><th scope="col">Request</th><th scope="col">Round</th><th scope="col">Requested</th><th scope="col">Awarded</th><th scope="col">Status</th></tr></thead>
     <tbody>
@@ -19,5 +23,6 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 </div>
 {% endblock %}

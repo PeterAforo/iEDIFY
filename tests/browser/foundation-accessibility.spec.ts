@@ -11,6 +11,14 @@ test('preview is honest, accessible and keyboard navigable', async ({ page }) =>
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('#main-content')).toBeFocused();
+  // Wait for scroll-reveal transitions to settle so axe never samples a
+  // mid-fade opacity (transient opacity produces false contrast violations).
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('[data-reveal], [data-reveal-group] > *')].every((el) => {
+      const opacity = Number.parseFloat(getComputedStyle(el).opacity);
+      return opacity === 0 || opacity === 1;
+    }),
+  );
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
   expect(results.violations).toEqual([]);
   expect(errors).toEqual([]);

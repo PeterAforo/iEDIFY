@@ -1,9 +1,7 @@
-{% extends 'layouts/base.twig' %}
+﻿{% extends 'layouts/auth.twig' %}
 {% block title %}Check your email | iEDIFY Africa{% endblock %}
-{% block content %}
-<section class="container auth-page">
+{% block auth %}
     <h1>Check your email</h1>
     <p class="auth-lead">If the address is registered, a verification link is on its way. Open it to activate your account.</p>
     <p><a href="/sign-in">Continue to sign in</a></p>
-</section>
 {% endblock %}

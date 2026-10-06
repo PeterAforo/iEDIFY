@@ -1,5 +1,18 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ status }} | iEDIFY Africa</title></head>
-<body><main><h1>{{ heading }}</h1><p>{{ message }}</p><p><a href="/">Return to the homepage</a></p><p>Reference: {{ request_id }}</p></main></body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ status }} | iEDIFY Africa</title>
+{% for stylesheet in asset_styles('resources/assets/scripts/app.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
+</head>
+<body>
+<main class="container auth-page">
+    <p class="eyebrow">Error {{ status }}</p>
+    <h1>{{ heading }}</h1>
+    <p class="auth-lead">{{ message }}</p>
+    <p><a class="button-primary" href="/">Return to the homepage</a></p>
+    <p class="field-hint">Reference: {{ request_id }}</p>
+</main>
+</body>
 </html>

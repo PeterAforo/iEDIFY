@@ -2,10 +2,13 @@
 {% block title %}Impact | iEDIFY Africa{% endblock %}
 {% block extra_head %}<script type="module" src="{{ asset('resources/assets/scripts/charts.js') }}"></script>{% endblock %}
 {% block content %}
-<div class="container">
-<h1>Impact</h1>
+<div class="container public-page">
+<header class="page-header">
+    <h1>Impact</h1>
+    <p class="page-lead">Verified, published results alongside their targets. Figures below are actuals — targets are shown separately and proposed figures are never presented as achieved results.</p>
+</header>
 {% if charts %}
-<div class="impact-charts">
+<div class="impact-charts charts-2col">
     {% for chart in charts %}
     <figure class="chart-panel">
         <figcaption>Published actuals vs targets ({{ chart.unit }})</figcaption>
@@ -14,7 +17,7 @@
     {% endfor %}
 </div>
 {% endif %}
-<p>Verified, published results alongside their targets. Figures below are actuals — targets are shown separately and proposed figures are never presented as achieved results.</p>
+<div class="table-scroll">
 <table class="admin-table">
     <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Actual</th><th scope="col">Target</th></tr></thead>
     <tbody>
@@ -31,8 +34,10 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% if breakdown.rows or breakdown.suppressed %}
-<h2>Breakdowns</h2>
+<h2 class="section-heading">Breakdowns</h2>
+<div class="table-scroll">
 <table class="admin-table">
     <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Group</th><th scope="col">Actual</th></tr></thead>
     <tbody>
@@ -47,10 +52,11 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% if breakdown.suppressed %}<p class="suppression-note">{{ breakdown.suppressed }} subgroup{{ breakdown.suppressed == 1 ? '' : 's' }} withheld: groups smaller than {{ threshold }} respondents are suppressed to protect privacy.</p>{% endif %}
 {% endif %}
-<h2>Published reports</h2>
-<ul>
+<h2 class="section-heading">Published reports</h2>
+<ul class="card-list">
     {% for report in reports %}
     <li><a href="/impact/reports/{{ report.id }}">{{ report.title }}</a> ({{ report.period }})</li>
     {% else %}

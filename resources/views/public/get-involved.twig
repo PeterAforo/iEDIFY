@@ -2,14 +2,18 @@
 {% block title %}{{ label }} | iEDIFY Africa{% endblock %}
 {% block content %}
 <section class="container auth-page">
-    <h1>{{ label }}</h1>
-    <form method="post" action="/get-involved/{{ type }}" class="stacked-form">
+    <header class="page-header">
+        <p class="eyebrow">Get involved</p>
+        <h1>{{ label }}</h1>
+        <p class="page-lead">Tell us who you are and how you'd like to contribute — the team will follow up by email.</p>
+    </header>
+    <form method="post" action="/get-involved/{{ type }}" class="stacked-form auth-form">
         <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
         <input type="text" name="fax" value="" tabindex="-1" autocomplete="off" aria-hidden="true" class="visually-hidden">
         <input type="text" name="department" value="" tabindex="-1" autocomplete="off" aria-hidden="true" class="visually-hidden">
-        <label>Full name<input type="text" name="name" required maxlength="180" autocomplete="name"></label>
-        <label>Email<input type="email" name="email" required maxlength="254" autocomplete="email"></label>
-        <label>Tell us about yourself and how you would like to help<textarea name="background" required minlength="10" maxlength="8000"></textarea></label>
+        <div class="field"><label for="gi-name">Full name</label><input id="gi-name" type="text" name="name" required maxlength="180" autocomplete="name"></div>
+        <div class="field"><label for="gi-email">Email</label><input id="gi-email" type="email" name="email" required maxlength="254" autocomplete="email"></div>
+        <div class="field"><label for="gi-background">Tell us about yourself and how you would like to help</label><textarea id="gi-background" name="background" required minlength="10" maxlength="8000" rows="6"></textarea></div>
         <button type="submit" class="button-primary">Send</button>
     </form>
 </section>

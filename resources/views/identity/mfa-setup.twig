@@ -1,7 +1,6 @@
-{% extends 'layouts/base.twig' %}
+﻿{% extends 'layouts/auth.twig' %}
 {% block title %}Set up multi-factor authentication | iEDIFY Africa{% endblock %}
-{% block content %}
-<section class="container auth-page">
+{% block auth %}
     <h1>Set up multi-factor authentication</h1>
     <p class="auth-lead">Staff and privileged accounts require an authenticator app. Add this account in your app, then enter the code it shows.</p>
     <div class="field">
@@ -17,5 +16,4 @@
         </div>
         <button type="submit" class="button-primary">Confirm setup</button>
     </form>
-</section>
 {% endblock %}

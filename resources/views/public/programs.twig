@@ -2,16 +2,18 @@
 {% block title %}Programs | iEDIFY Africa{% endblock %}
 {% block content %}
 <section class="container public-page">
-    <h1>Programs</h1>
-    <p class="page-lead">Current iEDIFY Africa programs and open application intakes.</p>
-    <div class="card-grid">
+    <header class="page-header">
+        <h1>Programs</h1>
+        <p class="page-lead">Current iEDIFY Africa programs and open application intakes.</p>
+    </header>
+    <div class="card-grid" data-reveal-group>
         {% for program in programs %}
-        <article class="card">
+        <article class="card card-hover">
             <h2><a href="/programs/{{ program.slug }}">{{ program.title }}</a></h2>
             <p>{{ program.summary }}</p>
             <p><strong>Eligibility:</strong> {{ program.eligibility_summary }}</p>
             {% if program.intake_id %}
-            <p class="intake-open">Applications open: {{ program.intake_name }} · closes {{ program.closes_at|date('j M Y') }}{% if program.seats %} · {{ program.seats }} places{% endif %}</p>
+            <p class="intake-open">Applications open: {{ program.intake_name }} — closes {{ program.closes_at|date('j M Y') }}{% if program.seats %} — {{ program.seats }} places{% endif %}</p>
             <p><a class="button-primary" href="/apply/{{ program.intake_id }}">Apply to {{ program.intake_name }}</a></p>
             {% else %}
             <p class="intake-closed">No intake is accepting applications right now.</p>

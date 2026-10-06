@@ -1,31 +1,34 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}Search | iEDIFY Africa{% endblock %}
 {% block content %}
-<div class="container">
-<h1>Search</h1>
-<form method="get" action="/search" role="search" class="stacked-form">
-    <label for="site-search">Search the site</label>
+<div class="container public-page">
+<header class="page-header">
+    <h1>Search</h1>
+</header>
+<form method="get" action="/search" role="search" class="stacked-form search-form">
+    <label for="site-search" class="visually-hidden">Search the site</label>
     <div class="search-row">
-        <input id="site-search" type="search" name="q" value="{{ query }}" maxlength="120" required>
-        <button type="submit" class="button-secondary">Search</button>
+        <input id="site-search" type="search" name="q" value="{{ query }}" maxlength="120" required placeholder="Search programs, news, events, publications&hellip;">
+        <button type="submit" class="button-primary">Search</button>
     </div>
 </form>
 {% if query is not empty %}
-<p>{{ search.total }} result{{ search.total == 1 ? '' : 's' }} for “{{ query }}”.</p>
-<ul class="search-results">
+<p class="search-count">{{ search.total }} result{{ search.total == 1 ? '' : 's' }} for &ldquo;{{ query }}&rdquo;.</p>
+<ul class="search-results card-list">
     {% for result in search.results %}
-    <li>
-        <a href="{{ result.url }}">{{ result.title }}</a> <span class="result-type">({{ result.type }})</span>
+    <li class="card">
+        <span class="result-type">{{ result.type }}</span>
+        <h2><a href="{{ result.url }}">{{ result.title }}</a></h2>
         <p>{{ result.excerpt }}</p>
     </li>
     {% else %}
-    <li>No public pages, programs, events or opportunities match.</li>
+    <li class="card">No public pages, programs, events or opportunities match.</li>
     {% endfor %}
 </ul>
 {% if search.pages > 1 %}
-<nav aria-label="Search result pages">
+<nav class="filter-tabs" aria-label="Search result pages">
     {% for p in 1..search.pages %}
-        {% if p == search.page %}<strong aria-current="page">{{ p }}</strong>{% else %}<a href="/search?q={{ query|url_encode }}&page={{ p }}">{{ p }}</a>{% endif %}
+        {% if p == search.page %}<a aria-current="true">{{ p }}</a>{% else %}<a href="/search?q={{ query|url_encode }}&page={{ p }}">{{ p }}</a>{% endif %}
     {% endfor %}
 </nav>
 {% endif %}

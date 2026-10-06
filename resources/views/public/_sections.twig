@@ -1,29 +1,45 @@
 {% macro render(blocks, media) %}
+    {% set prev = null %}
+    {% set cta_first = true %}
     {% for block in blocks %}
         {% if block.type == 'heading' %}
-            <h2 class="section-heading">{{ block.text }}</h2>
+            {% set prev = 'heading' %}
+            <h2 class="section-heading" data-reveal>{{ block.text }}</h2>
         {% elseif block.type == 'text' %}
+            {% set prev = 'text' %}
             <div class="prose">{{ block.text|nl2br }}</div>
         {% elseif block.type == 'rich_text' %}
+            {% set prev = 'rich_text' %}
             <div class="prose">{{ block.html|raw }}</div>
         {% elseif block.type == 'image' and media[block.media_id]|default(null) %}
+            {% set prev = 'image' %}
             {% set m = media[block.media_id] %}
-            <figure class="section-image"><img src="{{ m.url }}" alt="{{ block.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}></figure>
+            <figure class="section-image" data-reveal><img src="{{ m.url }}" alt="{{ block.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}></figure>
         {% elseif block.type == 'document' and media[block.media_id]|default(null) %}
+            {% set prev = 'document' %}
             {% set m = media[block.media_id] %}
-            <p class="section-document"><a class="document-link" href="{{ m.url }}">{{ block.label|default('Download document') }}</a> <span class="document-meta">({{ m.mime }}, reviewed)</span></p>
+            <p class="section-document" data-reveal><a class="document-link" href="{{ m.url }}">{{ block.label|default('Download document') }} <span class="document-meta">{{ m.mime }}</span></a></p>
         {% elseif block.type == 'quote' %}
-            <blockquote class="section-quote"><p>{{ block.text }}</p><cite>{{ block.attribution }}</cite></blockquote>
+            {% set prev = 'quote' %}
+            <blockquote class="section-quote weave-texture" data-reveal><p>{{ block.text }}</p><cite>{{ block.attribution }}</cite></blockquote>
         {% elseif block.type == 'cta' %}
-            <p class="section-cta"><a class="button-primary" href="{{ block.url }}">{{ block.label }}</a></p>
+            {% if prev != 'cta' %}{% set cta_first = true %}<div class="cta-row" data-reveal>{% endif %}
+            <p class="section-cta"><a class="{{ cta_first ? 'button-primary button-clay' : 'button-secondary' }}" href="{{ block.url }}">{{ block.label }}</a></p>
+            {% set cta_first = false %}
+            {% if loop.last or blocks[loop.index].type != 'cta' %}</div>{% endif %}
+            {% set prev = 'cta' %}
         {% elseif block.type == 'statistic' %}
+            {% if prev != 'statistic' %}<div class="stat-band" data-reveal>{% endif %}
             <div class="statistic statistic-{{ block.kind }}">
-                <p class="statistic-value">{{ block.value }}</p>
+                <p class="statistic-value" data-count>{{ block.value }}</p>
                 <p class="statistic-label">{{ block.label }}</p>
                 <p class="statistic-meta">{{ block.kind == 'target' ? 'Target' : 'Context' }} — {{ block.source }}, {{ block.period }}</p>
             </div>
-        {% elseif block.type in ['cards', 'accordion', 'timeline'] %}
-            <div class="section-{{ block.type }}">
+            {% if loop.last or blocks[loop.index].type != 'statistic' %}</div>{% endif %}
+            {% set prev = 'statistic' %}
+        {% elseif block.type in ['cards', 'timeline'] %}
+            {% set prev = 'collection' %}
+            <div class="section-cards" data-reveal-group>
                 {% for item in block.items %}
                 <article class="collection-item">
                     <h3>{{ item.title }}</h3>
@@ -31,8 +47,19 @@
                 </article>
                 {% endfor %}
             </div>
+        {% elseif block.type == 'accordion' %}
+            {% set prev = 'accordion' %}
+            <div class="section-accordion">
+                {% for item in block.items %}
+                <details class="collection-item">
+                    <summary><h3>{{ item.title }}</h3></summary>
+                    <div class="prose">{{ item.text|nl2br }}</div>
+                </details>
+                {% endfor %}
+            </div>
         {% elseif block.type == 'gallery' %}
-            <div class="section-gallery">
+            {% set prev = 'gallery' %}
+            <div class="section-gallery" data-reveal-group>
                 {% for item in block.items %}{% if media[item.media_id]|default(null) %}
                 {% set m = media[item.media_id] %}
                 <figure><img src="{{ m.url }}" alt="{{ item.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}></figure>

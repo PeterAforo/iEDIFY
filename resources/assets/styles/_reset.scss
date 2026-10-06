@@ -1,0 +1,29 @@
+// Minimal reset — replaces Bootstrap Reboot.
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, ul, ol, fieldset, legend, pre, hr { margin: 0; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg, video, canvas { display: block; max-width: 100%; }
+
+input, button, textarea, select { font: inherit; color: inherit; }
+
+button { cursor: pointer; }
+
+ul[role='list'], ol[role='list'] { list-style: none; padding: 0; }
+
+a { color: inherit; }
+
+table { border-collapse: collapse; }
+
+summary { cursor: pointer; }
+
+[hidden] { display: none !important; }

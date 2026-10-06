@@ -1,17 +1,20 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}News and stories | iEDIFY Africa{% endblock %}
 {% block content %}
-<section class="container auth-page">
-    <h1>News and stories</h1>
-    <ul class="card-list">
+<section class="container public-page">
+    <header class="page-header">
+        <h1>News and stories</h1>
+        <p class="page-lead">Updates, announcements and stories from across the iEDIFY Africa community.</p>
+    </header>
+    <div class="card-grid" data-reveal-group>
         {% for item in items %}
-        <li>
+        <article class="card card-hover">
+            <p class="news-date">{{ item.updated_at|date('j M Y') }}</p>
             <h2><a href="{{ item.slug }}">{{ item.title }}</a></h2>
-            <p>{{ item.updated_at|date('j M Y') }}</p>
-        </li>
+        </article>
         {% else %}
-        <li>No published stories yet.</li>
+        <p>No published stories yet — check back soon.</p>
         {% endfor %}
-    </ul>
+    </div>
 </section>
 {% endblock %}

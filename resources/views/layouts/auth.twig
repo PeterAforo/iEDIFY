@@ -1,0 +1,15 @@
+{% extends 'layouts/base.twig' %}
+{% block content %}
+<section class="container">
+    <div class="auth-shell" data-reveal>
+        <div class="auth-panel weave-texture">
+            {% if chrome.logo_url %}<img class="brand-logo" src="{{ chrome.logo_url }}" alt="" width="160" height="71">{% endif %}
+            <p class="auth-panel-tag">Empowering Africa's youth through innovation, education and entrepreneurship.</p>
+            <p class="auth-panel-note">A member account gives you access to programs, learning, mentoring, funding opportunities and the community.</p>
+        </div>
+        <div class="auth-card">
+            {% block auth %}{% endblock %}
+        </div>
+    </div>
+</section>
+{% endblock %}

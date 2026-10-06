@@ -1,7 +1,6 @@
-{% extends 'layouts/base.twig' %}
+﻿{% extends 'layouts/auth.twig' %}
 {% block title %}Create account | iEDIFY Africa{% endblock %}
-{% block content %}
-<section class="container auth-page">
+{% block auth %}
     <h1>Create your account</h1>
     <p class="auth-lead">Join the iEDIFY Africa community.</p>
     <form method="post" action="/sign-up" class="auth-form" novalidate>
@@ -36,5 +35,4 @@
         <button type="submit" class="button-primary">Create account</button>
     </form>
     <p>Already registered? <a href="/sign-in">Sign in</a>.</p>
-</section>
 {% endblock %}

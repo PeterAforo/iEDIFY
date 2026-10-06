@@ -1,7 +1,6 @@
-{% extends 'layouts/base.twig' %}
+﻿{% extends 'layouts/auth.twig' %}
 {% block title %}Email verification | iEDIFY Africa{% endblock %}
-{% block content %}
-<section class="container auth-page">
+{% block auth %}
     {% if verified %}
     <h1>Email verified</h1>
     <p class="auth-lead">Your email address is confirmed. You can now sign in.</p>
@@ -11,5 +10,4 @@
     <p class="auth-lead">This verification link is invalid, expired or already used. Sign in and request a new link from your account page.</p>
     <p><a href="/sign-in">Sign in</a></p>
     {% endif %}
-</section>
 {% endblock %}

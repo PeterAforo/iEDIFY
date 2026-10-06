@@ -1,14 +1,12 @@
-{% extends 'layouts/base.twig' %}
+{% extends 'layouts/auth.twig' %}
 {% block title %}Accept invitation | iEDIFY Africa{% endblock %}
-{% block content %}
-<section class="container auth-page">
+{% block auth %}
     <h1>Accept your invitation</h1>
-    <p>You have been invited as <strong>{{ invite.role_name }}</strong> for <strong>{{ invite.email }}</strong>.</p>
+    <p class="auth-lead">You have been invited as <strong>{{ invite.role_name }}</strong> for <strong>{{ invite.email }}</strong>.</p>
     <form method="post" action="/invite/{{ token }}" class="stacked-form">
         <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
         <label>Your name<input type="text" name="name" required maxlength="180" autocomplete="name"></label>
         <label>Choose a password (12+ characters)<input type="password" name="password" required minlength="12" autocomplete="new-password"></label>
         <button type="submit" class="button-primary">Create account</button>
     </form>
-</section>
 {% endblock %}

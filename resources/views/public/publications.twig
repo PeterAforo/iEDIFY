@@ -1,9 +1,11 @@
 {% extends 'layouts/base.twig' %}
 {% block title %}Publications | iEDIFY Africa{% endblock %}
 {% block content %}
-<div class="container">
-<h1>Publications &amp; resources</h1>
-<p>Reports, research and resources published by iEDIFY Africa. Only reviewed documents are listed — each publication page links to its downloadable files.</p>
+<div class="container public-page">
+<header class="page-header">
+    <h1>Publications &amp; resources</h1>
+    <p class="page-lead">Reports, research and resources published by iEDIFY Africa. Only reviewed documents are listed — each publication links to its downloadable files.</p>
+</header>
 <form method="get" action="/publications" class="filter-form" role="search">
     <div class="field">
         <label for="q">Search titles</label>
@@ -27,18 +29,19 @@
         </select>
     </div>
     {% endif %}
-    <button type="submit" class="button-primary">Filter</button>
+    <button type="submit" class="button-secondary">Filter</button>
 </form>
-<ul class="publication-list">
+<ul class="publication-list" data-reveal-group>
     {% for item in items %}
     <li class="publication-item">
         <h2><a href="{{ item.slug }}">{{ item.title }}</a></h2>
         <p class="publication-meta">
-            {% if item.category %}{{ item.category }}{% endif %}{% if item.pub_year %}{{ item.category ? ' · ' }}{{ item.pub_year }}{% endif %}
+            {% if item.category %}<span class="pill pill-sand">{{ item.category }}</span>{% endif %}
+            {% if item.pub_year %}<span class="pill pill-line">{{ item.pub_year }}</span>{% endif %}
         </p>
     </li>
     {% else %}
-    <li>No publications match these filters{% if filters.q or filters.category or filters.year %} — <a href="/publications">clear filters</a>{% endif %}. Publications will appear here as they are approved for release.</li>
+    <li class="card">No publications match these filters{% if filters.q or filters.category or filters.year %} — <a href="/publications">clear filters</a>{% endif %}. Publications will appear here as they are approved for release.</li>
     {% endfor %}
 </ul>
 </div>

@@ -2,21 +2,23 @@
 {% block title %}{{ program.title }} | iEDIFY Africa{% endblock %}
 {% block content %}
 <section class="container public-page">
-    <h1>{{ program.title }}</h1>
-    <p class="page-lead">{{ program.summary }}</p>
-    <h2>Eligibility</h2>
-    <p>{{ program.eligibility_summary }}</p>
-    <h2>Intakes</h2>
-    <ul class="intake-list">
+    <header class="page-header">
+        <h1>{{ program.title }}</h1>
+        <p class="page-lead">{{ program.summary }}</p>
+    </header>
+    <h2 class="section-heading">Eligibility</h2>
+    <div class="prose"><p>{{ program.eligibility_summary }}</p></div>
+    <h2 class="section-heading">Intakes</h2>
+    <ul class="intake-list card-list">
         {% for intake in intakes %}
-        <li>
-            <strong>{{ intake.name }}</strong> · opens {{ intake.opens_at|date('j M Y') }} · closes {{ intake.closes_at|date('j M Y') }}{% if intake.seats %} · {{ intake.seats }} places{% endif %}
+        <li class="card">
+            <strong>{{ intake.name }}</strong> — opens {{ intake.opens_at|date('j M Y') }} — closes {{ intake.closes_at|date('j M Y') }}{% if intake.seats %} — {{ intake.seats }} places{% endif %}
             {% if intake.status == 'open' and intake.opens_at <= 'now'|date('Y-m-d H:i:s') and intake.closes_at > 'now'|date('Y-m-d H:i:s') %}
                 — <a class="button-secondary" href="/apply/{{ intake.id }}">Apply now</a>
             {% endif %}
         </li>
         {% else %}
-        <li>No intakes are scheduled yet.</li>
+        <li class="card">No intakes are scheduled yet.</li>
         {% endfor %}
     </ul>
 </section>

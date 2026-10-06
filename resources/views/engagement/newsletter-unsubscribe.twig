@@ -1,12 +1,10 @@
-{% extends 'layouts/base.twig' %}
+{% extends 'layouts/auth.twig' %}
 {% block title %}Unsubscribe | iEDIFY Africa{% endblock %}
-{% block content %}
-<section class="container auth-page">
+{% block auth %}
     <h1>Unsubscribe</h1>
     <p class="auth-lead">Confirm you want to stop receiving iEDIFY Africa newsletters.</p>
     <form method="post" action="/newsletter/unsubscribe/{{ token }}">
         <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
         <button type="submit" class="button-primary">Unsubscribe me</button>
     </form>
-</section>
 {% endblock %}

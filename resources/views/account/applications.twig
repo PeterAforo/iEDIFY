@@ -3,6 +3,7 @@
 {% block content %}
 <section class="container auth-page">
     <h1>My applications</h1>
+    <div class="table-scroll">
     <table class="admin-table">
         <thead><tr><th scope="col">Program</th><th scope="col">Intake</th><th scope="col">Status</th><th scope="col">Submitted</th><th scope="col"></th></tr></thead>
         <tbody>
@@ -19,6 +20,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     <p><a href="/account">Back to account</a></p>
 </section>
 {% endblock %}

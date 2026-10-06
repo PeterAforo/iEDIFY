@@ -2,11 +2,10 @@
 {% block title %}{{ opportunity.title }} | iEDIFY Africa{% endblock %}
 {% block content %}
 <section class="container auth-page">
+    <p><span class="pill pill-clay">{{ opportunity.category }}</span>{% if opportunity.deadline %} <span class="pill pill-ember">Deadline {{ opportunity.deadline|date('j M Y') }}</span>{% endif %}</p>
     <h1>{{ opportunity.title }}</h1>
-    <p><strong>Category:</strong> {{ opportunity.category }}</p>
-    {% if opportunity.deadline %}<p><strong>Deadline:</strong> {{ opportunity.deadline|date('j M Y') }}</p>{% endif %}
-    <div>{{ opportunity.summary|nl2br }}</div>
-    {% if opportunity.details %}<div>{{ opportunity.details|nl2br }}</div>{% endif %}
-    <p><a href="/opportunities">All opportunities</a></p>
+    <div class="prose">{{ opportunity.summary|nl2br }}</div>
+    {% if opportunity.details %}<div class="prose">{{ opportunity.details|nl2br }}</div>{% endif %}
+    <p><a class="link-arrow" href="/opportunities">All opportunities</a></p>
 </section>
 {% endblock %}

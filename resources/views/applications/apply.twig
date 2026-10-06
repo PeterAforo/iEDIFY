@@ -2,8 +2,9 @@
 {% block title %}Apply — {{ intake.name }} | iEDIFY Africa{% endblock %}
 {% block content %}
 <section class="container auth-page">
+    <p class="eyebrow">Application</p>
     <h1>{{ intake.name }}</h1>
-    <p class="auth-lead">Status: <strong>{{ application.status|replace({'_': ' '}) }}</strong>{% if application.status in ['submitted','screening','under_review','shortlisted','waitlisted','accepted','enrolled','rejected','withdrawn'] %} — submitted {{ application.submitted_at|date('j M Y') }}{% endif %}</p>
+    <p class="auth-lead">Status: <span class="pill pill-leaf">{{ application.status|replace({'_': ' '}) }}</span>{% if application.status in ['submitted','screening','under_review','shortlisted','waitlisted','accepted','enrolled','rejected','withdrawn'] %} — submitted {{ application.submitted_at|date('j M Y') }}{% endif %}</p>
     {% if application.status in ['draft','request_info'] %}
     <form method="post" action="/apply/{{ application.intake_id }}" class="editor-form" novalidate>
         <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
