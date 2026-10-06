@@ -98,7 +98,7 @@ final class ApplyController extends Controller
             return $this->redirect('/apply/' . $this->intakeOf($id));
         }
         try {
-            $mediaId = (new DocumentStore($this->app->pdo(), $this->app->config->string('CONTENT_STORAGE', $this->app->root . '/storage/private/content')))->store($file);
+            $mediaId = (new DocumentStore($this->app->pdo(), $this->app->config->path('CONTENT_STORAGE', $this->app->root . '/storage/private/content')))->store($file);
             $this->app->applications()->attachDocument($actor, $id, (int) $application['version'], $key, $mediaId);
         } catch (HttpError|\InvalidArgumentException $error) {
             $this->flash('error', $error->getMessage());

@@ -36,7 +36,7 @@ final class MediaAdminController extends Controller
             throw new HttpError(422, 'Choose a file to upload.');
         }
         $alt = mb_substr(trim((string) $this->request->request->get('alt_text', '')), 0, 500);
-        $store = new DocumentStore($this->app->pdo(), $this->app->config->string('CONTENT_STORAGE', $this->app->root . '/storage/private/content'));
+        $store = new DocumentStore($this->app->pdo(), $this->app->config->path('CONTENT_STORAGE', $this->app->root . '/storage/private/content'));
         $mediaId = $store->store($file, 'public_content', 'pending');
         if ($alt !== '') {
             $this->app->pdo()->prepare('UPDATE media_assets SET alt_text = ? WHERE id = ?')->execute([$alt, $mediaId]);

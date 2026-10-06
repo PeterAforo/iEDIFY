@@ -33,7 +33,7 @@ final readonly class Smser
     private function transport(): SmsTransport
     {
         return match ($this->config->string('SMS_TRANSPORT', 'capture')) {
-            'capture' => new CaptureSmsTransport($this->config->string('SMS_CAPTURE_DIR', $this->root . '/storage/mail/sms')),
+            'capture' => new CaptureSmsTransport($this->config->path('SMS_CAPTURE_DIR', $this->root . '/storage/mail/sms')),
             'mnotify' => new MNotifyTransport($this->config),
             default => throw new InvalidArgumentException('Unknown SMS transport.'),
         };

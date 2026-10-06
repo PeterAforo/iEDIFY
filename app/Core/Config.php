@@ -39,6 +39,16 @@ final readonly class Config
         return (string) $value;
     }
 
+    /**
+     * Path-like settings: an explicitly empty value falls back to the default,
+     * so optional overrides (e.g. CONTENT_STORAGE=) do not blank out storage.
+     */
+    public function path(string $key, string $default): string
+    {
+        $value = $this->string($key);
+        return $value === '' ? $default : $value;
+    }
+
     public function boolean(string $key, bool $default = false): bool
     {
         $value = $this->values[$key] ?? $default;

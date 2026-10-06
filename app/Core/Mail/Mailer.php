@@ -31,7 +31,7 @@ final class Mailer
     private function transport(): Transport
     {
         return match ($this->config->string('MAIL_TRANSPORT', 'capture')) {
-            'capture' => new CaptureTransport($this->config->string('MAIL_CAPTURE_DIR', $this->root . '/storage/mail')),
+            'capture' => new CaptureTransport($this->config->path('MAIL_CAPTURE_DIR', $this->root . '/storage/mail')),
             'smtp' => new SmtpTransport($this->config),
             default => throw new InvalidArgumentException('Unknown mail transport.'),
         };

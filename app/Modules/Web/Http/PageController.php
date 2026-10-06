@@ -45,6 +45,8 @@ final class PageController extends Controller
         }
         if ($slug === '/team') {
             $data['roster'] = $this->roster();
+            $portraits = array_values(array_filter(array_map(static fn (array $m): int => (int) $m['portrait_asset_id'], $data['roster'])));
+            $data['media'] += $this->mediaByIds($portraits);
         }
         if ($slug === '/contact') {
             return $this->render('public/contact.twig', $data);
@@ -102,6 +104,16 @@ final class PageController extends Controller
             }
         };
         $walk($sections);
+        return $this->mediaByIds($ids);
+    }
+
+    /**
+     * Approved public media lookup shared by section blocks and roster portraits.
+     *
+     * @param list<int> $ids
+     */
+    private function mediaByIds(array $ids): array
+    {
         if ($ids === []) {
             return [];
         }

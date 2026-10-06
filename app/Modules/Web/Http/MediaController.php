@@ -24,7 +24,7 @@ final class MediaController extends Controller
         if (!$approved && !$this->maySeePrivate((int) $asset['id'])) {
             throw new HttpError(404, 'This file is not available.');
         }
-        $directory = $this->app->config->string('CONTENT_STORAGE', $this->app->root . '/storage/private/content');
+        $directory = $this->app->config->path('CONTENT_STORAGE', $this->app->root . '/storage/private/content');
         $path = realpath($directory . '/' . basename($asset['storage_path']));
         if ($path === false || !str_starts_with(str_replace('\\', '/', $path), str_replace('\\', '/', realpath($directory) ?: $directory))) {
             throw new HttpError(404, 'This file is not available.');

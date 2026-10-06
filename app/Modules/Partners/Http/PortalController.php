@@ -48,7 +48,7 @@ final class PortalController extends Controller
         if ($media === false) {
             throw new HttpError(404, 'Document was not found.');
         }
-        $storageDir = $this->app->config->string('CONTENT_STORAGE', $this->app->root . '/storage/private/content');
+        $storageDir = $this->app->config->path('CONTENT_STORAGE', $this->app->root . '/storage/private/content');
         $path = $storageDir . '/' . basename((string) $media['storage_path']);
         if (!is_file($path)) {
             throw new HttpError(404, 'Document was not found.');

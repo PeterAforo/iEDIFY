@@ -36,7 +36,7 @@ final class FundingRequestController extends Controller
             $schema = $this->app->pdo()->prepare('SELECT form_schema FROM funding_rounds WHERE id = ?');
             $schema->execute([$roundId]);
             $fields = ($raw = $schema->fetchColumn()) !== false && $raw !== null ? json_decode((string) $raw, true, 512, JSON_THROW_ON_ERROR) : [];
-            $store = new \IEdify\Modules\Programs\Services\DocumentStore($this->app->pdo(), $this->app->config->string('CONTENT_STORAGE', $this->app->root . '/storage/private/content'));
+            $store = new \IEdify\Modules\Programs\Services\DocumentStore($this->app->pdo(), $this->app->config->path('CONTENT_STORAGE', $this->app->root . '/storage/private/content'));
             $uploaded = $this->request->files->get('answers', []);
             foreach ($fields as $field) {
                 if ($field['type'] === 'document' && isset($uploaded[$field['key']])) {
