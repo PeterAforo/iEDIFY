@@ -23,7 +23,6 @@
             <a class="brand" href="/" aria-label="iEDIFY Africa home">
                 <img class="brand-logo" src="{{ chrome.logo_dark_url }}" alt="iEDIFY Africa" width="640" height="283">
             </a>
-            {% if environment != 'production' %}<span class="environment-label">Development preview</span>{% endif %}
             <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
                 <span class="nav-bars" aria-hidden="true"><span class="nav-bar"></span></span>
                 <span class="nav-toggle-label">Menu</span>
@@ -105,6 +104,7 @@
         <div class="container footer-legal">
             <span>&copy; {{ "now"|date("Y") }} iEDIFY Africa. All rights reserved.</span>
             <span>Empowering Africa's youth through innovation and entrepreneurship.</span>
+            {% if environment != 'production' %}<span class="environment-label">Development preview</span>{% endif %}
         </div>
     </footer>
 </body>

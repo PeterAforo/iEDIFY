@@ -24,15 +24,16 @@ html.js .site-header.is-scrolled .brand-logo { height: 2.6rem; }
 .brand:hover .brand-logo { transform: scale(1.03); }
 
 .environment-label {
-  font-size: .68rem;
+  font-size: .62rem;
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--forest);
-  background: var(--leaf-soft);
-  padding: .2rem .55rem;
+  color: var(--leaf-bright);
+  border: 1px solid rgba(255, 255, 255, .25);
+  padding: .18rem .55rem;
   border-radius: var(--radius-pill);
   white-space: nowrap;
+  align-self: center;
 }
 
 .nav-toggle {
@@ -218,7 +219,6 @@ html.js .site-header.is-scrolled .brand-logo { height: 2.6rem; }
   .nav-toggle { position: relative; z-index: 85; }
 }
 @media (max-width: 30rem) {
-  .environment-label { font-size: .58rem; padding: .15rem .45rem; }
   .brand-logo { height: 2.6rem; }
 }
 
