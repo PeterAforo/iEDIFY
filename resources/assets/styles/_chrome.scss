@@ -137,7 +137,7 @@ html.js .site-header.is-scrolled .brand-logo { height: 3.9rem; }
 @media (min-width: 62rem) {
   .nav-toggle { display: none; }
   .site-nav { flex: 1 1 auto; min-width: 0; gap: .5rem 1.1rem; }
-  .nav-links { margin-inline: auto; }
+  .site-nav .nav-links { margin-inline: auto; }
   .nav-backdrop { display: none; }
   .nav-tools { padding-left: 1rem; border-left: 1px solid var(--line); }
 }
