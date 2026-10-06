@@ -104,7 +104,7 @@ html:not(.js) .home-hero-slide + .home-hero-slide { grid-area: auto; margin-top:
 
 .home-hero-art { position: relative; max-width: 36rem; justify-self: start; width: 100%; }
 @media (min-width: 56rem) {
-  .home-hero-art { width: 130%; max-width: none; margin-left: -12%; }
+  .home-hero-art { width: 130%; max-width: none; margin-left: -24%; }
 }
 .home-hero-mask { display: block; width: 100%; height: auto; filter: drop-shadow(0 1.5rem 2rem rgba(23, 61, 41, .22)); }
 .home-hero-art .dot-a { width: 1.1rem; height: 1.1rem; top: 4%; left: 52%; }
@@ -113,6 +113,7 @@ html:not(.js) .home-hero-slide + .home-hero-slide { grid-area: auto; margin-top:
 .home-hero-art .dot-d { width: .9rem; height: .9rem; bottom: 8%; left: 14%; }
 
 .hero-controls { position: relative; z-index: 2; display: flex; align-items: center; gap: 1rem; margin-top: 2rem; padding-inline: var(--gutter); max-width: 80rem; margin-inline: auto; }
+@media (min-width: 56rem) { .hero-controls { margin-top: -4.25rem; } }
 .hero-dots { display: flex; gap: .5rem; }
 .hero-dot { width: .65rem; height: .65rem; padding: 0; border-radius: 50%; border: 0; background: var(--line-strong); cursor: pointer; transition: background .2s, transform .2s var(--ease-spring); }
 .hero-dot.is-active { background: var(--sun); transform: scale(1.3); }
