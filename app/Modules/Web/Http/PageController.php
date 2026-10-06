@@ -38,10 +38,7 @@ final class PageController extends Controller
             'media' => $this->mediaUrls($sections),
         ];
         if ($slug === '/') {
-            $slides = (new \IEdify\Modules\CMS\Services\SiteChromeService($this->app->pdo()))->heroSlides();
-            if ($slides !== []) {
-                $data['hero_slides'] = $slides;
-            }
+            return $this->render('public/home.twig', $this->homeData($data));
         }
         if ($slug === '/team') {
             $data['roster'] = $this->roster();
@@ -76,15 +73,26 @@ final class PageController extends Controller
             throw new HttpError(404, 'This page is not available.');
         }
         $sections = json_decode($revision['sections'], true, 512, JSON_THROW_ON_ERROR);
-        $response = $this->render('public/page.twig', [
+        $data = [
             'page' => ['title' => $revision['title'] . ' (preview)', 'slug' => $item['slug'], 'content_type' => $item['content_type']],
             'sections' => $sections,
             'media' => $this->mediaUrls($sections),
             'preview' => ['status' => $item['status'], 'state' => $item['working_state'], 'revision' => (int) $revision['revision_number']],
-        ]);
+        ];
+        $response = $item['slug'] === '/'
+            ? $this->render('public/home.twig', $this->homeData($data))
+            : $this->render('public/page.twig', $data);
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         $response->headers->set('Cache-Control', 'private, no-store');
         return $response;
+    }
+
+    /** Homepage view data: designed slots, hero slides and their media. */
+    private function homeData(array $data): array
+    {
+        $data['home'] = \IEdify\Modules\Web\Services\HomeLayout::build($data['sections']);
+        $data['hero_slides'] = (new \IEdify\Modules\CMS\Services\SiteChromeService($this->app->pdo()))->heroSlides();
+        return $data;
     }
 
     /**

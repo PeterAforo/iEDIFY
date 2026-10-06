@@ -1,0 +1,220 @@
+{% extends 'layouts/base.twig' %}
+{% import 'public/_sections.twig' as ui %}
+{% import 'partials/icons.twig' as icons %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set s = home.slots %}
+{% block title %}iEDIFY Africa — Empowering Africa's youth{% endblock %}
+{% block content %}
+{% if preview is defined %}
+<div class="preview-banner" role="status">Draft preview — status {{ preview.status }}, state {{ preview.state }}, revision {{ preview.revision }}. This page is not public.</div>
+{% endif %}
+{{ africa.defs() }}
+<article class="home">
+
+    {# ---------- Hero ---------- #}
+    <section class="hero home-hero" aria-label="Introduction">
+        <svg class="home-hero-backdrop" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <div class="container home-hero-slides">
+            {% for slide in hero_slides %}
+            <div class="home-hero-slide hero-slide">
+                <div class="home-hero-copy">
+                    {% if slide.kicker %}<p class="home-eyebrow">{{ slide.kicker }}</p>{% endif %}
+                    {% if loop.first %}<h1 class="home-hero-title">{{ slide.title }}</h1>{% else %}<h2 class="home-hero-title">{{ slide.title }}</h2>{% endif %}
+                    {% if slide.body %}<p class="home-hero-lead">{{ slide.body }}</p>{% endif %}
+                    {% if slide.cta_url %}<a class="btn-pill btn-dark" href="{{ slide.cta_url }}"><span class="btn-dot" aria-hidden="true"></span>{{ slide.cta_label ?: 'Learn more' }}</a>{% endif %}
+                </div>
+                <div class="home-hero-art" aria-hidden="true">
+                    <span class="float-dot dot-sun dot-a"></span>
+                    <span class="float-dot dot-leaf dot-b"></span>
+                    <span class="float-dot dot-ember dot-c"></span>
+                    <span class="float-dot dot-forest dot-d"></span>
+                    {% if slide.media_id %}
+                    <svg class="home-hero-mask" viewBox="{{ africa.viewbox() }}" focusable="false">
+                        <image href="/media/{{ slide.media_id }}" x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" clip-path="url(#africa-clip)"/>
+                    </svg>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="home-hero-slide">
+                <div class="home-hero-copy"><h1 class="home-hero-title">{{ page.title }}</h1></div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {# ---------- What guides us (value cards) ---------- #}
+    {% if s.pillars.values|default([]) %}
+    <section class="home-section home-values" aria-labelledby="values-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">Who we are</p>
+                <h2 id="values-heading">What guides our work</h2>
+            </header>
+            <div class="value-grid" data-reveal-group>
+                {% for item in s.pillars.values %}
+                <article class="value-card">
+                    <span class="value-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.text }}</p>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- About: mission & vision ---------- #}
+    {% if s.mission is defined or s.vision is defined %}
+    {% set about_big = s.join.images[0].media_id|default(null) %}
+    {% set about_a = s.pillars.gallery[2]|default(null) %}
+    {% set about_b = s.pillars.gallery[1]|default(null) %}
+    <section class="home-section home-about" aria-labelledby="about-heading">
+        <div class="container home-about-grid">
+            <div class="about-cluster" aria-hidden="true">
+                <svg class="about-dots" viewBox="{{ africa.viewbox() }}" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+                <span class="float-dot dot-sun dot-a"></span>
+                <span class="float-dot dot-leaf dot-b"></span>
+                {% if about_big and media[about_big]|default(null) %}<img class="about-circle about-circle-lg" src="{{ media[about_big].url }}" alt="" loading="lazy" width="420" height="420">{% endif %}
+                {% if about_a and media[about_a.media_id]|default(null) %}<img class="about-circle about-circle-md" src="{{ media[about_a.media_id].url }}" alt="" loading="lazy" width="200" height="200">{% endif %}
+                {% if about_b and media[about_b.media_id]|default(null) %}<img class="about-circle about-circle-sm" src="{{ media[about_b.media_id].url }}" alt="" loading="lazy" width="140" height="140">{% endif %}
+            </div>
+            <div class="about-copy" data-reveal>
+                <p class="home-eyebrow">About us</p>
+                <h2 id="about-heading">{{ s.mission.heading|default('Our Mission') }}</h2>
+                {% if s.vision.quotes[0] is defined %}<p class="about-lead">{{ s.vision.quotes[0].text }}</p>{% endif %}
+                {% for text in s.mission.texts|default([]) %}<p>{{ text }}</p>{% endfor %}
+                <div class="btn-row">
+                    <a class="btn-pill btn-dark" href="/about"><span class="btn-dot" aria-hidden="true"></span>Learn more</a>
+                    {% if s.theory.ctas[0] is defined %}<a class="btn-link" href="{{ s.theory.ctas[0].url }}"><span class="btn-play" aria-hidden="true">&#9654;</span>{{ s.theory.ctas[0].label }}</a>{% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Program pillars ---------- #}
+    {% if s.pillars.items|default([]) %}
+    <section class="home-section home-pillars" aria-labelledby="pillars-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">What we do</p>
+                <h2 id="pillars-heading">{{ s.pillars.heading }}</h2>
+                {% for text in s.pillars.texts %}<p>{{ text }}</p>{% endfor %}
+            </header>
+            <div class="pillar-grid" data-reveal-group>
+                {% for item in s.pillars.items %}
+                <article class="pillar-card">
+                    {% if item.media and media[item.media.media_id]|default(null) %}
+                    {% set m = media[item.media.media_id] %}
+                    <img src="{{ m.url }}" alt="{{ item.media.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
+                    {% endif %}
+                    <div class="pillar-body">
+                        <p class="pillar-number">Pillar {{ item.number }}</p>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                    <a class="pillar-more" href="/programs" aria-label="Explore programs: {{ item.title }}">+</a>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Building together ---------- #}
+    {% if s.building is defined %}
+    <section class="home-section home-building" aria-labelledby="building-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">Our community</p>
+                <h2 id="building-heading">{{ s.building.heading }}</h2>
+                {% for text in s.building.texts %}<p>{{ text }}</p>{% endfor %}
+            </header>
+            {% for set in s.building.cards %}
+            <div class="audience-grid" data-reveal-group>
+                {% for item in set %}
+                <article class="audience-card">
+                    <span class="audience-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                    <div>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Theory of change banner ---------- #}
+    {% if s.theory is defined %}
+    <section class="home-section home-theory" aria-labelledby="theory-heading">
+        <div class="container">
+            <div class="theory-banner" data-reveal>
+                <div>
+                    <h2 id="theory-heading">{{ s.theory.heading }}</h2>
+                    {% for text in s.theory.texts %}<p>{{ text }}</p>{% endfor %}
+                </div>
+                <div class="btn-row">
+                    {% for cta in s.theory.ctas %}<a class="btn-pill btn-sun" href="{{ cta.url }}">{{ cta.label }} <span aria-hidden="true">&rarr;</span></a>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Join the movement ---------- #}
+    <section class="home-section home-join" aria-labelledby="join-heading">
+        <div class="container home-join-grid">
+            <div class="join-copy">
+                <p class="home-eyebrow">Get involved</p>
+                <h2 id="join-heading">{{ s.join.heading|default('Join the Movement') }}</h2>
+                {% for text in s.join.texts|default([]) %}<p>{{ text }}</p>{% endfor %}
+                {% if s.glance.stats|default([]) %}
+                <ul class="join-stats" data-reveal-group>
+                    {% for stat in s.glance.stats %}
+                    <li class="join-stat">
+                        <span class="join-stat-icon">{{ icons.icon(icons.pick(stat.label)) }}</span>
+                        <div>
+                            <p class="join-stat-value"><span class="statistic-value" data-count>{{ stat.value }}</span></p>
+                            <p class="join-stat-label">{{ stat.label }}</p>
+                            <p class="join-stat-meta">{{ stat.kind == 'target' ? 'Target' : 'Context' }} — {{ stat.source }}, {{ stat.period }}</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                <div class="btn-row">
+                    {% for cta in s.join.ctas|default([]) %}<a class="btn-pill {{ loop.first ? 'btn-dark' : 'btn-outline' }}" href="{{ cta.url }}">{% if loop.first %}<span class="btn-dot" aria-hidden="true"></span>{% endif %}{{ cta.label }}</a>{% endfor %}
+                </div>
+                <p class="join-roles">Join as a
+                    <a href="/get-involved/participant">participant</a>,
+                    <a href="/get-involved/mentor">mentor</a>,
+                    <a href="/get-involved/volunteer">volunteer</a> or
+                    <a href="/get-involved/partner">partner</a>.
+                </p>
+                {% for html in s.join.rich|default([]) %}<div class="prose join-contact">{{ html|raw }}</div>{% endfor %}
+            </div>
+            <figure class="join-map">
+                <svg viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false">
+                    <use class="join-map-land" href="#africa-shape"/>
+                    <use class="join-map-dots" href="#africa-shape" fill="url(#africa-dots)"/>
+                    <g class="join-map-pin" transform="translate({{ africa.hq_x() }} {{ africa.hq_y() }})">
+                        <circle class="pin-pulse" r="14"/>
+                        <circle class="pin-core" r="7"/>
+                    </g>
+                </svg>
+                <figcaption>Headquartered in Accra, Ghana</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    {% if home.leftover %}
+    <section class="home-section home-more">
+        <div class="container page-body">{{ ui.render(home.leftover, media) }}</div>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

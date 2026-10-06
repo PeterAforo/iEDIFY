@@ -65,6 +65,29 @@ secrets — encrypt with `SecretBox` (e.g. invitation tokens). Delivery handlers
 live in `OutboxProcessor`; failures retry with backoff then land `failed`,
 visible in `/admin/outbox` where staff can requeue.
 
+## Homepage layout
+
+`/` renders `public/home.twig`. `Web\Services\HomeLayout` splits the published
+homepage sections into chunks at each `heading` block and maps known headings
+(case-insensitive) onto designed slots:
+
+| Heading | Homepage section |
+|---|---|
+| At a Glance | Stats in "Join the Movement" (statistic blocks) |
+| Our Vision | Bold lead in "About us" (first quote block) |
+| Our Mission | "About us" body text |
+| Program Pillars | Intro text; 1st cards block + gallery → pillar image cards (paired in order); 2nd cards block → "What guides our work" value cards |
+| Building Together | Audience cards |
+| Our Theory of Change | Forest banner (text + CTAs; first CTA also appears in "About us") |
+| Join the Movement | Text, CTAs, rich text (keeps the mailto link inside main content) |
+
+Renamed or new headings are never dropped — they render through the generic
+section renderer below the designed sections. The hero comes from
+`/admin/hero`. The Africa silhouette (`partials/africa-defs.twig`) is generated
+by `node bin/generate-africa-svg.mjs` from Natural Earth (public domain).
+`public/images/logo-dark.png` is a recoloured stand-in for the white logo on the
+light header; replace it with an official dark logo when supplied.
+
 ## Gotchas
 
 - `Config::load($root, true)` requires `.env.test` with `_test` DB and

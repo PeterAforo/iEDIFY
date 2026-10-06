@@ -6,33 +6,9 @@
 <div class="preview-banner" role="status">Draft preview — status {{ preview.status }}, state {{ preview.state }}, revision {{ preview.revision }}. This page is not public.</div>
 {% endif %}
 <article class="page">
-    {% if hero_slides is defined %}
-    <section class="hero weave-texture" aria-label="Featured">
-        <canvas class="hero-canvas" aria-hidden="true"></canvas>
-        <div class="container hero-slides">
-        {% for slide in hero_slides %}
-        <div class="hero-slide">
-            <div class="hero-slide-body">
-                {% if slide.kicker %}<p class="eyebrow">{{ slide.kicker }}</p>{% endif %}
-                {% if loop.first %}<h1>{{ slide.title }}</h1>{% else %}<h2 class="hero-slide-title">{{ slide.title }}</h2>{% endif %}
-                {% if slide.body %}<p>{{ slide.body }}</p>{% endif %}
-                {% if slide.cta_url %}<a class="button-primary button-clay" href="{{ slide.cta_url }}">{{ slide.cta_label ?: 'Learn more' }}</a>{% endif %}
-            </div>
-            {% if slide.media_id %}
-            <div class="hero-figure">
-                <img src="/media/{{ slide.media_id }}" alt="" loading="{{ loop.first ? 'eager' : 'lazy' }}" fetchpriority="{{ loop.first ? 'high' : 'auto' }}"{% if slide.width and slide.height %} width="{{ slide.width }}" height="{{ slide.height }}"{% endif %}>
-            </div>
-            {% endif %}
-        </div>
-        {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-    {% if hero_slides is not defined %}
     <header class="page-header container">
         <h1>{{ page.title }}</h1>
     </header>
-    {% endif %}
     <div class="container page-body">
         {{ ui.render(sections, media) }}
     </div>

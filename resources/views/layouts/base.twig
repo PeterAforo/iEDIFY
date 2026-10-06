@@ -21,7 +21,7 @@
     <header class="site-header">
         <div class="container site-header-inner">
             <a class="brand" href="/" aria-label="iEDIFY Africa home">
-                {% if chrome.logo_url %}<img class="brand-logo" src="{{ chrome.logo_url }}" alt="iEDIFY Africa" width="160" height="71">{% else %}<span class="brand-name">iEDIFY Africa</span>{% endif %}
+                <img class="brand-logo" src="{{ chrome.logo_dark_url }}" alt="iEDIFY Africa" width="640" height="283">
             </a>
             {% if environment != 'production' %}<span class="environment-label">Development preview</span>{% endif %}
             <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
@@ -29,22 +29,24 @@
                 <span class="nav-toggle-label">Menu</span>
             </button>
             <nav id="site-nav" class="site-nav" aria-label="Main navigation">
-                <ul>
+                <ul class="nav-links">
                     {% for item in chrome.nav %}
                     <li><a href="{{ item[0] }}"{% if current_path == item[0] %} aria-current="page"{% endif %}>{{ item[1] }}</a></li>
                     {% endfor %}
-                    <li><a class="nav-cta" href="/get-involved/participant">Get involved <span class="nav-cta-arrow" aria-hidden="true">&rarr;</span></a></li>
                 </ul>
-                <ul class="nav-account">
+                <ul class="nav-tools">
+                    <li><a class="nav-phone" href="{{ chrome.phone_href }}"><svg class="nav-icon nav-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1z"/></svg><span>{{ chrome.contact.phone }}</span></a></li>
+                    <li><a class="nav-iconlink" href="/search" aria-label="Search"><svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><span class="nav-iconlink-text">Search</span></a></li>
                     {% if actor %}
-                    <li><a href="/account">Account</a></li>
-                    {% if actor.privileged %}<li><a href="/admin">Admin</a></li>{% endif %}
+                    <li><a class="nav-iconlink" href="/account" aria-label="Account"><svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="nav-iconlink-text">Account</span></a></li>
+                    {% if actor.privileged %}<li><a class="nav-textlink" href="/admin">Admin</a></li>{% endif %}
                     <li>
                         <form method="post" action="/sign-out"><input type="hidden" name="_csrf" value="{{ csrf.token() }}"><button type="submit" class="nav-button">Sign out</button></form>
                     </li>
                     {% else %}
-                    <li><a href="/sign-in">Sign in</a></li>
+                    <li><a class="nav-iconlink" href="/sign-in" aria-label="Sign in"><svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="nav-iconlink-text">Sign in</span></a></li>
                     {% endif %}
+                    <li><a class="nav-cta" href="/get-involved/participant"><span class="nav-cta-dot" aria-hidden="true"></span>Get involved</a></li>
                 </ul>
             </nav>
         </div>
@@ -59,11 +61,10 @@
     {% endif %}
     <main id="main-content" tabindex="-1">{% block content %}{% endblock %}</main>
     <footer class="site-footer">
-        <span class="weave-band" aria-hidden="true"></span>
         <div class="container footer-inner">
             <div class="footer-grid">
                 <div>
-                    <p class="footer-org">iEDIFY Africa</p>
+                    {% if chrome.logo_url %}<img class="footer-logo" src="{{ chrome.logo_url }}" alt="iEDIFY Africa" width="640" height="283" loading="lazy">{% else %}<p class="footer-org">iEDIFY Africa</p>{% endif %}
                     <p class="footer-tag">International Entrepreneurial Development and Innovation Fund for Youth in Africa</p>
                     <address>
                         {{ chrome.contact.address }}<br>

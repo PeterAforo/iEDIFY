@@ -25,10 +25,21 @@ html.js [data-reveal-group].is-visible > *:nth-child(n+8) { transition-delay: 49
   to { opacity: 1; transform: none; }
 }
 
-html.js .hero-slide.is-active .hero-slide-body .eyebrow { animation: fade-up .6s var(--ease-out) both; }
-html.js .hero-slide.is-active .hero-slide-body h1 { animation: fade-up .6s .1s var(--ease-out) both; }
-html.js .hero-slide.is-active .hero-slide-body > p { animation: fade-up .6s .2s var(--ease-out) both; }
-html.js .hero-slide.is-active .hero-slide-body .section-cta, html.js .hero-slide.is-active .hero-slide-body > a { animation: fade-up .6s .3s var(--ease-out) both; }
+html.js .hero-slide.is-active .home-hero-copy > * { animation: fade-up .7s var(--ease-out) both; }
+html.js .hero-slide.is-active .home-hero-copy > :nth-child(2) { animation-delay: .1s; }
+html.js .hero-slide.is-active .home-hero-copy > :nth-child(3) { animation-delay: .2s; }
+html.js .hero-slide.is-active .home-hero-copy > :nth-child(4) { animation-delay: .3s; }
+html.js .hero-slide.is-active .home-hero-mask { animation: mask-in 1.1s .15s var(--ease-out) both; }
+@keyframes mask-in { from { opacity: 0; transform: scale(.94) rotate(-2deg); } to { opacity: 1; transform: none; } }
+
+// Decorative floating dots and the HQ pin pulse.
+@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-.9rem); } }
+.float-dot { animation: float-y 6s ease-in-out infinite; }
+.float-dot.dot-b { animation-duration: 7.5s; animation-delay: -2s; }
+.float-dot.dot-c { animation-duration: 5.5s; animation-delay: -1s; }
+.float-dot.dot-d { animation-duration: 8s; animation-delay: -3s; }
+@keyframes pin-pulse { 0% { transform: scale(.6); opacity: .7; } 100% { transform: scale(2.2); opacity: 0; } }
+.join-map-pin .pin-pulse { animation: pin-pulse 2.4s var(--ease-out) infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -38,5 +49,5 @@ html.js .hero-slide.is-active .hero-slide-body .section-cta, html.js .hero-slide
     transition-duration: .01ms !important;
   }
   html.js [data-reveal], html.js [data-reveal-group] > * { opacity: 1; transform: none; }
-  html.js .hero-slide.is-active img { animation: none; }
+  .float-dot, .join-map-pin .pin-pulse, html.js .hero-slide.is-active .home-hero-mask { animation: none; }
 }

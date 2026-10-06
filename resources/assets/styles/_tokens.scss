@@ -18,6 +18,10 @@
   --clay: #be4210;
   --clay-deep: #99300a;
   --ember: #8c0e20;
+  --sun: #f39a1e;
+  --sun-deep: #e0850a;
+  --sun-soft: #fdeed6;
+  --canvas: #fdfcf8;
   --sand: #f3efe1;
   --sand-deep: #eae4cf;
   --line: #e3e0d2;
@@ -44,6 +48,8 @@
   --shadow-md: 0 .5rem 1.5rem -.5rem rgba(23, 61, 41, .18);
   --shadow-lg: 0 1.5rem 3.5rem -1.5rem rgba(23, 61, 41, .28);
   --shadow-card-hover: 0 1rem 2.5rem -1rem rgba(23, 61, 41, .3);
+  --shadow-soft: 0 1.25rem 3rem -1.5rem rgba(30, 36, 31, .22);
+  --shadow-soft-hover: 0 1.75rem 3.5rem -1.5rem rgba(30, 36, 31, .32);
 
   --ease-out: cubic-bezier(.22, .9, .3, 1);
   --ease-spring: cubic-bezier(.34, 1.45, .5, 1);

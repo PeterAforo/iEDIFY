@@ -42,8 +42,6 @@
 // --- Forms ---
 .field { margin-bottom: 1.15rem; }
 .field label { display: block; font-weight: 600; margin-bottom: .35rem; font-size: var(--text-sm); color: var(--ink); }
-.field input[type='text'], .field input[type='email'], .field input[type='password'], .field input[type='number'],
-.field input[type='date'], .field input[type='url'], .field input[type='tel'], .field input[type='file'],
 .stacked-form label { display: block; font-weight: 600; font-size: var(--text-sm); color: var(--ink); margin-bottom: 1.15rem; }
 .stacked-form label > input, .stacked-form label > textarea, .stacked-form label > select { margin-top: .35rem; font-weight: 400; }
 .stacked-form label:has(input[type='checkbox']) { display: flex; gap: .65rem; align-items: flex-start; font-weight: 400; color: var(--ink-soft); }
@@ -51,7 +49,12 @@
 .editor-form label { display: block; font-weight: 600; font-size: var(--text-sm); color: var(--ink); margin-bottom: 1.15rem; }
 .editor-form label > input, .editor-form label > textarea, .editor-form label > select { margin-top: .35rem; font-weight: 400; }
 
-.field textarea, .field select, .stacked-form input, .stacked-form textarea, .stacked-form select, .editor-form input, .editor-form textarea, .editor-form select {
+.field input[type='text'], .field input[type='email'], .field input[type='password'], .field input[type='number'],
+.field input[type='date'], .field input[type='url'], .field input[type='tel'], .field input[type='file'],
+.field input[type='search'], .field input[type='datetime-local'], .field input:not([type]),
+.field textarea, .field select,
+.stacked-form input:not([type='checkbox']):not([type='radio']):not([type='hidden']), .stacked-form textarea, .stacked-form select,
+.editor-form input:not([type='checkbox']):not([type='radio']):not([type='hidden']), .editor-form textarea, .editor-form select {
   width: 100%;
   padding: .7rem .9rem;
   border: 1.5px solid var(--line-strong);
