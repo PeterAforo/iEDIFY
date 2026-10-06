@@ -103,6 +103,9 @@ html:not(.js) .home-hero-slide + .home-hero-slide { grid-area: auto; margin-top:
 .home-hero-lead { font-size: var(--text-md); color: var(--ink-soft); max-width: 34ch; margin-bottom: 2.2rem; }
 
 .home-hero-art { position: relative; max-width: 36rem; justify-self: start; width: 100%; }
+@media (min-width: 56rem) {
+  .home-hero-art { width: 130%; max-width: none; margin-left: -12%; }
+}
 .home-hero-mask { display: block; width: 100%; height: auto; filter: drop-shadow(0 1.5rem 2rem rgba(23, 61, 41, .22)); }
 .home-hero-art .dot-a { width: 1.1rem; height: 1.1rem; top: 4%; left: 52%; }
 .home-hero-art .dot-b { width: .75rem; height: .75rem; top: 50%; left: -2%; }
