@@ -77,7 +77,6 @@ abstract class Controller
         return [
             'logo_url' => $logo,
             'logo_dark_url' => '/images/logo-dark.png',
-            'phone_href' => 'tel:' . preg_replace('/[^0-9+]/', '', str_replace('(0)', '', (string) $phone)),
             'nav' => $mainNav !== [] ? array_map(fn (array $item): array => [$item[1], $item[0]], $mainNav) : $defaultsNav,
             'footer_nav' => array_map(fn (array $item): array => [$item[1], $item[0]], $footerNav),
             'contact' => [

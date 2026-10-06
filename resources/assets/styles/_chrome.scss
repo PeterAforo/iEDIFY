@@ -102,19 +102,6 @@ html.js .site-header.is-scrolled .brand-logo { height: 2.6rem; }
 .nav-links a[aria-current='page'] { color: var(--forest); }
 
 .nav-icon { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-.nav-icon-sun { fill: var(--sun); stroke: none; }
-
-.nav-phone {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  color: var(--ink);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: .88rem;
-  white-space: nowrap;
-}
-.nav-phone:hover { color: var(--clay); }
 .nav-iconlink {
   display: inline-grid;
   place-items: center;
@@ -159,13 +146,6 @@ html.js .site-header.is-scrolled .brand-logo { height: 2.6rem; }
   .nav-links a { font-size: .74rem; letter-spacing: .02em; }
   .nav-cta { padding: .7rem 1rem; }
 }
-// Phone number text only where the row has room for it.
-@media (max-width: 87.99rem) and (min-width: 62rem) {
-  .nav-phone span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .nav-phone { width: 2.3rem; height: 2.3rem; justify-content: center; border-radius: 50%; }
-  .nav-phone:hover { background: var(--sand); }
-}
-
 // Mobile drawer — white off-canvas panel; JS toggles .nav-open.
 @media (max-width: 61.99rem) {
   .site-nav {
@@ -193,7 +173,6 @@ html.js .site-header.is-scrolled .brand-logo { height: 2.6rem; }
   .nav-iconlink { display: flex; width: auto; height: auto; gap: .6rem; justify-content: flex-start; padding: .55rem 0; border-radius: 0; font-weight: 600; }
   .nav-iconlink:hover { background: none; color: var(--clay); }
   .nav-iconlink-text { display: inline; }
-  .nav-phone { padding: .55rem 0; }
   .nav-textlink, .nav-button { padding: .55rem 0; }
   .nav-cta { justify-content: center; padding: .9rem 1.2rem; margin-top: .5rem; }
   html.js .site-nav li { opacity: 0; transform: translateX(1.25rem); transition: opacity .3s var(--ease-out), transform .3s var(--ease-out); }
