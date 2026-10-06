@@ -136,12 +136,12 @@ html.js .site-header.is-scrolled .brand-logo { height: 2.6rem; }
 
 @media (min-width: 62rem) {
   .nav-toggle { display: none; }
-  .site-nav { margin-left: auto; }
+  .site-nav { flex: 1 1 auto; min-width: 0; gap: .5rem 1.1rem; }
+  .nav-links { margin-inline: auto; }
   .nav-backdrop { display: none; }
   .nav-tools { padding-left: 1rem; border-left: 1px solid var(--line); }
-  .site-nav { gap: .5rem 1.1rem; }
 }
-// Below ~1200px the dev label would crowd the nav row.
+// Tighten link text on smaller desktops so the row does not crowd.
 @media (min-width: 62rem) and (max-width: 74.99rem) {
   .nav-links a { font-size: .74rem; letter-spacing: .02em; }
   .nav-cta { padding: .7rem 1rem; }
