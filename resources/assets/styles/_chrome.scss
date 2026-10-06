@@ -19,8 +19,8 @@ html.js .site-header.is-scrolled {
 .site-header-inner { display: flex; align-items: center; gap: .75rem 1.25rem; max-width: 84rem; }
 
 .brand { text-decoration: none; display: inline-flex; align-items: center; flex-shrink: 0; }
-.brand-logo { display: block; height: 3.1rem; width: auto; transition: transform .3s var(--ease-spring), height .25s var(--ease-out); }
-html.js .site-header.is-scrolled .brand-logo { height: 2.6rem; }
+.brand-logo { display: block; height: 4.65rem; width: auto; transition: transform .3s var(--ease-spring), height .25s var(--ease-out); }
+html.js .site-header.is-scrolled .brand-logo { height: 3.9rem; }
 .brand:hover .brand-logo { transform: scale(1.03); }
 
 .environment-label {
@@ -198,7 +198,7 @@ html.js .site-header.is-scrolled .brand-logo { height: 2.6rem; }
   .nav-toggle { position: relative; z-index: 85; }
 }
 @media (max-width: 30rem) {
-  .brand-logo { height: 2.6rem; }
+  .brand-logo { height: 3.9rem; }
 }
 
 // Footer — deep forest, airy columns, sun accents.
