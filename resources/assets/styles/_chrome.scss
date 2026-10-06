@@ -4,14 +4,15 @@
   position: sticky;
   top: 0;
   z-index: 60;
-  background: rgba(255, 255, 255, .96);
+  background: var(--paper);
   color: var(--ink);
   padding-block: .85rem;
   border-bottom: 1px solid transparent;
-  transition: padding .25s var(--ease-out), box-shadow .25s var(--ease-out), border-color .25s var(--ease-out);
+  transition: padding .25s var(--ease-out), box-shadow .25s var(--ease-out), border-color .25s var(--ease-out), background-color .25s var(--ease-out);
 }
 html.js .site-header.is-scrolled {
   padding-block: .45rem;
+  background: rgba(255, 255, 255, .96);
   border-color: var(--line);
   box-shadow: 0 .75rem 2rem -1.25rem rgba(23, 61, 41, .35);
 }
