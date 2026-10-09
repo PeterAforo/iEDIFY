@@ -41,6 +41,10 @@ PSR-4 namespace `IEdify\\` maps to `app/`. Strict PHP types, Twig auto-escaping,
 
 Tests are PHPUnit Unit/Integration/Feature and Playwright browser suites. Integration tests require the dedicated `_test` database and disabled live mail. Do not run destructive migrations or cleanup against existing/prod databases. Do not lower security controls to pass audits. Dependency locks, release age, licenses and audit results must be reviewed on updates.
 
+## Git workflow
+
+Commit every completed update and push to `origin` (`https://github.com/PeterAforo/iEDIFY.git`, branch `master`). Keep commits scoped to the change just made; do not batch unrelated work. Build output (`public/build/`), `.env*`, `.runtime/` and `storage/` are gitignored and must stay out of commits.
+
 ## External actions
 
 Funding, SMS and live email are off. Production cutover, DNS/mailbox changes, real external messages, paid provisioning and destructive operations require specific authorization. The initial user approval includes isolated local runtime provisioning, not system-wide runtime replacement or modification of existing XAMPP databases.
