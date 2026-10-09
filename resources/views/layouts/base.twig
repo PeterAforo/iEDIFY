@@ -1,3 +1,4 @@
+{% import 'partials/africa-defs.twig' as africa %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,6 +10,10 @@
     <meta property="og:description" content="{{ block('description') }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ canonical_url }}">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#1e241f">
     <link rel="preload" href="/fonts/fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/instrument-sans-var.woff2" as="font" type="font/woff2" crossorigin>
     <title>{% block title %}iEDIFY Africa{% endblock %}</title>
@@ -17,6 +22,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    {{ africa.defs() }}
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
         <div class="container site-header-inner">
@@ -28,10 +34,51 @@
                 <span class="nav-toggle-label">Menu</span>
             </button>
             <nav id="site-nav" class="site-nav" aria-label="Main navigation">
+                {% set team_item = chrome.nav|filter(i => i[0] == '/team')|first %}
+                {% set team_nested = team_item and chrome.nav|filter(i => i[0] == '/about') is not empty %}
+                {% set media_links = [
+                    ['/news', 'Latest News'],
+                    ['/publications', 'Publications'],
+                    ['/events', 'Events'],
+                    ['/gallery', 'Gallery'],
+                    ['/resources', 'Resources'],
+                ] %}
+                {% set media_urls = media_links|column(0) %}
+                {% set media_rendered = false %}
                 <ul class="nav-links">
                     {% for item in chrome.nav %}
-                    <li><a href="{{ item[0] }}"{% if current_path == item[0] %} aria-current="page"{% endif %}>{{ item[1] }}</a></li>
+                    {% if not (team_nested and item[0] == '/team') and item[0] not in media_urls %}
+                    <li{% if team_nested and item[0] == '/about' %} class="nav-has-sub"{% endif %}>
+                        <a href="{{ item[0] }}"{% if current_path == item[0] %} aria-current="page"{% endif %}>{{ item[1] }}{% if team_nested and item[0] == '/about' %}<span class="nav-caret" aria-hidden="true"></span>{% endif %}</a>
+                        {% if team_nested and item[0] == '/about' %}
+                        <ul class="nav-sub">
+                            <li><a href="{{ team_item[0] }}"{% if current_path == team_item[0] %} aria-current="page"{% endif %}>{{ team_item[1] }}</a></li>
+                        </ul>
+                        {% endif %}
+                    </li>
+                    {% endif %}
+                    {% if item[0] == '/impact' %}
+                    {% set media_rendered = true %}
+                    <li class="nav-has-sub">
+                        <button type="button" class="nav-parent" aria-haspopup="true">Media<span class="nav-caret" aria-hidden="true"></span></button>
+                        <ul class="nav-sub">
+                            {% for link in media_links %}
+                            <li><a href="{{ link[0] }}"{% if current_path == link[0] %} aria-current="page"{% endif %}>{{ link[1] }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% endif %}
                     {% endfor %}
+                    {% if not media_rendered %}
+                    <li class="nav-has-sub">
+                        <button type="button" class="nav-parent" aria-haspopup="true">Media<span class="nav-caret" aria-hidden="true"></span></button>
+                        <ul class="nav-sub">
+                            {% for link in media_links %}
+                            <li><a href="{{ link[0] }}"{% if current_path == link[0] %} aria-current="page"{% endif %}>{{ link[1] }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% endif %}
                 </ul>
                 <ul class="nav-tools">
                     {% if actor %}
@@ -58,35 +105,11 @@
     {% endif %}
     <main id="main-content" tabindex="-1">{% block content %}{% endblock %}</main>
     <footer class="site-footer">
+        <svg class="footer-map" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="footer-map-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
         <div class="container footer-inner">
-            <div class="footer-grid">
-                <div>
-                    {% if chrome.logo_url %}<img class="footer-logo" src="{{ chrome.logo_url }}" alt="iEDIFY Africa" width="640" height="283" loading="lazy">{% else %}<p class="footer-org">iEDIFY Africa</p>{% endif %}
-                    <p class="footer-tag">International Entrepreneurial Development and Innovation Fund for Youth in Africa</p>
-                    <address>
-                        {{ chrome.contact.address }}<br>
-                        <a href="mailto:{{ chrome.contact.email }}">{{ chrome.contact.email }}</a><br>
-                        {{ chrome.contact.phone }}
-                    </address>
-                </div>
-                <nav aria-label="Footer navigation">
-                    <p class="footer-heading">Explore</p>
-                    <ul class="footer-links">
-                        {% if chrome.footer_nav %}
-                            {% for item in chrome.footer_nav %}<li><a href="{{ item[0] }}">{{ item[1] }}</a></li>{% endfor %}
-                        {% else %}
-                        <li><a href="/legal/privacy">Privacy</a></li>
-                        <li><a href="/legal/terms">Terms</a></li>
-                        <li><a href="/legal/cookies">Cookies</a></li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                <div>
-                    <p class="footer-heading">Follow</p>
-                    <ul class="footer-links">
-                        {% for social in chrome.social %}<li><a href="{{ social[1] }}" rel="noopener noreferrer">{{ social[0] }}</a></li>{% endfor %}
-                    </ul>
-                </div>
+            <div class="footer-brand">
+                {% if chrome.logo_url %}<img class="footer-logo" src="{{ chrome.logo_url }}" alt="iEDIFY Africa" width="640" height="283" loading="lazy">{% else %}<p class="footer-org">iEDIFY Africa</p>{% endif %}
                 <form class="newsletter-form" method="post" action="/newsletter/subscribe" aria-label="Newsletter signup">
                     <label for="footer-newsletter-email">Newsletter</label>
                     <div class="newsletter-row">
@@ -98,11 +121,39 @@
                     <p class="newsletter-note">By subscribing you agree to receive iEDIFY Africa updates. Unsubscribe anytime.</p>
                 </form>
             </div>
+            <div class="footer-groups">
+                <nav class="footer-group" aria-label="Explore">
+                    <p class="footer-heading">Explore</p>
+                    <ul class="footer-links">
+                        {% if chrome.footer_nav %}
+                            {% for item in chrome.footer_nav %}<li><a href="{{ item[0] }}">{{ item[1] }}</a></li>{% endfor %}
+                        {% else %}
+                        <li><a href="/legal/privacy">Privacy</a></li>
+                        <li><a href="/legal/terms">Terms</a></li>
+                        <li><a href="/legal/cookies">Cookies</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                <nav class="footer-group" aria-label="Follow iEDIFY Africa">
+                    <p class="footer-heading">Follow</p>
+                    <ul class="footer-links">
+                        {% for social in chrome.social %}<li><a href="{{ social[1] }}" rel="noopener noreferrer">{{ social[0] }}</a></li>{% endfor %}
+                    </ul>
+                </nav>
+                <div class="footer-group">
+                    <p class="footer-heading">Contact</p>
+                    <address>
+                        {{ chrome.contact.address }}<br>
+                        <a href="mailto:{{ chrome.contact.email }}">{{ chrome.contact.email }}</a><br>
+                        {{ chrome.contact.phone }}
+                    </address>
+                </div>
+            </div>
         </div>
         <div class="container footer-legal">
             <span>&copy; {{ "now"|date("Y") }} iEDIFY Africa. All rights reserved.</span>
             <span>Empowering Africa's youth through innovation and entrepreneurship.</span>
-            {% if environment != 'production' %}<span class="environment-label">Development preview</span>{% endif %}
+            <span>Developed by <a class="footer-credit" href="https://www.mcaforo.com" rel="noopener noreferrer">McAforo</a></span>
         </div>
     </footer>
 </body>

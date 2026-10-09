@@ -51,6 +51,12 @@ final readonly class EventService
         return $this->pdo->query("SELECT * FROM events WHERE status = 'published' AND starts_at > UTC_TIMESTAMP(6) - INTERVAL 1 DAY ORDER BY starts_at LIMIT 100")->fetchAll();
     }
 
+    /** Published past events for the public listing, most recent first. */
+    public function past(): array
+    {
+        return $this->pdo->query("SELECT * FROM events WHERE status = 'published' AND starts_at <= UTC_TIMESTAMP(6) - INTERVAL 1 DAY ORDER BY starts_at DESC LIMIT 50")->fetchAll();
+    }
+
     public function findBySlug(string $slug): ?array
     {
         $statement = $this->pdo->prepare("SELECT * FROM events WHERE slug = ? AND status = 'published'");

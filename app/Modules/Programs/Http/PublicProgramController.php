@@ -12,8 +12,12 @@ final class PublicProgramController extends Controller
 {
     public function index(): Response
     {
+        $cms = $this->cmsPage('/programs');
         return $this->render('public/programs.twig', [
+            'page' => $cms['page'] ?? ['title' => 'Programs'],
             'programs' => $this->app->programs()->catalogue(),
+            'info' => \IEdify\Modules\Web\Services\PageLayouts::build('/programs', $cms['sections'] ?? []),
+            'media' => $cms['media'] ?? [],
         ]);
     }
 

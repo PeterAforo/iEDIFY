@@ -1,0 +1,79 @@
+{% extends 'layouts/base.twig' %}
+{% import 'public/_sections.twig' as ui %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set p = info.slots|default({}) %}
+{% block title %}Gallery | iEDIFY Africa{% endblock %}
+{% block content %}
+<article class="home">
+
+    {# ---------- Hero band ---------- #}
+    <section class="about-hero" aria-labelledby="gallery-title">
+        <svg class="about-hero-shape" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="about-hero-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+        <span class="float-dot dot-sun about-hero-dot-a" aria-hidden="true"></span>
+        <span class="float-dot dot-leaf about-hero-dot-b" aria-hidden="true"></span>
+        <div class="container about-hero-inner">
+            <p class="about-eyebrow-light">{{ p.intro.heading|default('Gallery') }}</p>
+            <h1 id="gallery-title" class="about-title">{{ p.intro.title|default('Moments in Focus') }}</h1>
+            {% if p.intro.lead|default('') %}<p class="about-hero-lead">{{ p.intro.lead }}</p>{% endif %}
+        </div>
+    </section>
+
+    {# ---------- Album grid ---------- #}
+    <section class="home-section" aria-label="Event albums">
+        <div class="container">
+            {% if albums|default([]) %}
+            <div class="album-grid" data-reveal-group>
+                {% for album in albums %}
+                <a class="album-card" href="/gallery/{{ album.slug }}">
+                    <span class="album-cover">
+                        {% if album.cover.mime starts with 'video/' %}
+                        <video src="{{ album.cover.url }}" preload="metadata" muted playsinline aria-hidden="true"></video>
+                        <span class="album-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
+                        {% else %}
+                        <img src="{{ album.cover.url }}" alt="" loading="lazy"{% if album.cover.width and album.cover.height %} width="{{ album.cover.width }}" height="{{ album.cover.height }}"{% endif %}>
+                        {% endif %}
+                        <span class="album-count">{{ album.count }} {{ album.count == 1 ? 'item' : 'items' }}</span>
+                    </span>
+                    <span class="album-body">
+                        <span class="album-title">{{ album.title }}</span>
+                        {% if album.description %}<span class="album-desc">{{ album.description }}</span>{% endif %}
+                        <span class="album-meta">
+                            {% if album.photos %}{{ album.photos }} {{ album.photos == 1 ? 'photo' : 'photos' }}{% endif %}
+                            {% if album.photos and album.videos %} · {% endif %}
+                            {% if album.videos %}{{ album.videos }} {{ album.videos == 1 ? 'video' : 'videos' }}{% endif %}
+                        </span>
+                        <span class="album-open">View album <span aria-hidden="true">&rarr;</span></span>
+                    </span>
+                </a>
+                {% endfor %}
+            </div>
+            {% elseif items|default([]) %}
+            <div class="gallery-grid" data-reveal-group>
+                {% for item in items %}
+                <figure class="gallery-item">
+                    {% if item.mime starts with 'video/' %}
+                    <video src="/media/{{ item.id }}" controls preload="metadata" playsinline>{% if item.alt_text %}{{ item.alt_text }}{% endif %}</video>
+                    {% else %}
+                    <img src="/media/{{ item.id }}" alt="{{ item.alt_text }}" loading="lazy"{% if item.width and item.height %} width="{{ item.width }}" height="{{ item.height }}"{% endif %}>
+                    {% endif %}
+                    {% if item.alt_text %}<figcaption>{{ item.alt_text }}</figcaption>{% endif %}
+                </figure>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card">
+                <p>Photos and videos from our programs and events will appear here once they are approved for publication.</p>
+                <p><a class="link-arrow" href="/news">Read the latest updates</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if info.leftover|default([]) %}
+    <section class="home-section">
+        <div class="container page-body">{{ ui.render(info.leftover, media) }}</div>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

@@ -41,19 +41,25 @@ final class PageController extends Controller
             return $this->render('public/home.twig', $this->homeData($data));
         }
         if ($slug === '/about') {
-            $data['about'] = \IEdify\Modules\Web\Services\AboutLayout::build($sections);
-            return $this->render('public/about.twig', $data);
+            return $this->render('public/about.twig', $this->aboutData($data));
         }
         if ($slug === '/team') {
-            $data['roster'] = $this->roster();
-            $portraits = array_values(array_filter(array_map(static fn (array $m): int => (int) $m['portrait_asset_id'], $data['roster'])));
-            $data['media'] += $this->mediaByIds($portraits);
+            return $this->render('public/team.twig', $this->teamData($data));
         }
-        if ($slug === '/contact') {
-            return $this->render('public/contact.twig', $data);
+        if (isset(self::INFO_TEMPLATES[$slug])) {
+            return $this->render(self::INFO_TEMPLATES[$slug], $this->infoData($slug, $data));
         }
         return $this->render('public/page.twig', $data);
     }
+
+    /** CMS pages rendered through designed editorial templates. */
+    private const INFO_TEMPLATES = [
+        '/programs' => 'public/programs.twig',
+        '/impact' => 'impact/index.twig',
+        '/contact' => 'public/contact.twig',
+        '/community' => 'community/landing.twig',
+        '/publications' => 'public/publications.twig',
+    ];
 
     /**
      * Signed draft preview: renders the latest revision regardless of status.
@@ -86,8 +92,11 @@ final class PageController extends Controller
         if ($item['slug'] === '/') {
             $response = $this->render('public/home.twig', $this->homeData($data));
         } elseif ($item['slug'] === '/about') {
-            $data['about'] = \IEdify\Modules\Web\Services\AboutLayout::build($sections);
-            $response = $this->render('public/about.twig', $data);
+            $response = $this->render('public/about.twig', $this->aboutData($data));
+        } elseif ($item['slug'] === '/team') {
+            $response = $this->render('public/team.twig', $this->teamData($data));
+        } elseif (isset(self::INFO_TEMPLATES[$item['slug']])) {
+            $response = $this->render(self::INFO_TEMPLATES[$item['slug']], $this->infoData($item['slug'], $data));
         } else {
             $response = $this->render('public/page.twig', $data);
         }
@@ -101,53 +110,47 @@ final class PageController extends Controller
     {
         $data['home'] = \IEdify\Modules\Web\Services\HomeLayout::build($data['sections']);
         $data['hero_slides'] = (new \IEdify\Modules\CMS\Services\SiteChromeService($this->app->pdo()))->heroSlides();
+        $data['media'] += $this->mediaByIds([9]); // 09_cta-team.webp: the strategy CTA image
+        return $data;
+    }
+
+    /** Team view data: designed slots plus the roster grouped for display. */
+    private function teamData(array $data): array
+    {
+        $data['team'] = \IEdify\Modules\Web\Services\TeamLayout::build($data['sections']);
+        $data['roster'] = $this->roster();
+        $portraits = array_values(array_filter(array_map(static fn (array $m): int => (int) $m['portrait_asset_id'], $data['roster'])));
+        $data['media'] += $this->mediaByIds($portraits);
         return $data;
     }
 
     /**
-     * Resolve approved public media ids to URLs; unreviewed assets are omitted.
+     * About view data: designed slots and the admin-managed brand imagery
+     * reused for the photo collage.
      */
-    private function mediaUrls(array $sections): array
+    private function aboutData(array $data): array
     {
-        $ids = [];
-        $walk = function (array $blocks) use (&$walk, &$ids): void {
-            foreach ($blocks as $block) {
-                if (isset($block['media_id'])) {
-                    $ids[] = (int) $block['media_id'];
-                }
-                if (isset($block['items'])) {
-                    $walk($block['items']);
-                }
-            }
-        };
-        $walk($sections);
-        return $this->mediaByIds($ids);
+        $data['about'] = \IEdify\Modules\Web\Services\AboutLayout::build($data['sections']);
+        $data['hero_slides'] = (new \IEdify\Modules\CMS\Services\SiteChromeService($this->app->pdo()))->heroSlides();
+        $data['media'] += $this->mediaByIds([9]); // 09_cta-team.webp: the strategy CTA image
+        return $data;
     }
 
     /**
-     * Approved public media lookup shared by section blocks and roster portraits.
-     *
-     * @param list<int> $ids
+     * Editorial page view data: designed slots plus the listing data some
+     * templates expect when rendered through previews.
      */
-    private function mediaByIds(array $ids): array
+    private function infoData(string $slug, array $data): array
     {
-        if ($ids === []) {
-            return [];
+        $data['info'] = \IEdify\Modules\Web\Services\PageLayouts::build($slug, $data['sections']);
+        if ($slug === '/impact') {
+            $data['media'] += $this->mediaByIds([2]); // 02_hero-slide-youth.webp: story parallax backdrop
+            $data += ['rows' => [], 'charts' => [], 'breakdown' => ['rows' => [], 'suppressed' => 0], 'reports' => [], 'threshold' => 5];
         }
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $statement = $this->app->pdo()->prepare("SELECT id, width, height, mime, original_filename FROM media_assets WHERE id IN ({$placeholders}) AND classification = 'public_content' AND review_status = 'approved'");
-        $statement->execute($ids);
-        $media = [];
-        foreach ($statement->fetchAll() as $row) {
-            $media[(int) $row['id']] = [
-                'url' => '/media/' . (int) $row['id'],
-                'width' => (int) $row['width'],
-                'height' => (int) $row['height'],
-                'mime' => (string) $row['mime'],
-                'filename' => (string) $row['original_filename'],
-            ];
+        if ($slug === '/publications') {
+            $data += ['items' => [], 'categories' => [], 'years' => [], 'filters' => ['q' => '', 'category' => '', 'year' => '']];
         }
-        return $media;
+        return $data;
     }
 
     private function roster(): array

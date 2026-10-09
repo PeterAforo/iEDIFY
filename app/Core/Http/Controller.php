@@ -34,17 +34,7 @@ abstract class Controller
 
     private function chrome(): array
     {
-        $logo = null;
-        try {
-            $statement = $this->app->pdo()->prepare("SELECT id FROM media_assets WHERE original_filename = '03_logo-white.png' AND classification = 'public_content' AND review_status = 'approved'");
-            $statement->execute();
-            $id = $statement->fetchColumn();
-            if ($id !== false) {
-                $logo = '/media/' . (int) $id;
-            }
-        } catch (\Throwable) {
-            $logo = null;
-        }
+        $logo = '/images/logo-white.png';
         $defaultsNav = [
             ['/', 'Home'],
             ['/about', 'About'],
@@ -91,6 +81,68 @@ abstract class Controller
                 ['Instagram', 'https://instagram.com/iedifyafrica'],
             ],
         ];
+    }
+
+    /**
+     * Load a published CMS page's sections with resolved media, for
+     * controllers that render CMS-managed content outside PageController.
+     */
+    protected function cmsPage(string $slug): ?array
+    {
+        $statement = $this->app->pdo()->prepare("SELECT c.id, c.slug, c.title, c.content_type, r.sections FROM content_items c JOIN content_revisions r ON r.content_id = c.id AND r.id = c.published_revision_id WHERE c.slug = ? AND c.status = 'published'");
+        $statement->execute([$slug]);
+        $page = $statement->fetch();
+        if ($page === false) {
+            return null;
+        }
+        $sections = json_decode($page['sections'], true, 512, JSON_THROW_ON_ERROR);
+        return ['page' => $page, 'sections' => $sections, 'media' => $this->mediaUrls($sections)];
+    }
+
+    /**
+     * Resolve approved public media ids referenced by section blocks to URLs.
+     */
+    protected function mediaUrls(array $sections): array
+    {
+        $ids = [];
+        $walk = function (array $blocks) use (&$walk, &$ids): void {
+            foreach ($blocks as $block) {
+                if (isset($block['media_id'])) {
+                    $ids[] = (int) $block['media_id'];
+                }
+                if (isset($block['items'])) {
+                    $walk($block['items']);
+                }
+            }
+        };
+        $walk($sections);
+        return $this->mediaByIds($ids);
+    }
+
+    /**
+     * Approved public media lookup shared by section blocks and portraits.
+     *
+     * @param list<int> $ids
+     */
+    protected function mediaByIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $statement = $this->app->pdo()->prepare("SELECT id, width, height, mime, original_filename FROM media_assets WHERE id IN ({$placeholders}) AND classification = 'public_content' AND review_status = 'approved'");
+        $statement->execute($ids);
+        $media = [];
+        foreach ($statement->fetchAll() as $row) {
+            $media[(int) $row['id']] = [
+                'url' => '/media/' . (int) $row['id'],
+                'width' => (int) $row['width'],
+                'height' => (int) $row['height'],
+                'mime' => (string) $row['mime'],
+                'filename' => (string) $row['original_filename'],
+            ];
+        }
+        return $media;
     }
 
     protected function redirect(string $path): RedirectResponse

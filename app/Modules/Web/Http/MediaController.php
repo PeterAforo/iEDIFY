@@ -35,7 +35,7 @@ final class MediaController extends Controller
             'Cache-Control' => $approved ? 'public, max-age=31536000, immutable' : 'private, no-store',
         ]);
         $response->headers->set('Content-Disposition', 'inline; filename="' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $asset['original_filename']) . '"');
-        return $response;
+        return $response->prepare($this->request);
     }
 
     /**

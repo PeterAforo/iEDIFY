@@ -1,44 +1,56 @@
 {% extends 'layouts/base.twig' %}
 {% import 'public/_sections.twig' as ui %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set p = info.slots %}
 {% block title %}{{ page.title }} | iEDIFY Africa{% endblock %}
 {% block content %}
-<article class="page">
-    <header class="page-header container">
-        <h1>{{ page.title }}</h1>
-    </header>
-    <div class="container page-body">
-        {{ ui.render(sections, media) }}
-    </div>
-    <section class="container contact-section" aria-labelledby="contact-form-heading">
-        <div class="contact-grid">
-            <div class="contact-info weave-texture">
-                <h2 class="contact-info-title">Talk to the team</h2>
-                <p>We read every message. Expect a reply within a few working days.</p>
-                <dl class="contact-details">
-                    <div><dt>Email</dt><dd><a href="mailto:{{ chrome.contact.email }}">{{ chrome.contact.email }}</a></dd></div>
-                    <div><dt>Phone</dt><dd>{{ chrome.contact.phone }}</dd></div>
-                    <div><dt>Address</dt><dd>{{ chrome.contact.address }}</dd></div>
-                </dl>
-            </div>
-            <div class="contact-form-card">
-                <h2 id="contact-form-heading">Send us a message</h2>
-                <form method="post" action="/enquiries" class="auth-form" novalidate>
+{% if preview is defined %}
+<div class="preview-banner" role="status">Draft preview — status {{ preview.status }}, state {{ preview.state }}, revision {{ preview.revision }}. This page is not public.</div>
+{% endif %}
+<article class="home">
+
+    {# ---------- Hero band ---------- #}
+    {% if p.intro is defined %}
+    <section class="about-hero" aria-labelledby="contact-title">
+        <svg class="about-hero-shape" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="about-hero-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+        <span class="float-dot dot-sun about-hero-dot-a" aria-hidden="true"></span>
+        <span class="float-dot dot-leaf about-hero-dot-b" aria-hidden="true"></span>
+        <div class="container about-hero-inner">
+            <p class="about-eyebrow-light">{{ p.intro.heading }}</p>
+            <h1 id="contact-title" class="about-title">{{ p.intro.title }}</h1>
+            {% if p.intro.lead %}<p class="about-hero-lead">{{ p.intro.lead }}</p>{% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Contact grid: form + info card (mockup layout) ---------- #}
+    <section class="home-section contact-section" aria-labelledby="contact-form-heading">
+        <div class="container contact-wrap">
+            <div class="contact-form-col" data-reveal>
+                <header class="contact-form-head">
+                    <p class="home-eyebrow">Contact us</p>
+                    <h2 id="contact-form-heading">Let's build something great together</h2>
+                </header>
+                <form method="post" action="/enquiries" class="auth-form contact-form" novalidate>
                     <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-                    <div class="field">
-                        <label for="enquiry-name">Your name</label>
-                        <input id="enquiry-name" name="name" type="text" required maxlength="180" autocomplete="name">
-                    </div>
-                    <div class="field">
-                        <label for="enquiry-email">Email address</label>
-                        <input id="enquiry-email" name="email" type="email" required maxlength="254" autocomplete="email">
+                    <div class="contact-field-row">
+                        <div class="field">
+                            <label for="enquiry-name">Your name *</label>
+                            <input id="enquiry-name" name="name" type="text" required maxlength="180" autocomplete="name" placeholder="Full name">
+                        </div>
+                        <div class="field">
+                            <label for="enquiry-email">Email address *</label>
+                            <input id="enquiry-email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="you@example.org">
+                        </div>
                     </div>
                     <div class="field">
                         <label for="enquiry-subject">Subject</label>
-                        <input id="enquiry-subject" name="subject" type="text" required maxlength="180">
+                        <input id="enquiry-subject" name="subject" type="text" maxlength="180" placeholder="What would you like to discuss?">
                     </div>
                     <div class="field">
-                        <label for="enquiry-message">Message</label>
-                        <textarea id="enquiry-message" name="message" required rows="6" maxlength="8000"></textarea>
+                        <label for="enquiry-message">Message *</label>
+                        <textarea id="enquiry-message" name="message" required rows="7" maxlength="8000" placeholder="Tell us a little more..."></textarea>
                     </div>
                     <div class="field-honeypot" aria-hidden="true">
                         <label for="enquiry-fax">Company fax</label>
@@ -50,10 +62,50 @@
                         <input id="enquiry-consent" name="consent" type="checkbox" required value="1">
                         <label for="enquiry-consent">I agree to iEDIFY Africa storing this message to respond to my enquiry.</label>
                     </div>
-                    <button type="submit" class="button-primary">Send message</button>
+                    <button type="submit" class="btn-pill btn-dark">Send message <span aria-hidden="true">&rarr;</span></button>
                 </form>
             </div>
+            <aside class="contact-info" data-reveal aria-label="Contact details">
+                <div class="contact-info-group">
+                    <h3>Address</h3>
+                    <p>{{ chrome.contact.address }},<br>Ghana</p>
+                </div>
+                <div class="contact-info-group">
+                    <h3>Contact</h3>
+                    <p>Phone: <a href="tel:{{ chrome.contact.phone|replace({' ': '', '(': '', ')': ''}) }}">{{ chrome.contact.phone }}</a><br>Email: <a href="mailto:{{ chrome.contact.email }}">{{ chrome.contact.email }}</a></p>
+                </div>
+                <div class="contact-info-group">
+                    <h3>Open Time</h3>
+                    <p>Monday – Friday · 9:00am – 5:00pm GMT</p>
+                </div>
+                <div class="contact-info-group">
+                    <h3>Stay Connected</h3>
+                    <ul class="contact-social">
+                        {% for social in chrome.social %}
+                        <li><a href="{{ social[1] }}" aria-label="{{ social[0] }}" rel="noopener noreferrer">{{ social[0]|first }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </aside>
         </div>
     </section>
+
+    {# ---------- Location map ---------- #}
+    <section class="home-section contact-map-section" aria-label="iEDIFY Africa location in Oyibi, Ghana">
+        <div class="contact-map" data-reveal>
+            <iframe
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.22%2C5.76%2C-0.01%2C5.87&amp;layer=mapnik&amp;marker=5.8155%2C-0.1176"
+                title="Map showing iEDIFY Africa's location in Oyibi, Greater Accra, Ghana"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <a class="contact-map-directions btn-pill btn-sun" href="https://www.google.com/maps/search/?api=1&amp;query=EB873%20Dewberries%20Street%2C%20Oyibi%2C%20Greater%20Accra%20GK-0842-9404%2C%20Ghana" target="_blank" rel="noopener noreferrer">Get directions <span aria-hidden="true">&rarr;</span></a>
+        </div>
+    </section>
+
+    {% if info.leftover %}
+    <section class="home-section">
+        <div class="container page-body">{{ ui.render(info.leftover, media) }}</div>
+    </section>
+    {% endif %}
 </article>
 {% endblock %}

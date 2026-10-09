@@ -1,48 +1,112 @@
 {% extends 'layouts/base.twig' %}
+{% import 'partials/icons.twig' as icons %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set p = info.slots|default({}) %}
 {% block title %}Publications | iEDIFY Africa{% endblock %}
 {% block content %}
-<div class="container public-page">
-<header class="page-header">
-    <h1>Publications &amp; resources</h1>
-    <p class="page-lead">Reports, research and resources published by iEDIFY Africa. Only reviewed documents are listed — each publication links to its downloadable files.</p>
-</header>
-<form method="get" action="/publications" class="filter-form" role="search">
-    <div class="field">
-        <label for="q">Search titles</label>
-        <input id="q" name="q" type="search" value="{{ filters.q }}" maxlength="120">
-    </div>
-    {% if categories %}
-    <div class="field">
-        <label for="category">Category</label>
-        <select id="category" name="category">
-            <option value="">All categories</option>
-            {% for c in categories %}<option value="{{ c }}"{% if filters.category == c %} selected{% endif %}>{{ c }}</option>{% endfor %}
-        </select>
-    </div>
+<article class="home">
+
+    {# ---------- Hero band ---------- #}
+    <section class="about-hero" aria-labelledby="publications-title">
+        <svg class="about-hero-shape" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="about-hero-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+        <span class="float-dot dot-sun about-hero-dot-a" aria-hidden="true"></span>
+        <span class="float-dot dot-leaf about-hero-dot-b" aria-hidden="true"></span>
+        <div class="container about-hero-inner">
+            <p class="about-eyebrow-light">{{ p.intro.heading|default('Knowledge Hub') }}</p>
+            <h1 id="publications-title" class="about-title">{{ p.intro.title|default('Publications & Documents') }}</h1>
+            <p class="about-hero-lead">{{ p.intro.lead|default('Access strategy documents, program materials, and knowledge resources from iEDIFY Africa.') }}</p>
+        </div>
+    </section>
+
+    {# ---------- Document library: categories ---------- #}
+    {% if p.library is defined %}
+    <section class="home-section" aria-labelledby="library-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">{{ p.library.heading }}</p>
+                <h2 id="library-heading">{{ p.library.title }}</h2>
+                {% if p.library.lead %}<p>{{ p.library.lead }}</p>{% endif %}
+            </header>
+            {% for set in p.library.cards %}
+            <div class="audience-grid" data-reveal-group>
+                {% for item in set %}
+                <article class="audience-card">
+                    <span class="audience-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                    <div>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
     {% endif %}
-    {% if years %}
-    <div class="field">
-        <label for="year">Year</label>
-        <select id="year" name="year">
-            <option value="">All years</option>
-            {% for y in years %}<option value="{{ y }}"{% if filters.year == y %} selected{% endif %}>{{ y }}</option>{% endfor %}
-        </select>
-    </div>
+
+    {# ---------- Publication listing ---------- #}
+    <section class="home-section" aria-label="Published documents">
+        <div class="container">
+            <form method="get" action="/publications" class="filter-form" role="search">
+                <div class="field">
+                    <label for="q">Search titles</label>
+                    <input id="q" name="q" type="search" value="{{ filters.q }}" maxlength="120">
+                </div>
+                {% if categories %}
+                <div class="field">
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
+                        <option value="">All categories</option>
+                        {% for c in categories %}<option value="{{ c }}"{% if filters.category == c %} selected{% endif %}>{{ c }}</option>{% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                {% if years %}
+                <div class="field">
+                    <label for="year">Year</label>
+                    <select id="year" name="year">
+                        <option value="">All years</option>
+                        {% for y in years %}<option value="{{ y }}"{% if filters.year == y %} selected{% endif %}>{{ y }}</option>{% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <button type="submit" class="button-secondary">Filter</button>
+            </form>
+            <ul class="publication-list" data-reveal-group>
+                {% for item in items %}
+                <li class="publication-item">
+                    <h2><a href="{{ item.slug }}">{{ item.title }}</a></h2>
+                    <p class="publication-meta">
+                        {% if item.category %}<span class="pill pill-sand">{{ item.category }}</span>{% endif %}
+                        {% if item.pub_year %}<span class="pill pill-line">{{ item.pub_year }}</span>{% endif %}
+                    </p>
+                </li>
+                {% else %}
+                <li class="card">No publications match these filters{% if filters.q or filters.category or filters.year %} — <a href="/publications">clear filters</a>{% endif %}. Publications will appear here as they are approved for release.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+
+    {# ---------- Share a document CTA ---------- #}
+    {% set share = p.library.texts|default([])|first|default('')|split("\n")|filter(t => t|trim is not empty) %}
+    {% if share or p.library.ctas|default([]) %}
+    <section class="home-section home-theory" aria-label="Share a document">
+        <div class="container">
+            <div class="theory-banner" data-reveal>
+                <div>
+                    {% if share[0] is defined %}<h2>{{ share[0] }}</h2>{% endif %}
+                    {% for para in share|slice(1) %}<p>{{ para }}</p>{% endfor %}
+                </div>
+                {% if p.library.ctas|default([]) %}
+                <div class="btn-row">
+                    {% for cta in p.library.ctas %}<a class="btn-pill btn-sun" href="{{ cta.url }}">{{ cta.label }} <span aria-hidden="true">&rarr;</span></a>{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
     {% endif %}
-    <button type="submit" class="button-secondary">Filter</button>
-</form>
-<ul class="publication-list" data-reveal-group>
-    {% for item in items %}
-    <li class="publication-item">
-        <h2><a href="{{ item.slug }}">{{ item.title }}</a></h2>
-        <p class="publication-meta">
-            {% if item.category %}<span class="pill pill-sand">{{ item.category }}</span>{% endif %}
-            {% if item.pub_year %}<span class="pill pill-line">{{ item.pub_year }}</span>{% endif %}
-        </p>
-    </li>
-    {% else %}
-    <li class="card">No publications match these filters{% if filters.q or filters.category or filters.year %} — <a href="/publications">clear filters</a>{% endif %}. Publications will appear here as they are approved for release.</li>
-    {% endfor %}
-</ul>
-</div>
+</article>
 {% endblock %}

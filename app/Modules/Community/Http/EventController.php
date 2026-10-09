@@ -12,7 +12,13 @@ final class EventController extends Controller
 {
     public function index(): Response
     {
-        return $this->render('events/index.twig', ['events' => $this->app->events()->upcoming()]);
+        $cms = $this->cmsPage('/events');
+        return $this->render('events/index.twig', [
+            'events' => $this->app->events()->upcoming(),
+            'past_events' => $this->app->events()->past(),
+            'info' => $cms !== null ? \IEdify\Modules\Web\Services\PageLayouts::build('/events', $cms['sections']) : null,
+            'media' => $cms['media'] ?? [],
+        ]);
     }
 
     public function show(): Response

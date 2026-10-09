@@ -1,27 +1,187 @@
 {% extends 'layouts/base.twig' %}
-{% block title %}Programs | iEDIFY Africa{% endblock %}
+{% import 'public/_sections.twig' as ui %}
+{% import 'partials/icons.twig' as icons %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set p = info.slots %}
+{% block title %}{{ page.title }} | iEDIFY Africa{% endblock %}
 {% block content %}
-<section class="container public-page">
-    <header class="page-header">
-        <h1>Programs</h1>
-        <p class="page-lead">Current iEDIFY Africa programs and open application intakes.</p>
-    </header>
-    <div class="card-grid" data-reveal-group>
-        {% for program in programs %}
-        <article class="card card-hover">
-            <h2><a href="/programs/{{ program.slug }}">{{ program.title }}</a></h2>
-            <p>{{ program.summary }}</p>
-            <p><strong>Eligibility:</strong> {{ program.eligibility_summary }}</p>
-            {% if program.intake_id %}
-            <p class="intake-open">Applications open: {{ program.intake_name }} — closes {{ program.closes_at|date('j M Y') }}{% if program.seats %} — {{ program.seats }} places{% endif %}</p>
-            <p><a class="button-primary" href="/apply/{{ program.intake_id }}">Apply to {{ program.intake_name }}</a></p>
-            {% else %}
-            <p class="intake-closed">No intake is accepting applications right now.</p>
-            {% endif %}
-        </article>
-        {% else %}
-        <p>No programs are open at the moment. Check back soon or <a href="/contact">contact the team</a>.</p>
-        {% endfor %}
+{% if preview is defined %}
+<div class="preview-banner" role="status">Draft preview — status {{ preview.status }}, state {{ preview.state }}, revision {{ preview.revision }}. This page is not public.</div>
+{% endif %}
+<article class="home">
+
+    {# ---------- Hero band ---------- #}
+    {% if p.intro is defined %}
+    <section class="about-hero" aria-labelledby="programs-title">
+        <svg class="about-hero-shape" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="about-hero-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+        <span class="float-dot dot-sun about-hero-dot-a" aria-hidden="true"></span>
+        <span class="float-dot dot-leaf about-hero-dot-b" aria-hidden="true"></span>
+        <div class="container about-hero-inner">
+            <p class="about-eyebrow-light">{{ p.intro.heading }}</p>
+            <h1 id="programs-title" class="about-title">{{ p.intro.title }}</h1>
+            {% if p.intro.lead %}<p class="about-hero-lead">{{ p.intro.lead }}</p>{% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Stat strip overlapping the hero ---------- #}
+    {% if p.intro.stats|default([]) %}
+    <div class="container about-stats-wrap">
+        <ul class="about-stats" data-reveal-group>
+            {% for stat in p.intro.stats %}
+            <li class="about-stat">
+                <p class="about-stat-value"><span class="statistic-value" data-count>{{ stat.value }}</span></p>
+                <p class="about-stat-label">{{ stat.label }}</p>
+                <p class="about-stat-meta">{{ stat.source }}, {{ stat.period }}</p>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
-</section>
+    {% endif %}
+
+    {# ---------- Numbered pillars: alternating editorial rows ---------- #}
+    {% set pillars = [p.pillar1, p.pillar2, p.pillar3, p.pillar4]|filter(v => v is not null) %}
+    {% if pillars %}
+    <section class="home-section feature-rows" aria-label="Program pillars">
+        <div class="container">
+            {% for pillar in pillars %}
+            {% set img = pillar.images|default([])|first|default(null) %}
+            <article class="feature-row{{ loop.index is even ? ' feature-flip' }}" data-reveal>
+                {% if img and media[img.media_id]|default(null) %}
+                {% set m = media[img.media_id] %}
+                <figure class="feature-media">
+                    <img src="{{ m.url }}" alt="{{ img.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
+                </figure>
+                {% endif %}
+                <div class="feature-copy">
+                    <p class="feature-num" aria-hidden="true">0{{ loop.index }}</p>
+                    <h2>{{ pillar.heading }}</h2>
+                    {% for text in pillar.texts %}
+                        {% for para in text|split("\n")|filter(t => t|trim is not empty) %}<p>{{ para }}</p>{% endfor %}
+                    {% endfor %}
+                    {% set focus = pillar.cards|default([])|first|default([])|first|default(null) %}
+                    {% if focus %}
+                    <div class="feature-focus">
+                        <h3>{{ focus.title }}</h3>
+                        <ul>
+                            {% for line in focus.text|split("\n")|filter(l => l|trim is not empty) %}<li>{{ line }}</li>{% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Live catalogue: open programs & intakes ---------- #}
+    <section class="home-section feature-band" aria-labelledby="intakes-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">Apply now</p>
+                <h2 id="intakes-heading">Open Programs &amp; Intakes</h2>
+                <p>Current iEDIFY Africa programs and application windows.</p>
+            </header>
+            <div class="card-grid" data-reveal-group>
+                {% for program in programs|default([]) %}
+                <article class="card card-hover">
+                    <h3><a href="/programs/{{ program.slug }}">{{ program.title }}</a></h3>
+                    <p>{{ program.summary }}</p>
+                    <p><strong>Eligibility:</strong> {{ program.eligibility_summary }}</p>
+                    {% if program.intake_id %}
+                    <p class="intake-open">Applications open: {{ program.intake_name }} — closes {{ program.closes_at|date('j M Y') }}{% if program.seats %} — {{ program.seats }} places{% endif %}</p>
+                    <p><a class="button-primary" href="/apply/{{ program.intake_id }}">Apply to {{ program.intake_name }}</a></p>
+                    {% else %}
+                    <p class="intake-closed">No intake is accepting applications right now.</p>
+                    {% endif %}
+                </article>
+                {% else %}
+                <p>No programs are open at the moment. Check back soon or <a href="/contact">contact the team</a>.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# ---------- Operational framework ---------- #}
+    {% if p.framework is defined %}
+    <section class="home-section feature-band" aria-labelledby="framework-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">How we deliver</p>
+                <h2 id="framework-heading">{{ p.framework.heading }}</h2>
+                {% for text in p.framework.texts %}<p>{{ text }}</p>{% endfor %}
+            </header>
+            {% for set in p.framework.cards %}
+            <div class="audience-grid" data-reveal-group>
+                {% for item in set %}
+                <article class="audience-card">
+                    <span class="audience-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                    <div>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Who we work with ---------- #}
+    {% if p.stakeholders is defined %}
+    <section class="home-section" aria-labelledby="stakeholders-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">The ecosystem</p>
+                <h2 id="stakeholders-heading">{{ p.stakeholders.heading }}</h2>
+                {% for text in p.stakeholders.texts %}<p>{{ text }}</p>{% endfor %}
+            </header>
+            {% for set in p.stakeholders.cards %}
+            <div class="audience-grid" data-reveal-group>
+                {% for item in set %}
+                <article class="audience-card">
+                    <span class="audience-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                    <div>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Partnership opportunities CTA ---------- #}
+    {% if p.partners is defined %}
+    <section class="home-section home-theory" aria-labelledby="partners-heading">
+        <div class="container">
+            <div class="theory-banner" data-reveal>
+                <div>
+                    <p class="about-eyebrow-light">Work with us</p>
+                    <h2 id="partners-heading">{{ p.partners.heading }}</h2>
+                    {% for set in p.partners.cards %}
+                        {% for item in set %}<p><strong>{{ item.title }}</strong> — {{ item.text }}</p>{% endfor %}
+                    {% endfor %}
+                </div>
+                {% if p.partners.ctas %}
+                <div class="btn-row">
+                    {% for cta in p.partners.ctas %}<a class="btn-pill btn-sun" href="{{ cta.url }}">{{ cta.label }} <span aria-hidden="true">&rarr;</span></a>{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if info.leftover %}
+    <section class="home-section">
+        <div class="container page-body">{{ ui.render(info.leftover, media) }}</div>
+    </section>
+    {% endif %}
+</article>
 {% endblock %}

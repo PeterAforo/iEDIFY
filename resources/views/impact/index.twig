@@ -1,67 +1,189 @@
 {% extends 'layouts/base.twig' %}
-{% block title %}Impact | iEDIFY Africa{% endblock %}
+{% import 'public/_sections.twig' as ui %}
+{% import 'partials/icons.twig' as icons %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set p = info.slots|default({}) %}
+{% block title %}{{ page.title|default('Impact') }} | iEDIFY Africa{% endblock %}
 {% block extra_head %}<script type="module" src="{{ asset('resources/assets/scripts/charts.js') }}"></script>{% endblock %}
 {% block content %}
-<div class="container public-page">
-<header class="page-header">
-    <h1>Impact</h1>
-    <p class="page-lead">Verified, published results alongside their targets. Figures below are actuals — targets are shown separately and proposed figures are never presented as achieved results.</p>
-</header>
-{% if charts %}
-<div class="impact-charts charts-2col">
-    {% for chart in charts %}
-    <figure class="chart-panel">
-        <figcaption>Published actuals vs targets ({{ chart.unit }})</figcaption>
-        <canvas data-chart="{{ chart.config|json_encode|e('html_attr') }}" role="img" aria-label="Bar chart of published actuals versus targets; the data table below contains the same figures."></canvas>
-    </figure>
-    {% endfor %}
-</div>
+{% if preview is defined %}
+<div class="preview-banner" role="status">Draft preview — status {{ preview.status }}, state {{ preview.state }}, revision {{ preview.revision }}. This page is not public.</div>
 {% endif %}
-<div class="table-scroll">
-<table class="admin-table">
-    <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Actual</th><th scope="col">Target</th></tr></thead>
-    <tbody>
-        {% for row in rows %}
-        <tr>
-            <td>{{ row.name }} ({{ row.code }})</td>
-            <td>{{ row.period }}</td>
-            <td>{{ row.geography|default('All') }}</td>
-            <td>{{ row.actual }} {{ row.unit }}</td>
-            <td>{% if row.target is not null %}{{ row.target }} {{ row.unit }}{% else %}—{% endif %}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5">Published impact data will appear here once verified.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-</div>
-{% if breakdown.rows or breakdown.suppressed %}
-<h2 class="section-heading">Breakdowns</h2>
-<div class="table-scroll">
-<table class="admin-table">
-    <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Group</th><th scope="col">Actual</th></tr></thead>
-    <tbody>
-        {% for row in breakdown.rows %}
-        <tr>
-            <td>{{ row.name }} ({{ row.code }})</td>
-            <td>{{ row.period }}</td>
-            <td>{{ row.geography|default('All') }}</td>
-            <td>{% for key, val in row.disaggregation %}{{ key }}: {{ val }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
-            <td>{{ row.value }} {{ row.unit }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-</div>
-{% if breakdown.suppressed %}<p class="suppression-note">{{ breakdown.suppressed }} subgroup{{ breakdown.suppressed == 1 ? '' : 's' }} withheld: groups smaller than {{ threshold }} respondents are suppressed to protect privacy.</p>{% endif %}
-{% endif %}
-<h2 class="section-heading">Published reports</h2>
-<ul class="card-list">
-    {% for report in reports %}
-    <li><a href="/impact/reports/{{ report.id }}">{{ report.title }}</a> ({{ report.period }})</li>
-    {% else %}
-    <li>No published reports yet.</li>
-    {% endfor %}
-</ul>
-</div>
+<article class="home">
+
+    {# ---------- Hero band ---------- #}
+    {% if p.intro is defined %}
+    <section class="about-hero" aria-labelledby="impact-title">
+        <svg class="about-hero-shape" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="about-hero-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+        <span class="float-dot dot-sun about-hero-dot-a" aria-hidden="true"></span>
+        <span class="float-dot dot-leaf about-hero-dot-b" aria-hidden="true"></span>
+        <div class="container about-hero-inner">
+            <p class="about-eyebrow-light">{{ p.intro.heading }}</p>
+            <h1 id="impact-title" class="about-title">{{ p.intro.title }}</h1>
+            {% if p.intro.lead %}<p class="about-hero-lead">{{ p.intro.lead }}</p>{% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Stat strip overlapping the hero ---------- #}
+    {% if p.intro.stats|default([]) %}
+    <div class="container about-stats-wrap">
+        <ul class="about-stats" data-reveal-group>
+            {% for stat in p.intro.stats %}
+            <li class="about-stat">
+                <p class="about-stat-value"><span class="statistic-value" data-count>{{ stat.value }}</span></p>
+                <p class="about-stat-label">{{ stat.label }}</p>
+                <p class="about-stat-meta">{{ stat.source }}, {{ stat.period }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {# ---------- What the numbers mean ---------- #}
+    {% if p.intro.cards|default([])|first|default([]) %}
+    <section class="home-section" aria-label="What the numbers mean">
+        <div class="container">
+            {% for set in p.intro.cards %}
+            <div class="audience-grid" data-reveal-group>
+                {% for item in set %}
+                <article class="audience-card">
+                    <span class="audience-icon">{{ icons.icon(icons.pick(item.title)) }}</span>
+                    <div>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Verified results ---------- #}
+    <section class="home-section feature-band" aria-labelledby="results-heading">
+        <div class="container">
+            <header class="home-section-head">
+                <p class="home-eyebrow">Measured results</p>
+                <h2 id="results-heading">Verified Impact Data</h2>
+                <p>Verified, published results alongside their targets. Figures below are actuals — targets are shown separately and proposed figures are never presented as achieved results.</p>
+            </header>
+            {% if charts|default([]) %}
+            <div class="impact-charts charts-2col">
+                {% for chart in charts %}
+                <figure class="chart-panel">
+                    <figcaption>Published actuals vs targets ({{ chart.unit }})</figcaption>
+                    <canvas data-chart="{{ chart.config|json_encode|e('html_attr') }}" role="img" aria-label="Bar chart of published actuals versus targets; the data table below contains the same figures."></canvas>
+                </figure>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="table-scroll">
+            <table class="admin-table">
+                <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Actual</th><th scope="col">Target</th></tr></thead>
+                <tbody>
+                    {% for row in rows|default([]) %}
+                    <tr>
+                        <td>{{ row.name }} ({{ row.code }})</td>
+                        <td>{{ row.period }}</td>
+                        <td>{{ row.geography|default('All') }}</td>
+                        <td>{{ row.actual }} {{ row.unit }}</td>
+                        <td>{% if row.target is not null %}{{ row.target }} {{ row.unit }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5">Published impact data will appear here once verified.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% if breakdown.rows|default([]) or breakdown.suppressed|default(0) %}
+            <h3 class="section-heading">Breakdowns</h3>
+            <div class="table-scroll">
+            <table class="admin-table">
+                <thead><tr><th scope="col">Indicator</th><th scope="col">Period</th><th scope="col">Geography</th><th scope="col">Group</th><th scope="col">Actual</th></tr></thead>
+                <tbody>
+                    {% for row in breakdown.rows %}
+                    <tr>
+                        <td>{{ row.name }} ({{ row.code }})</td>
+                        <td>{{ row.period }}</td>
+                        <td>{{ row.geography|default('All') }}</td>
+                        <td>{% for key, val in row.disaggregation %}{{ key }}: {{ val }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+                        <td>{{ row.value }} {{ row.unit }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% if breakdown.suppressed %}<p class="suppression-note">{{ breakdown.suppressed }} subgroup{{ breakdown.suppressed == 1 ? '' : 's' }} withheld: groups smaller than {{ threshold }} respondents are suppressed to protect privacy.</p>{% endif %}
+            {% endif %}
+            <h3 class="section-heading">Published reports</h3>
+            <ul class="card-list">
+                {% for report in reports|default([]) %}
+                <li><a href="/impact/reports/{{ report.id }}">{{ report.title }}</a> ({{ report.period }})</li>
+                {% else %}
+                <li>No published reports yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+
+    {# ---------- Real Stories, Real Stakes — story panel ---------- #}
+    {% if p.story is defined %}
+    {% set story_paras = p.story.texts|join("\n")|split("\n")|filter(t => t|trim is not empty) %}
+    <section class="home-section about-story" aria-labelledby="story-heading">
+        <div class="about-story-panel weave-texture" data-reveal>
+            {% if media[2] is defined %}
+            <img class="about-story-bg" src="{{ media[2].url }}" alt="" loading="lazy" data-parallax>
+            {% endif %}
+            <div class="container">
+                <p class="about-eyebrow-light">{{ p.story.heading }}</p>
+                {% if story_paras[0] is defined %}<h2 id="story-heading">{{ story_paras[0] }}</h2>{% endif %}
+                <div class="about-story-body">
+                    {% for para in story_paras|slice(1) %}<p>{{ para }}</p>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- The Pragmatic Shift — strategy banner ---------- #}
+    {% if p.shift is defined %}
+    <section class="home-section home-theory" aria-labelledby="shift-heading">
+        <div class="container">
+            <div class="theory-banner about-perspective shift-banner" data-reveal>
+                {% if media[9] is defined %}
+                <img class="about-story-bg" src="{{ media[9].url }}" alt="" loading="lazy" data-parallax>
+                {% endif %}
+                <div>
+                    <p class="about-eyebrow-light">{{ p.shift.heading }}</p>
+                    <h2 id="shift-heading">{{ p.shift.title }}</h2>
+                    {% if p.shift.lead %}<p>{{ p.shift.lead }}</p>{% endif %}
+                    {% for text in p.shift.texts %}
+                        {% set glance = text|split("\n")|filter(t => t|trim is not empty) %}
+                        {% if glance[0] is defined %}
+                        <div class="theory-glance">
+                            <h3>{{ glance[0] }}</h3>
+                            {% for para in glance|slice(1) %}<p>{{ para }}</p>{% endfor %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if p.shift.ctas %}
+                    <div class="btn-row">
+                        {% for cta in p.shift.ctas %}<a class="btn-pill btn-sun" href="{{ cta.url }}">{{ cta.label }} <span aria-hidden="true">&rarr;</span></a>{% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if info.leftover|default([]) %}
+    <section class="home-section">
+        <div class="container page-body">{{ ui.render(info.leftover, media) }}</div>
+    </section>
+    {% endif %}
+</article>
 {% endblock %}

@@ -17,6 +17,7 @@ final class ImpactController extends Controller
         $rows = $impact->publicSummary($period);
         $threshold = $this->app->config->integer('IMPACT_SMALL_GROUP_THRESHOLD', 5, 0);
         $breakdown = $impact->publicBreakdown($period, $threshold);
+        $cms = $this->cmsPage('/impact');
         return $this->render('impact/index.twig', [
             'rows' => $rows,
             'charts' => $rows !== [] ? $impact->chartConfig($rows) : [],
@@ -24,6 +25,10 @@ final class ImpactController extends Controller
             'threshold' => $threshold,
             'reports' => $impact->publishedReports(),
             'period' => $period,
+            'page' => $cms['page'] ?? ['title' => 'Impact'],
+            'sections' => $cms['sections'] ?? [],
+            'info' => \IEdify\Modules\Web\Services\PageLayouts::build('/impact', $cms['sections'] ?? []),
+            'media' => ($cms['media'] ?? []) + $this->mediaByIds([2, 9]),
         ]);
     }
 

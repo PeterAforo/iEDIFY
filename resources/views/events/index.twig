@@ -1,26 +1,80 @@
 {% extends 'layouts/base.twig' %}
+{% import 'public/_sections.twig' as ui %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set p = info.slots|default({}) %}
 {% block title %}Events | iEDIFY Africa{% endblock %}
 {% block content %}
-<section class="container public-page">
-    <header class="page-header">
-        <h1>Upcoming events</h1>
-        <p class="page-lead">Workshops, sessions and gatherings across the iEDIFY Africa community.</p>
-    </header>
-    <ul class="card-list" data-reveal-group>
-        {% for event in events %}
-        <li class="card event-card">
-            <p class="event-date" aria-hidden="true">
-                <span class="event-day">{{ event.starts_at|date('j', 'Africa/Accra') }}</span>
-                <span class="event-month">{{ event.starts_at|date('M', 'Africa/Accra') }}</span>
-            </p>
-            <div>
-                <h2><a href="/events/{{ event.slug }}">{{ event.title }}</a></h2>
-                <p>{{ event.starts_at|date('j M Y H:i', 'Africa/Accra') }} — {{ event.location }}</p>
+<article class="home">
+
+    {# ---------- Hero band ---------- #}
+    <section class="about-hero" aria-labelledby="events-title">
+        <svg class="about-hero-shape" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="about-hero-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+        <span class="float-dot dot-sun about-hero-dot-a" aria-hidden="true"></span>
+        <span class="float-dot dot-leaf about-hero-dot-b" aria-hidden="true"></span>
+        <div class="container about-hero-inner">
+            <p class="about-eyebrow-light">{{ p.intro.heading|default('Events') }}</p>
+            <h1 id="events-title" class="about-title">{{ p.intro.title|default('Gather with Us') }}</h1>
+            {% if p.intro.lead|default('') %}<p class="about-hero-lead">{{ p.intro.lead }}</p>{% endif %}
+        </div>
+    </section>
+
+    {# ---------- Upcoming ---------- #}
+    <section class="home-section" aria-labelledby="upcoming-heading">
+        <div class="container">
+            <header class="home-section-head" data-reveal>
+                <p class="home-eyebrow">Mark your calendar</p>
+                <h2 id="upcoming-heading">Upcoming Events</h2>
+            </header>
+            {% if events|default([]) %}
+            <div class="event-grid" data-reveal-group>
+                {% for event in events %}
+                <article class="card event-card">
+                    <p class="event-date" aria-hidden="true">
+                        <span class="event-day">{{ event.starts_at|date('j', 'Africa/Accra') }}</span>
+                        <span class="event-month">{{ event.starts_at|date('M', 'Africa/Accra') }}</span>
+                    </p>
+                    <div class="event-body">
+                        <h3><a href="/events/{{ event.slug }}">{{ event.title }}</a></h3>
+                        <p>{{ event.starts_at|date('j M Y H:i', 'Africa/Accra') }}{% if event.location %} — {{ event.location }}{% endif %}</p>
+                    </div>
+                </article>
+                {% endfor %}
             </div>
-        </li>
-        {% else %}
-        <li class="card">No upcoming events are published yet.</li>
-        {% endfor %}
-    </ul>
-</section>
+            {% else %}
+            <div class="card">
+                <p>No upcoming events are published yet — check back soon, or browse what the community has been up to.</p>
+                <p><a class="link-arrow" href="/gallery">Browse the gallery</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {# ---------- Past ---------- #}
+    {% if past_events|default([]) %}
+    <section class="home-section feature-band" aria-labelledby="past-heading">
+        <div class="container">
+            <header class="home-section-head" data-reveal>
+                <p class="home-eyebrow">The record</p>
+                <h2 id="past-heading">Past Events</h2>
+            </header>
+            <div class="event-past-list" data-reveal-group>
+                {% for event in past_events %}
+                <article class="event-past">
+                    <p class="event-past-date">{{ event.starts_at|date('j M Y', 'Africa/Accra') }}</p>
+                    <h3><a href="/events/{{ event.slug }}">{{ event.title }}</a></h3>
+                    {% if event.location %}<p>{{ event.location }}</p>{% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if info.leftover|default([]) %}
+    <section class="home-section">
+        <div class="container page-body">{{ ui.render(info.leftover, media) }}</div>
+    </section>
+    {% endif %}
+</article>
 {% endblock %}

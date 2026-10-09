@@ -21,6 +21,33 @@ export function initReveals() {
   targets.forEach((el) => observer.observe(el));
 }
 
+// Parallax: oversized background images (e.g. the reflections band) drift
+// vertically as the section crosses the viewport. No-op under reduced motion.
+export function initParallax() {
+  const els = [...document.querySelectorAll('[data-parallax]')];
+  if (els.length === 0 || reduced) return;
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const vh = window.innerHeight;
+    for (const el of els) {
+      const rect = el.parentElement.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > vh) continue;
+      const p = Math.min(1, Math.max(0, (vh - rect.top) / (vh + rect.height)));
+      el.style.transform = `translate3d(0, ${((p - 0.5) * 20).toFixed(2)}%, 0)`;
+    }
+  };
+  const onScroll = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  update();
+}
+
 export function initCounters() {
   const values = document.querySelectorAll('.statistic-value[data-count]');
   if (values.length === 0) return;

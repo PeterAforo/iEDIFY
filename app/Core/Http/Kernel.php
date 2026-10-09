@@ -73,7 +73,7 @@ final readonly class Kernel
         } catch (SuspiciousOperationException) {
             $response = $this->error(400, 'The request could not be accepted.', $requestId);
         } catch (Throwable $error) {
-            $this->app->logger->error('Request failed', ['request_id' => $requestId, 'exception_class' => $error::class]);
+            $this->app->logger->error('Request failed', ['request_id' => $requestId, 'exception_class' => $error::class, 'message' => $error->getMessage(), 'file' => $error->getFile() . ':' . $error->getLine()]);
             $response = $this->error(500, 'The request could not be completed. Please try again later.', $requestId);
         }
         try {

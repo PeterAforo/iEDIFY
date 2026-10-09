@@ -8,7 +8,7 @@ $resolved = str_contains($path, "\0") ? false : realpath($public . '/' . ltrim($
 $publicPrefix = str_replace('\\', '/', $public . '/');
 if ($resolved !== false && str_starts_with(str_replace('\\', '/', $resolved), $publicPrefix) && is_file($resolved)) {
     $relative = substr(str_replace('\\', '/', $resolved), strlen($publicPrefix));
-    if (preg_match('~^(?:build|fonts|images)/~', $relative) && !preg_match('~(?:^|/)\.~', $relative) && in_array(strtolower(pathinfo($resolved, PATHINFO_EXTENSION)), ['css', 'js', 'png', 'jpg', 'jpeg', 'webp', 'svg', 'woff2', 'ico'], true)) {
+    if ((preg_match('~^(?:build|fonts|images)/~', $relative) || in_array($relative, ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png'], true)) && !preg_match('~(?:^|/)\.~', $relative) && in_array(strtolower(pathinfo($resolved, PATHINFO_EXTENSION)), ['css', 'js', 'png', 'jpg', 'jpeg', 'webp', 'svg', 'woff2', 'ico'], true)) {
         return false;
     }
 }

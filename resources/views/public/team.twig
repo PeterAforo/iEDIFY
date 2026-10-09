@@ -1,0 +1,140 @@
+{% extends 'layouts/base.twig' %}
+{% import 'public/_sections.twig' as ui %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% set t = team.slots %}
+{% set board = roster|default([])|filter(m => m.roster_group == 'board' and not m.youth_adviser) %}
+{% set youth = roster|default([])|filter(m => m.youth_adviser) %}
+{% set programs = roster|default([])|filter(m => m.roster_group == 'programs') %}
+{% macro member_card(member, media, i) %}
+<article class="member-card">
+    <a class="member-link" href="{{ member.slug }}" aria-label="{{ member.display_name }} — {{ member.role_label }}">
+        {% if member.portrait_asset_id and media[member.portrait_asset_id]|default(null) %}
+        {% set m = media[member.portrait_asset_id] %}
+        <img class="member-img member-img-{{ cycle(['tall', 'mid', 'sq'], i) }}" src="{{ m.url }}" alt="Portrait of {{ member.display_name }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
+        {% else %}
+        {% set parts = member.display_name|split(' ') %}
+        <span class="member-initials" aria-hidden="true">{{ parts[0]|first }}{{ parts[1]|default('')|first }}</span>
+        {% endif %}
+        <span class="member-info">
+            <span class="member-name">{{ member.display_name }}</span>
+            <span class="member-role">{{ member.role_label }}</span>
+        </span>
+    </a>
+</article>
+{% endmacro %}
+{% block title %}{{ page.title }} | iEDIFY Africa{% endblock %}
+{% block content %}
+{% if preview is defined %}
+<div class="preview-banner" role="status">Draft preview — status {{ preview.status }}, state {{ preview.state }}, revision {{ preview.revision }}. This page is not public.</div>
+{% endif %}
+<article class="home team-page">
+
+    {# ---------- Hero band ---------- #}
+    <section class="about-hero" aria-labelledby="team-title">
+        <svg class="about-hero-shape" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="about-hero-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+        <span class="float-dot dot-sun about-hero-dot-a" aria-hidden="true"></span>
+        <span class="float-dot dot-leaf about-hero-dot-b" aria-hidden="true"></span>
+        <div class="container about-hero-inner">
+            <p class="about-eyebrow-light">{{ t.intro.heading|default(page.title) }}</p>
+            <h1 id="team-title" class="about-title">{{ t.intro.title|default('Meet the Team')|nl2br }}</h1>
+            {% if t.intro.lead|default('') %}<p class="about-hero-lead">{{ t.intro.lead }}</p>{% endif %}
+        </div>
+    </section>
+
+    {# ---------- Stat strip overlapping the hero ---------- #}
+    {% if t.intro.stats|default([]) %}
+    <div class="container about-stats-wrap">
+        <ul class="about-stats" data-reveal-group>
+            {% for stat in t.intro.stats %}
+            <li class="about-stat">
+                <p class="about-stat-value"><span class="statistic-value" data-count>{{ stat.value }}</span></p>
+                <p class="about-stat-label">{{ stat.label }}</p>
+                <p class="about-stat-meta">{{ stat.source }}, {{ stat.period }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {# ---------- Team mosaic ---------- #}
+    {% if roster %}
+    <section class="home-section team-mosaic" aria-label="Team members">
+        <div class="member-mosaic" data-reveal-group>
+            {% if board %}
+            <article class="member-tile tile-forest">
+                <div>
+                    <p class="member-tile-eyebrow">{{ t.board.heading|default('Governance & Oversight') }}</p>
+                    <h2>Board of Directors</h2>
+                    {% if t.board.lead|default('') %}<p class="member-tile-desc">{{ t.board.lead }}</p>{% endif %}
+                </div>
+            </article>
+            {% for member in board %}
+                {% if loop.index == 4 %}
+                <article class="member-tile member-tile-dot tile-sun">
+                    <p class="member-tile-tag">Educate.<br>Train.<br>Equip.</p>
+                </article>
+                {% endif %}
+                {{ _self.member_card(member, media, loop.index) }}
+            {% endfor %}
+            {% endif %}
+            {% if youth %}
+            <article class="member-tile tile-clay">
+                <div>
+                    <p class="member-tile-eyebrow">Youth voice</p>
+                    <h2>Youth Advisory Board</h2>
+                </div>
+            </article>
+            {% for member in youth %}
+                {{ _self.member_card(member, media, loop.index) }}
+                {% if loop.index == 1 %}
+                <article class="member-tile member-tile-dot tile-ember">
+                    <p class="member-tile-tag">Africa's Next Generation</p>
+                </article>
+                {% endif %}
+            {% endfor %}
+            {% endif %}
+            {% if programs %}
+            <article class="member-tile tile-sand">
+                <div>
+                    <p class="member-tile-eyebrow">Delivery & Impact</p>
+                    <h2>Programs Team</h2>
+                </div>
+            </article>
+            {% for member in programs %}
+                {{ _self.member_card(member, media, loop.index) }}
+                {% if loop.index == 2 %}
+                <article class="member-tile member-tile-dot tile-moss">
+                    <p class="member-tile-tag">Opportunity Through Innovation</p>
+                </article>
+                {% endif %}
+            {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Join CTA ---------- #}
+    {% if t.cta is defined %}
+    <section class="home-section home-theory" aria-labelledby="team-cta-heading">
+        <div class="container">
+            <div class="theory-banner" data-reveal>
+                <div>
+                    <h2 id="team-cta-heading">{{ t.cta.heading }}</h2>
+                    {% for text in t.cta.texts %}<p>{{ text }}</p>{% endfor %}
+                </div>
+                <div class="btn-row">
+                    {% for cta in t.cta.ctas %}<a class="btn-pill btn-sun" href="{{ cta.url }}">{{ cta.label }} <span aria-hidden="true">&rarr;</span></a>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if team.leftover %}
+    <section class="home-section">
+        <div class="container page-body">{{ ui.render(team.leftover, media) }}</div>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

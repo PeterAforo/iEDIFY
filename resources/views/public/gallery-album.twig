@@ -1,0 +1,48 @@
+{% extends 'layouts/base.twig' %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% block title %}{{ album.title }} | Gallery | iEDIFY Africa{% endblock %}
+{% block content %}
+<article class="home">
+
+    {# ---------- Album header ---------- #}
+    <section class="about-hero" aria-labelledby="album-title">
+        <svg class="about-hero-shape" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        <svg class="about-hero-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
+        <span class="float-dot dot-sun about-hero-dot-a" aria-hidden="true"></span>
+        <span class="float-dot dot-leaf about-hero-dot-b" aria-hidden="true"></span>
+        <div class="container about-hero-inner">
+            <p class="about-eyebrow-light"><a class="album-back" href="/gallery">&larr; All albums</a></p>
+            <h1 id="album-title" class="about-title">{{ album.title }}</h1>
+            {% if album.description %}<p class="about-hero-lead">{{ album.description }}</p>{% endif %}
+            <p class="album-head-meta">{{ items|length }} {{ items|length == 1 ? 'item' : 'items' }}</p>
+        </div>
+    </section>
+
+    {# ---------- Album media ---------- #}
+    <section class="home-section" aria-label="{{ album.title }} media">
+        <div class="container">
+            {% if items %}
+            <div class="album-media" data-lightbox data-reveal-group>
+                {% for item in items %}
+                {% set kind = item.mime starts with 'video/' ? 'video' : 'image' %}
+                <a class="media-tile" href="{{ item.url }}" data-lightbox-item data-kind="{{ kind }}" data-index="{{ loop.index0 }}" data-caption="{{ item.alt }}" aria-label="Open {{ kind }} {{ loop.index }} of {{ items|length }}{% if item.alt %}: {{ item.alt }}{% endif %}">
+                    {% if kind == 'video' %}
+                    <video src="{{ item.url }}" preload="metadata" muted playsinline aria-hidden="true"></video>
+                    <span class="media-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
+                    {% else %}
+                    <img src="{{ item.url }}" alt="{{ item.alt }}" loading="lazy"{% if item.width and item.height %} width="{{ item.width }}" height="{{ item.height }}"{% endif %}>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+            <p class="album-hint">Select an item to enlarge it, then browse the album with the arrows.</p>
+            {% else %}
+            <div class="card">
+                <p>This album has no approved media yet &mdash; items will appear here once they are published.</p>
+                <p><a class="link-arrow" href="/gallery">Back to all albums</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+</article>
+{% endblock %}

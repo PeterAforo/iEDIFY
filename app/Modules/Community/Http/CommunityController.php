@@ -14,7 +14,13 @@ final class CommunityController extends Controller
     {
         $actor = $this->actor();
         if ($actor === null || !$this->app->policy()->allows($actor, 'community.member') && !$this->app->policy()->allows($actor, 'community.moderate')) {
-            return $this->render('community/landing.twig');
+            $cms = $this->cmsPage('/community');
+            return $this->render('community/landing.twig', [
+                'page' => $cms['page'] ?? ['title' => 'Community'],
+                'sections' => $cms['sections'] ?? [],
+                'media' => ($cms['media'] ?? []) + $this->mediaByIds([9]),
+                'info' => $cms !== null ? \IEdify\Modules\Web\Services\PageLayouts::build('/community', $cms['sections']) : null,
+            ]);
         }
         $community = $this->app->community();
         $profile = $this->app->pdo()->prepare('SELECT * FROM member_profiles WHERE user_id = ?');

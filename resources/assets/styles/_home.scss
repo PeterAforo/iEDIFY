@@ -219,6 +219,8 @@ html:not(.js) .home-hero-slide + .home-hero-slide { grid-area: auto; margin-top:
 
 // --- Theory banner ---
 .home-theory { padding-block: 0; }
+// Breathing room when the banner closes the page, right above the footer.
+.home-theory:last-child { padding-bottom: 6.25rem; }
 .theory-banner {
   display: grid;
   gap: 1.5rem 3rem;
