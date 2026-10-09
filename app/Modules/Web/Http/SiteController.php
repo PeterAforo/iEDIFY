@@ -78,14 +78,15 @@ final class SiteController extends Controller
         $cms = $this->cmsPage('/gallery');
         $sections = $cms['sections'] ?? [];
         $parsed = GalleryAlbums::collect($sections);
-        $albums = $this->resolveAlbums($parsed['albums']);
+        $entries = $this->resolveEntries($parsed['entries']);
+        $hasAlbums = count(array_filter($entries, static fn (array $e): bool => $e['type'] === 'album')) > 0;
         $info = $cms !== null ? PageLayouts::build('/gallery', $sections) : null;
         if ($info !== null) {
             $info['leftover'] = $parsed['extra'];
         }
         return $this->render('public/gallery.twig', [
-            'albums' => $albums,
-            'items' => $albums === [] ? $this->publicVisualMedia() : [],
+            'entries' => $entries,
+            'items' => !$hasAlbums ? $this->publicVisualMedia() : [],
             'info' => $info,
             'media' => $cms['media'] ?? [],
         ]);
@@ -98,8 +99,8 @@ final class SiteController extends Controller
         $cms = $this->cmsPage('/gallery');
         $parsed = GalleryAlbums::collect($cms['sections'] ?? []);
         $album = null;
-        foreach ($parsed['albums'] as $candidate) {
-            if ($candidate['slug'] === $slug) {
+        foreach ($parsed['entries'] as $candidate) {
+            if (($candidate['type'] ?? null) === 'album' && $candidate['slug'] === $slug) {
                 $album = $candidate;
                 break;
             }
@@ -122,21 +123,29 @@ final class SiteController extends Controller
     }
 
     /**
-     * Resolves album media ids to approved public assets; albums with no
-     * approved items are dropped. Cover prefers a still image.
+     * Resolves album media ids in collage entries to approved public assets;
+     * albums with no approved items are dropped. Cover prefers a still image.
      */
-    private function resolveAlbums(array $albums): array
+    private function resolveEntries(array $entries): array
     {
         $ids = [];
-        foreach ($albums as $album) {
-            foreach ($album['items'] as $item) {
+        foreach ($entries as $entry) {
+            if ($entry['type'] !== 'album') {
+                continue;
+            }
+            foreach ($entry['items'] as $item) {
                 $ids[] = (int) $item['media_id'];
             }
-            $ids[] = $album['cover_id'];
+            $ids[] = $entry['cover_id'];
         }
         $media = $this->mediaByIds(array_values(array_unique(array_filter($ids))));
         $resolved = [];
-        foreach ($albums as $album) {
+        foreach ($entries as $entry) {
+            if ($entry['type'] !== 'album') {
+                $resolved[] = $entry;
+                continue;
+            }
+            $album = $entry;
             $items = [];
             foreach ($album['items'] as $item) {
                 $id = (int) $item['media_id'];

@@ -19,33 +19,39 @@
         </div>
     </section>
 
-    {# ---------- Album grid ---------- #}
+    {# ---------- Album collage ---------- #}
     <section class="home-section" aria-label="Event albums">
         <div class="container">
-            {% if albums|default([]) %}
-            <div class="album-grid" data-reveal-group>
-                {% for album in albums %}
-                <a class="album-card" href="/gallery/{{ album.slug }}">
-                    <span class="album-cover">
-                        {% if album.cover.mime starts with 'video/' %}
-                        <video src="{{ album.cover.url }}" preload="metadata" muted playsinline aria-hidden="true"></video>
-                        <span class="album-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
+            {% if entries|default([]) %}
+            {% set spans = [2, 1, 1, 1, 1, 2, 1, 1] %}
+            <div class="album-collage" data-reveal-group>
+                {% for entry in entries %}
+                    {% if entry.type == 'quote' %}
+                    <figure class="album-quote">
+                        <span class="album-quote-label">{{ entry.label|default('From the field') }}</span>
+                        <blockquote class="album-quote-text">{{ entry.quote.text }}</blockquote>
+                        <figcaption class="album-quote-cite"><span class="album-quote-dot" aria-hidden="true"></span>{{ entry.quote.attribution }}</figcaption>
+                    </figure>
+                    {% else %}
+                    <a class="album-card album-card--{{ spans[loop.index0 % 8] == 2 ? 'wide' : 'std' }}" href="/gallery/{{ entry.slug }}">
+                        {% if entry.cover.mime starts with 'video/' %}
+                        <video class="album-card-media" src="{{ entry.cover.url }}" preload="metadata" muted playsinline aria-hidden="true"></video>
                         {% else %}
-                        <img src="{{ album.cover.url }}" alt="" loading="lazy"{% if album.cover.width and album.cover.height %} width="{{ album.cover.width }}" height="{{ album.cover.height }}"{% endif %}>
+                        <img class="album-card-media" src="{{ entry.cover.url }}" alt="" loading="lazy"{% if entry.cover.width and entry.cover.height %} width="{{ entry.cover.width }}" height="{{ entry.cover.height }}"{% endif %}>
                         {% endif %}
-                        <span class="album-count">{{ album.count }} {{ album.count == 1 ? 'item' : 'items' }}</span>
-                    </span>
-                    <span class="album-body">
-                        <span class="album-title">{{ album.title }}</span>
-                        {% if album.description %}<span class="album-desc">{{ album.description }}</span>{% endif %}
-                        <span class="album-meta">
-                            {% if album.photos %}{{ album.photos }} {{ album.photos == 1 ? 'photo' : 'photos' }}{% endif %}
-                            {% if album.photos and album.videos %} · {% endif %}
-                            {% if album.videos %}{{ album.videos }} {{ album.videos == 1 ? 'video' : 'videos' }}{% endif %}
+                        {% if entry.videos %}
+                        <span class="album-card-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
+                        {% endif %}
+                        <span class="album-card-count">{{ entry.count }} {{ entry.count == 1 ? 'item' : 'items' }}</span>
+                        <span class="album-card-info">
+                            <span class="album-card-title">{{ entry.title }}</span>
+                            <span class="album-chip">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l2-2h6l2 2h3v12H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+                                {{ entry.photos ? entry.photos ~ ' photos' : '' }}{% if entry.photos and entry.videos %} · {% endif %}{{ entry.videos ? entry.videos ~ ' videos' : '' }}
+                            </span>
                         </span>
-                        <span class="album-open">View album <span aria-hidden="true">&rarr;</span></span>
-                    </span>
-                </a>
+                    </a>
+                    {% endif %}
                 {% endfor %}
             </div>
             {% elseif items|default([]) %}
