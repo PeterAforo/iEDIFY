@@ -39,6 +39,9 @@
             "php": "8.4.0"
         }
     },
+    "suggest": {
+        "ext-ftp": "Required to run bin/deploy-ftp.php for FTP deployments"
+    },
     "scripts": {
         "lint": "@php bin/lint.php",
         "analyse": "phpstan analyse --memory-limit=512M",

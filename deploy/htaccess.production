@@ -1,0 +1,7 @@
+# Production document root. All requests are routed into public/; the
+# application's source, config and storage directories are never served.
+Require all denied
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
