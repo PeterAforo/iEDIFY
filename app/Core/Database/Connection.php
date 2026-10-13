@@ -25,8 +25,17 @@ final class Connection
             PDO::ATTR_STRINGIFY_FETCHES => false,
         ]);
         $version = (string) $pdo->query('SELECT VERSION()')->fetchColumn();
-        if (stripos($version, 'mariadb') !== false || !preg_match('/^8\./', $version)) {
-            throw new RuntimeException('This deployment requires MySQL 8.x; MariaDB is not a verified substitute.');
+        if (stripos($version, 'mariadb') !== false) {
+            // Shared hosting supplies MariaDB instead of MySQL; 10.6+ covers
+            // every feature used here (CHECK, JSON-as-storage, SKIP LOCKED).
+            // The version sits before "-MariaDB", after any "5.5.5-" prefix.
+            preg_match('/(\d+\.\d+(\.\d+)?)-MariaDB/i', $version, $match);
+            $supported = isset($match[1]) && version_compare($match[1], '10.6', '>=');
+        } else {
+            $supported = preg_match('/^8\./', $version) === 1;
+        }
+        if (!$supported) {
+            throw new RuntimeException('This deployment requires MySQL 8.x or MariaDB 10.6+.');
         }
         $pdo->exec("SET time_zone = '+00:00'");
         $pdo->exec("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,ONLY_FULL_GROUP_BY'");

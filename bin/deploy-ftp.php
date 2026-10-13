@@ -11,14 +11,20 @@ declare(strict_types=1);
  * are deleted; files the script did not deploy (server .env, cPanel files,
  * storage contents) are never touched.
  *
+ * For large first-time uploads on hosts that throttle FTP transfers,
+ * bin/deploy-package.php (single archive + server-side extract) is much
+ * faster.
+ *
  * Usage:
  *   php bin/deploy-ftp.php [--dry-run] [--yes] [--no-delete] [--verbose]
- *                          [--path=/remote/dir] [--limit=N]
+ *                          [--path=/remote/dir] [--limit=N] [--env=file] [--jobs=N]
  *
  * Credentials are read from .env.deploy (gitignored) or the environment:
  *   FTP_HOST, FTP_PORT, FTP_USER, FTP_PASSWORD, FTP_REMOTE_ROOT,
  *   FTP_SSL (explicit FTPS), FTP_PASSIVE, FTP_TIMEOUT
  */
+
+require __DIR__ . '/deploy-lib.php';
 
 $options = parseArguments($argv);
 if ($options['help']) {
@@ -50,6 +56,9 @@ if (!extension_loaded('ftp')) {
 $localFiles = scanLocalFiles($root, $config['include'], $config['map']);
 if ($localFiles === []) {
     fail('No deployable files found. Check config/deploy.php.');
+}
+if ($options['env'] !== null && !is_file($root . '/' . $options['env'])) {
+    fail("--env file not found: {$options['env']}");
 }
 
 $ftp = connect($host, $port, $user, $password, $ssl, $passive, $timeout);
@@ -125,30 +134,106 @@ ensureRemoteDir($ftp, $remoteRoot, $knownDirs);
 if (!$rootExists && @ftp_nlist($ftp, $remoteRoot) === false) {
     fail("Remote directory {$remoteRoot} does not exist and could not be created.");
 }
+
+// Pre-create every remote directory the uploads need so the transfer
+// workers can start files without per-file mkdir round-trips.
+$remoteDirs = [];
 foreach ($config['ensure_dirs'] as $dir) {
+    $remoteDirs[$dir] = true;
+}
+foreach ($uploads as $path) {
+    $dir = dirname($path);
+    if ($dir !== '.' && $dir !== '') {
+        $remoteDirs[$dir] = true;
+    }
+}
+$remoteDirs = array_keys($remoteDirs);
+usort($remoteDirs, static fn (string $a, string $b): int => strlen($a) <=> strlen($b));
+foreach ($remoteDirs as $dir) {
     ensureRemoteDir($ftp, remotePath($remoteRoot, $dir), $knownDirs);
 }
 
+// $manifestFiles tracks the believed remote state; it is flushed to the
+// server every 250 operations so an interrupted deploy resumes instead of
+// starting over.
+$manifestFiles = $remoteFiles;
+$manifestPath = remotePath($remoteRoot, $config['manifest']);
+$opsSinceFlush = 0;
+$flush = static function () use ($ftp, $manifestPath, &$manifestFiles, &$opsSinceFlush): void {
+    writeManifest($ftp, $manifestPath, $manifestFiles);
+    $opsSinceFlush = 0;
+};
+
 $failedUploads = [];
 $done = 0;
-foreach ($uploads as $path) {
-    $local = $root . '/' . manifestLocalSource($path, $config['map']);
-    $remoteDir = dirname($path);
-    if ($remoteDir !== '.' && $remoteDir !== '') {
-        ensureRemoteDir($ftp, remotePath($remoteRoot, $remoteDir), $knownDirs);
+$attempts = array_fill_keys($uploads, 0);
+$queue = $uploads;
+$inflight = [];
+
+if ($queue !== []) {
+    $workers = [];
+    for ($i = 0; $i < $options['jobs']; $i++) {
+        if ($i > 0) {
+            usleep(400000);
+        }
+        $workers[] = connect($host, $port, $user, $password, $ssl, $passive, $timeout);
     }
-    $remoteFile = remotePath($remoteRoot, $path);
-    if (!@ftp_put($ftp, $remoteFile, $local, FTP_BINARY)
-        && !@ftp_put($ftp, $remoteFile, $local, FTP_BINARY)) {
-        $failedUploads[] = $path;
-        fwrite(STDERR, "FAILED  {$path}\n");
-        continue;
+    printf("Transfer pool: %d connections\n", count($workers));
+
+    while ($queue !== [] || $inflight !== []) {
+        foreach ($workers as $i => $conn) {
+            if (isset($inflight[$i]) || $queue === []) {
+                continue;
+            }
+            $path = $queue[0];
+            $local = $root . '/' . manifestLocalSource($path, $config['map']);
+            $started = @ftp_nb_put($conn, remotePath($remoteRoot, $path), $local, FTP_BINARY);
+            if ($started === false || $started === FTP_FAILED) {
+                if (++$attempts[$path] >= 3) {
+                    array_shift($queue);
+                    $failedUploads[] = $path;
+                    fwrite(STDERR, "FAILED  {$path}\n");
+                }
+                continue;
+            }
+            array_shift($queue);
+            if ($started === FTP_FINISHED) {
+                $done++;
+                $manifestFiles[$path] = $localFiles[$path];
+                $opsSinceFlush++;
+            } else {
+                $inflight[$i] = $path;
+            }
+        }
+        foreach ($inflight as $i => $path) {
+            $result = @ftp_nb_continue($workers[$i]);
+            if ($result === FTP_FINISHED) {
+                unset($inflight[$i]);
+                $done++;
+                $manifestFiles[$path] = $localFiles[$path];
+                $opsSinceFlush++;
+                if ($options['verbose']) {
+                    echo "  uploaded {$path}\n";
+                } elseif ($done % 100 === 0 || $done === count($uploads)) {
+                    printf("  uploaded %d/%d\n", $done, count($uploads));
+                }
+            } elseif ($result === FTP_FAILED) {
+                unset($inflight[$i]);
+                if (++$attempts[$path] >= 3) {
+                    $failedUploads[] = $path;
+                    fwrite(STDERR, "FAILED  {$path}\n");
+                } else {
+                    $queue[] = $path;
+                }
+            }
+        }
+        if ($opsSinceFlush >= 250) {
+            $flush();
+        }
+        usleep(20000);
     }
-    $done++;
-    if ($options['verbose']) {
-        echo "  uploaded {$path}\n";
-    } elseif ($done % 50 === 0 || $done === count($uploads)) {
-        printf("  uploaded %d/%d\n", $done, count($uploads));
+    foreach ($workers as $conn) {
+        @ftp_close($conn);
     }
 }
 
@@ -160,6 +245,8 @@ foreach ($deletions as $path) {
         fwrite(STDERR, "FAILED delete {$path}\n");
         continue;
     }
+    unset($manifestFiles[$path]);
+    $opsSinceFlush++;
     $deletedDirs[] = dirname($path);
     if ($options['verbose']) {
         echo "  deleted {$path}\n";
@@ -171,12 +258,18 @@ foreach (array_unique($deletedDirs) as $dir) {
     }
 }
 
-$finalFiles = $localFiles;
-foreach ($failedUploads as $path) {
-    unset($finalFiles[$path]);
+if ($options['env'] !== null) {
+    $envFile = $root . '/' . $options['env'];
+    if (@ftp_put($ftp, remotePath($remoteRoot, '.env'), $envFile, FTP_BINARY)) {
+        echo "Uploaded {$options['env']} as remote .env (untracked).\n";
+    } else {
+        fwrite(STDERR, "FAILED  .env upload\n");
+        $failedUploads[] = '.env';
+    }
 }
-writeManifest($ftp, remotePath($remoteRoot, $config['manifest']), $finalFiles);
-writeLocalManifest($root, $remoteRoot, $finalFiles);
+
+$flush();
+writeLocalManifest($root, $remoteRoot, $manifestFiles);
 
 printf(
     "Deployment %s: %d uploaded, %d deleted, %d failed.\n",
@@ -197,6 +290,8 @@ function parseArguments(array $argv): array
         'help' => false,
         'path' => null,
         'limit' => null,
+        'env' => null,
+        'jobs' => 3,
     ];
     foreach (array_slice($argv, 1) as $arg) {
         switch (true) {
@@ -221,6 +316,12 @@ function parseArguments(array $argv): array
             case str_starts_with($arg, '--limit='):
                 $options['limit'] = max(0, (int) substr($arg, 8));
                 break;
+            case str_starts_with($arg, '--env='):
+                $options['env'] = substr($arg, 6);
+                break;
+            case str_starts_with($arg, '--jobs='):
+                $options['jobs'] = max(1, min(8, (int) substr($arg, 7)));
+                break;
             default:
                 fail("Unknown option: {$arg}\nUse --help for usage.");
         }
@@ -240,212 +341,13 @@ Options:
   --verbose, -v      List every file transferred
   --path=<dir>       Override FTP_REMOTE_ROOT
   --limit=<n>        Upload at most <n> files (for testing)
+  --env=<file>       Also upload <file> to the remote root as .env
+                     (untracked; use for the initial production .env)
+  --jobs=<n>         Parallel upload connections, 1-8 (default 3)
   --help, -h         Show this help
 
 Configuration: .env.deploy (see .env.deploy.example) or environment variables.
 Scope: config/deploy.php.
 
 TXT;
-}
-
-function loadEnvFile(string $path): array
-{
-    $values = [];
-    if (!is_file($path)) {
-        return $values;
-    }
-    foreach ((array) file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-        $line = trim($line);
-        if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
-            continue;
-        }
-        [$key, $value] = explode('=', $line, 2);
-        $value = trim($value);
-        if (strlen($value) >= 2 && ($value[0] === '"' || $value[0] === "'") && $value[0] === substr($value, -1)) {
-            $value = substr($value, 1, -1);
-        }
-        $values[trim($key)] = $value;
-    }
-    return $values;
-}
-
-function setting(array $env, string $key): ?string
-{
-    $value = getenv($key);
-    if ($value !== false && $value !== '') {
-        return $value;
-    }
-    return $env[$key] ?? null;
-}
-
-function scanLocalFiles(string $root, array $include, array $map): array
-{
-    $files = [];
-    $skip = static function (string $name): bool {
-        return $name === '.env'
-            || str_starts_with($name, '.env.')
-            || $name === 'Thumbs.db'
-            || $name === '.DS_Store'
-            || str_ends_with($name, '.log');
-    };
-    foreach ($include as $item) {
-        $path = $root . '/' . $item;
-        if (is_file($path)) {
-            if (!$skip(basename($item))) {
-                $files[$item] = sha1_file($path);
-            }
-            continue;
-        }
-        if (!is_dir($path)) {
-            fwrite(STDERR, "Warning: {$item} not found, skipped.\n");
-            continue;
-        }
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS)
-        );
-        foreach ($iterator as $file) {
-            if (!$file->isFile() || $skip($file->getBasename())) {
-                continue;
-            }
-            $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
-            $files[$relative] = sha1_file($file->getPathname());
-        }
-    }
-    foreach ($map as $local => $remotePath) {
-        if (!is_file($root . '/' . $local)) {
-            fwrite(STDERR, "Warning: mapped file {$local} not found, skipped.\n");
-            continue;
-        }
-        $files[$remotePath] = sha1_file($root . '/' . $local);
-    }
-    ksort($files);
-    return $files;
-}
-
-function remotePath(string $root, string $path): string
-{
-    return ($root === '/' ? '' : $root) . '/' . ltrim($path, '/');
-}
-
-function manifestLocalSource(string $remotePath, array $map): string
-{
-    $source = array_search($remotePath, $map, true);
-    return $source === false ? $remotePath : $source;
-}
-
-function connect(string $host, int $port, string $user, string $password, bool $ssl, bool $passive, int $timeout)
-{
-    $ftp = $ssl
-        ? @ftp_ssl_connect($host, $port, $timeout)
-        : @ftp_connect($host, $port, $timeout);
-    if ($ftp === false) {
-        fail(sprintf(
-            'Could not connect to %s:%d via %s.',
-            $host,
-            $port,
-            $ssl ? 'explicit FTPS' : 'plain FTP'
-        ));
-    }
-    if (!@ftp_login($ftp, $user, $password)) {
-        fail('FTP login failed. Check FTP_USER and FTP_PASSWORD.');
-    }
-    @ftp_set_option($ftp, FTP_TIMEOUT_SEC, $timeout);
-    if ($passive && !@ftp_pasv($ftp, true)) {
-        fwrite(STDERR, "Warning: could not enable passive mode.\n");
-    }
-    return $ftp;
-}
-
-function ensureRemoteDir($ftp, string $dir, array &$known): void
-{
-    $dir = rtrim($dir, '/');
-    if ($dir === '' || $dir === '.' || isset($known[$dir])) {
-        return;
-    }
-    $parent = dirname($dir);
-    if ($parent !== $dir) {
-        ensureRemoteDir($ftp, $parent, $known);
-    }
-    @ftp_mkdir($ftp, $dir);
-    $known[$dir] = true;
-}
-
-function fetchManifest($ftp, string $remotePath): array
-{
-    $tmp = tempnam(sys_get_temp_dir(), 'idep');
-    if ($tmp === false) {
-        return [];
-    }
-    $manifest = [];
-    if (@ftp_get($ftp, $tmp, $remotePath, FTP_BINARY)) {
-        $decoded = json_decode((string) file_get_contents($tmp), true);
-        if (is_array($decoded) && isset($decoded['files']) && is_array($decoded['files'])) {
-            $manifest = $decoded;
-        }
-    }
-    @unlink($tmp);
-    return $manifest;
-}
-
-function writeManifest($ftp, string $remotePath, array $files): void
-{
-    $payload = json_encode([
-        'version' => 1,
-        'deployed_at' => gmdate('c'),
-        'files' => $files,
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    $tmp = tempnam(sys_get_temp_dir(), 'idep');
-    file_put_contents($tmp, $payload);
-    if (!@ftp_put($ftp, $remotePath, $tmp, FTP_BINARY)) {
-        fwrite(STDERR, "Warning: could not write remote manifest; next deploy will re-check all files.\n");
-    }
-    @unlink($tmp);
-}
-
-function writeLocalManifest(string $root, string $remoteRoot, array $files): void
-{
-    $dir = $root . '/storage/deploy';
-    if (!is_dir($dir)) {
-        @mkdir($dir, 0700, true);
-    }
-    @file_put_contents($dir . '/last-deploy.json', json_encode([
-        'remote_root' => $remoteRoot,
-        'deployed_at' => gmdate('c'),
-        'files' => $files,
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-}
-
-function isProtected(string $path, array $protected): bool
-{
-    foreach ($protected as $prefix) {
-        if ($path === $prefix || str_starts_with($path, rtrim($prefix, '/') . '/')) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function confirm(string $question): bool
-{
-    fwrite(STDOUT, $question . ' [y/N] ');
-    $answer = strtolower(trim((string) fgets(STDIN)));
-    return $answer === 'y' || $answer === 'yes';
-}
-
-function formatBytes(int $bytes): string
-{
-    $units = ['B', 'KB', 'MB', 'GB'];
-    $size = (float) $bytes;
-    $unit = 0;
-    while ($size >= 1024.0 && $unit < count($units) - 1) {
-        $size /= 1024.0;
-        $unit++;
-    }
-    return $unit === 0 ? $bytes . ' B' : number_format($size, 1) . ' ' . $units[$unit];
-}
-
-function fail(string $message): never
-{
-    fwrite(STDERR, "Error: {$message}\n");
-    exit(1);
 }

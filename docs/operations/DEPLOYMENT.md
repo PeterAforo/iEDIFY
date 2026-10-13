@@ -2,6 +2,31 @@
 
 Target shape: only `public/` is the document root; everything else lives one level above it and is unreachable from the web. If the host forces `public_html`, point it at `public/` or relocate the app outside and symlink — do **not** copy the whole repo into `public_html`.
 
+## Actual production layout (iedifyafrica.com, Namecheap)
+
+The production FTP account is jailed to the document root itself
+(`/home/iedisokm/public_html` = `/`), so the "app outside docroot" shape is not
+available. Instead the whole deployable tree ships into the docroot and the
+production `.htaccess` (`deploy/htaccess.production`, deployed as `/.htaccess`)
+rewrites all requests into `public/` while `Require all denied` blocks direct
+access to application files — `public/.htaccess` keeps the front controller
+and assets granted. Equivalent isolation, different mechanism.
+
+- Deploy tooling: `bin/deploy-ftp.php` (incremental SHA-1 manifest sync over
+  explicit FTPS) and `bin/deploy-package.php` (single ZIP + token-gated
+  server-side extract — far faster for large changesets; the host throttles
+  per-file FTP work). Scope lives in `config/deploy.php`; credentials in the
+  gitignored `.env.deploy` (see `.env.deploy.example`). `DEPLOY_URL` is the
+  public HTTPS origin used by the package extractor.
+- Server: PHP 8.4.26 (litespeed), MariaDB 11.4 — accepted in place of MySQL 8
+  by owner decision; `Connection` enforces a MariaDB 10.6+ floor.
+- Production migrations run through Phinx directly —
+  `php vendor/bin/phinx migrate` — because `bin/console database:migrate`
+  intentionally refuses non-local environments.
+- Roles/admin: `php bin/console identity:seed-roles`,
+  `php bin/console identity:create-admin --email=... --name=...` (runs on
+  production; MFA enrollment enforced at first sign-in).
+
 ## Pre-release checklist
 
 1. Run the full gate locally: `bin/console app:doctor`, `database:migrate`, `database:migrate --env=test`, `vendor/bin/phpunit`, `vendor/bin/phpstan analyse`, `bin/lint.php`, `npm run build`, `npm run test:e2e`, `npm audit`, `composer audit`.

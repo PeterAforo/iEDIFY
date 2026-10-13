@@ -16,7 +16,7 @@ Private logs, sessions, quarantine and uploads belong outside `public/`. The roo
 
 ## Data and transaction boundaries
 
-PDO uses real prepared statements, strict SQL mode, utf8mb4 and UTC. Connection qualification refuses MariaDB and non-8.x engines. Transactions cannot be implicitly nested. Audit/outbox insertions require an active business transaction; rollback removes both the business mutation and its outgoing event. Outbox event keys are unique. External transport workers are a subsequent implementation slice, not yet live delivery.
+PDO uses real prepared statements, strict SQL mode, utf8mb4 and UTC. Connection qualification requires MySQL 8.x, or MariaDB 10.6+ where the host only offers MariaDB (production: MariaDB 11.4). Transactions cannot be implicitly nested. Audit/outbox insertions require an active business transaction; rollback removes both the business mutation and its outgoing event. Outbox event keys are unique. External transport workers are a subsequent implementation slice, not yet live delivery.
 
 Phinx forward migrations run under a named MySQL migration lock. Destructive down migrations are intentionally disabled. MySQL DDL commits implicitly: a failed partial migration requires inspection and an approved forward repair, not automatic destructive reruns. Checksums and full release/restore orchestration remain to be implemented.
 
