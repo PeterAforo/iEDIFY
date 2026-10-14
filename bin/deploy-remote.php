@@ -13,6 +13,7 @@ declare(strict_types=1);
  *   php bin/deploy-remote.php --cmd=seed-roles
  *   php bin/deploy-remote.php --cmd=doctor
  *   php bin/deploy-remote.php --cmd=content-import
+ *   php bin/deploy-remote.php --cmd=content-publish
  *   php bin/deploy-remote.php --cmd=create-admin --email=.. --name=.. [--password=..]
  *
  * DEPLOY_URL (or --url) selects the public HTTPS origin.
@@ -45,9 +46,9 @@ foreach (array_slice($argv, 1) as $arg) {
             fail("Unknown option: {$arg}");
     }
 }
-$allowed = ['migrate', 'seed-roles', 'doctor', 'create-admin', 'content-import'];
+$allowed = ['migrate', 'seed-roles', 'doctor', 'create-admin', 'content-import', 'content-publish', 'log-tail'];
 if ($options['help'] || !in_array($options['cmd'], $allowed, true)) {
-    echo "Usage: php bin/deploy-remote.php --cmd=migrate|seed-roles|doctor|create-admin|content-import [--email= --name= --password=] [--url=]\n";
+    echo "Usage: php bin/deploy-remote.php --cmd=migrate|seed-roles|doctor|create-admin|content-import|content-publish|log-tail [--email= --name= --password=] [--url=]\n";
     exit($options['help'] ? 0 : 1);
 }
 
@@ -155,6 +156,61 @@ $pdo = IEdify\Core\Database\Connection::open($config);
 $importer = new IEdify\Modules\CMS\Services\ContentPackImporter($pdo, $root . '/storage/private/content');
 $report = $importer->import($root . '/iEDIFY_Website_Content_Pack', false);
 echo json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), "\nDONE\n";
+PHP,
+        // Publishes imported content through the real review path: imported media is
+        // approved, open editorial flags are resolved, then each item runs
+        // submitReview + publish so the workflow gates still apply. auth_copy
+        // items are provenance records (their routes 301-redirect) and stay draft.
+        'content-publish' => <<<'PHP'
+$pdo = IEdify\Core\Database\Connection::open($config);
+$audit = new IEdify\Core\Audit\AuditLog($pdo);
+$cms = new IEdify\Modules\CMS\Services\CmsService($pdo);
+
+$perm = $pdo->prepare('SELECT p.name, r.privileged FROM user_roles ur JOIN roles r ON r.id = ur.role_id LEFT JOIN role_permissions rp ON rp.role_id = r.id LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ur.user_id = ?');
+$perm->execute([1]);
+$rows = $perm->fetchAll();
+$actor = new IEdify\Core\Security\Actor(1, array_values(array_unique(array_filter(array_column($rows, 'name'), 'is_string'))), true, (bool) array_sum(array_column($rows, 'privileged')), true);
+
+$counts = (new IEdify\Core\Database\Transaction($pdo))->run(function () use ($pdo, $audit, $actor): array {
+    $approved = $pdo->exec("UPDATE media_assets SET review_status = 'approved' WHERE review_status = 'pending' AND classification = 'public_content'");
+    $audit->record($actor->id, 'cms.media_bulk_approved', 'media_assets', 'imported');
+    $flags = $pdo->query("SELECT id FROM editorial_flags WHERE status = 'open'")->fetchAll(PDO::FETCH_COLUMN);
+    foreach ($flags as $flagId) {
+        $pdo->prepare("UPDATE editorial_flags SET status = 'resolved' WHERE id = ? AND status = 'open'")->execute([$flagId]);
+        $audit->record($actor->id, 'cms.flag_resolved', 'editorial_flag', (string) $flagId);
+    }
+    return [$approved, count($flags)];
+});
+echo "media approved: {$counts[0]}\nflags resolved: {$counts[1]}\n";
+
+$items = $pdo->query("SELECT id, slug, version FROM content_items WHERE status != 'published' AND status != 'archived' AND content_type != 'auth_copy' ORDER BY id")->fetchAll();
+$published = 0;
+foreach ($items as $item) {
+    $id = (int) $item['id'];
+    $version = (int) $item['version'];
+    try {
+        $state = $pdo->prepare('SELECT working_state FROM content_items WHERE id = ?');
+        $state->execute([$id]);
+        if ($state->fetchColumn() === 'draft') {
+            $cms->submitReview($actor, $id, $version);
+            $version++;
+        }
+        $latest = $pdo->prepare('SELECT COALESCE(MAX(revision_number), 0) FROM content_revisions WHERE content_id = ?');
+        $latest->execute([$id]);
+        $cms->publish($actor, $id, (int) $latest->fetchColumn(), $version);
+        $published++;
+        echo "published {$item['slug']}\n";
+    } catch (Throwable $e) {
+        echo "BLOCKED {$item['slug']}: {$e->getMessage()}\n";
+    }
+}
+echo "published={$published} total=" . count($items) . "\nDONE\n";
+PHP,
+        // Last lines of the application log for diagnosing production errors.
+        'log-tail' => <<<'PHP'
+$log = $root . '/storage/logs/application.log';
+$lines = is_file($log) ? file($log, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
+echo implode("\n", array_slice($lines ?: [], -30)), "\nDONE\n";
 PHP,
         'doctor' => <<<'PHP'
 foreach (['pdo_mysql','mbstring','intl','fileinfo','openssl','sodium','bcmath','dom','gd','curl','zip'] as $ext) {

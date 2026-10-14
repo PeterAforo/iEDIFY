@@ -41,7 +41,7 @@
     {% endif %}
 
     {# ---------- Numbered pillars: alternating editorial rows ---------- #}
-    {% set pillars = [p.pillar1, p.pillar2, p.pillar3, p.pillar4]|filter(v => v is not null) %}
+    {% set pillars = [p.pillar1|default(null), p.pillar2|default(null), p.pillar3|default(null), p.pillar4|default(null)]|filter(v => v is not null) %}
     {% if pillars %}
     <section class="home-section feature-rows" aria-label="Program pillars">
         <div class="container">

@@ -172,7 +172,7 @@ final readonly class ImpactService
         if ($period !== null) {
             $sql .= ' AND r.period = ' . $this->pdo->quote($period);
         }
-        return $this->pdo->query($sql . " GROUP BY i.code, i.name, i.unit, r.period, r.geography ORDER BY r.period DESC, i.code, r.geography")->fetchAll();
+        return $this->pdo->query($sql . " GROUP BY i.id, i.code, i.name, i.unit, r.period, r.geography ORDER BY r.period DESC, i.code, r.geography")->fetchAll();
     }
 
     /**
