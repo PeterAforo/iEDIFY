@@ -46,9 +46,9 @@ foreach (array_slice($argv, 1) as $arg) {
             fail("Unknown option: {$arg}");
     }
 }
-$allowed = ['migrate', 'seed-roles', 'doctor', 'create-admin', 'content-import', 'content-publish', 'log-tail'];
+$allowed = ['migrate', 'seed-roles', 'doctor', 'create-admin', 'content-import', 'content-publish', 'content-structure', 'log-tail'];
 if ($options['help'] || !in_array($options['cmd'], $allowed, true)) {
-    echo "Usage: php bin/deploy-remote.php --cmd=migrate|seed-roles|doctor|create-admin|content-import|content-publish|log-tail [--email= --name= --password=] [--url=]\n";
+    echo "Usage: php bin/deploy-remote.php --cmd=migrate|seed-roles|doctor|create-admin|content-import|content-publish|content-structure|log-tail [--email= --name= --password=] [--url=]\n";
     exit($options['help'] ? 0 : 1);
 }
 
@@ -205,6 +205,83 @@ foreach ($items as $item) {
     }
 }
 echo "published={$published} total=" . count($items) . "\nDONE\n";
+PHP,
+        // Applies the authored (structured) content exported from the curated
+        // dev database: rewrites each item's sections as a new revision and
+        // republishes, recreates hero slides, and syncs team roster metadata.
+        // media_id references are translated via sha256 so prod ids need not
+        // match the dev ids. Export file is uploaded to storage/private first.
+        'content-structure' => <<<'PHP'
+$file = $root . '/storage/private/content-structure-export.json';
+$data = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+$pdo = IEdify\Core\Database\Connection::open($config);
+$cms = new IEdify\Modules\CMS\Services\CmsService($pdo);
+$chrome = new IEdify\Modules\CMS\Services\SiteChromeService($pdo);
+$sections = new IEdify\Modules\CMS\Services\Sections();
+
+$perm = $pdo->prepare('SELECT p.name, r.privileged FROM user_roles ur JOIN roles r ON r.id = ur.role_id LEFT JOIN role_permissions rp ON rp.role_id = r.id LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ur.user_id = ?');
+$perm->execute([1]);
+$rows = $perm->fetchAll();
+$actor = new IEdify\Core\Security\Actor(1, array_values(array_unique(array_filter(array_column($rows, 'name'), 'is_string'))), true, (bool) array_sum(array_column($rows, 'privileged')), true);
+
+// Local media id -> remote media id via sha256.
+$shaMap = [];
+$st = $pdo->query('SELECT id, sha256 FROM media_assets');
+foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $m) { $shaMap[$m['sha256']] = (int) $m['id']; }
+$mediaMap = [];
+foreach ($data['media_sha'] as $localId => $sha) { $mediaMap[(int) $localId] = $shaMap[$sha] ?? null; }
+$remap = function ($block) use (&$remap, $mediaMap) {
+    if (isset($block['media_id'])) {
+        $block['media_id'] = $mediaMap[(int) $block['media_id']] ?? $block['media_id'];
+    }
+    foreach ($block as &$v) { if (is_array($v)) { $v = $remap($v); } }
+    return $block;
+};
+
+$done = [];
+foreach ($data['items'] as $item) {
+    $slug = $item['slug'];
+    $blocks = array_map($remap, json_decode($item['sections'], true, 512, JSON_THROW_ON_ERROR));
+    $blocks = $sections->validate($blocks);
+    $row = $pdo->prepare('SELECT id, version FROM content_items WHERE slug = ?');
+    $row->execute([$slug]);
+    $existing = $row->fetch();
+    if ($existing === false) {
+        $id = $cms->create($actor, $item['content_type'], $slug, $item['title'], $blocks);
+        $version = 1;
+    } else {
+        $id = (int) $existing['id'];
+        $version = (int) $existing['version'];
+        $cms->revise($actor, $id, $version, $item['title'], $blocks);
+        $version++;
+    }
+    $state = $pdo->prepare('SELECT working_state FROM content_items WHERE id = ?');
+    $state->execute([$id]);
+    if ($state->fetchColumn() === 'draft') {
+        $cms->submitReview($actor, $id, $version);
+        $version++;
+    }
+    $latest = $pdo->prepare('SELECT COALESCE(MAX(revision_number), 0) FROM content_revisions WHERE content_id = ?');
+    $latest->execute([$id]);
+    $cms->publish($actor, $id, (int) $latest->fetchColumn(), $version);
+    $done[] = $slug;
+    echo "structured {$slug}\n";
+}
+
+foreach ($pdo->query('SELECT id FROM hero_slides')->fetchAll(PDO::FETCH_COLUMN) as $h) {
+    $chrome->deleteHeroSlide($actor, (int) $h);
+}
+foreach ($data['hero_slides'] as $s) {
+    $chrome->saveHeroSlide($actor, null, (string) ($s['kicker'] ?? ''), (string) $s['title'], (string) ($s['body'] ?? ''), (string) ($s['cta_label'] ?? ''), (string) ($s['cta_url'] ?? ''), $s['media_id'] !== null ? ($mediaMap[(int) $s['media_id']] ?? null) : null, (int) $s['sort'], (bool) $s['enabled']);
+}
+echo 'hero slides: ', count($data['hero_slides']), "\n";
+
+$tm = $pdo->prepare('UPDATE team_members t JOIN content_items c ON c.id = t.content_id SET t.role_label = ?, t.roster_group = ?, t.youth_adviser = ?, t.display_order = ?, t.portrait_asset_id = ? WHERE c.slug = ?');
+foreach ($data['team_members'] as $t) {
+    $tm->execute([$t['role_label'], $t['roster_group'], (int) $t['youth_adviser'], (int) $t['display_order'], $t['portrait_asset_id'] !== null ? ($mediaMap[(int) $t['portrait_asset_id']] ?? null) : null, $t['slug']]);
+}
+echo 'team synced: ', count($data['team_members']), "\n";
+echo 'done=', count($done), "\nDONE\n";
 PHP,
         // Last lines of the application log for diagnosing production errors.
         'log-tail' => <<<'PHP'
