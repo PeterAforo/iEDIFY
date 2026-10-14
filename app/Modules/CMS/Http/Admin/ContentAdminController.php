@@ -149,6 +149,7 @@ final class ContentAdminController extends Controller
         $labels = \IEdify\Modules\CMS\Services\ContentTypes::LABELS;
         return $this->render('admin/content/index.twig', [
             'items' => $statement->fetchAll(),
+            'status_counts' => $pdo->query('SELECT status, COUNT(*) AS total FROM content_items GROUP BY status')->fetchAll(\PDO::FETCH_KEY_PAIR),
             'filters' => ['status' => $status, 'type' => $type, 'q' => $query],
             'type_labels' => $labels,
             'creatable_types' => \IEdify\Modules\CMS\Services\ContentTypes::CREATABLE,

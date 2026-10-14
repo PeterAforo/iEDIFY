@@ -4,7 +4,7 @@
 {% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/funding">Funding</a></li><li class="breadcrumb-item active" aria-current="page">{{ round.title }}</li>{% endblock %}
 {% block admin %}
 <p class="text-body-secondary">Status: <span class="badge text-bg-{{ round.status == 'open' ? 'success' : 'secondary' }}">{{ round.status }}</span> · Currency: {{ round.currency }}{% if round.max_award is not null %} · Max award: {{ round.max_award }} {{ round.currency }}{% endif %}</p>
-<div class="card mb-4" style="max-width:36rem">
+<div class="card mb-4 desk-mw-36">
     <div class="card-body">
         <form method="post" action="/admin/funding/rounds/{{ round.id }}/status" class="row g-2 align-items-center">
             <input type="hidden" name="_csrf" value="{{ csrf.token() }}">

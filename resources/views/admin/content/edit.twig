@@ -1,142 +1,169 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Edit {{ item.title }} | iEDIFY Africa{% endblock %}
-{% block page_title %}Edit {{ type_label|lower }}{% endblock %}
+{% block page_eyebrow %}Content · {{ type_label }}{% endblock %}
+{% block page_title %}{{ item.title }}{% endblock %}
 {% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/content">Content</a></li><li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>{% endblock %}
 {% block extra_head %}
-    {% for stylesheet in asset_styles('resources/assets/scripts/editor.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
+    {% for stylesheet in asset_styles('resources/assets/scripts/editor.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{%- endfor %}
     <script type="module" src="{{ asset('resources/assets/scripts/editor.js') }}"></script>
 {% endblock %}
 {% block admin %}
-<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-    <span class="badge text-bg-secondary">{{ type_label }}</span>
-    <code>{{ item.slug }}</code>
-    <span class="badge text-bg-{{ item.status == 'published' ? 'success' : (item.status == 'archived' ? 'dark' : 'secondary') }}">{{ item.status }}</span>
-    <span class="text-body-secondary small">draft state: {{ item.working_state }} · version {{ item.version }}</span>
-    {% if item.status == 'published' %}<a href="{{ item.slug }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm ms-auto"><i class="bi bi-box-arrow-up-right me-1"></i>View live</a>{% endif %}
-</div>
-{% if flags %}
-<div class="alert alert-warning">
-    <h5 class="alert-heading"><i class="bi bi-flag me-1"></i>Editorial flags</h5>
-    <ul class="mb-1">
-        {% for flag in flags %}
-        <li><code>{{ flag.code }}</code> — {{ flag.message }} <em>({{ flag.status }})</em></li>
-        {% endfor %}
-    </ul>
-    <a href="/admin/flags" class="alert-link">Resolve flags</a>
-</div>
-{% endif %}
-{% if slot_hints %}
-<div class="alert alert-info">
-    <h5 class="alert-heading"><i class="bi bi-layout-three-columns me-1"></i>This page uses a designed layout</h5>
-    <p class="mb-1">Section headings control where content appears on the live page. Keep these exact headings to place content in its designed spot — other content still shows, just in a plainer style.</p>
-    <ul class="mb-0 small">
-        {% for heading, slot in slot_hints %}<li><strong>{{ heading }}</strong> → {{ slot }}</li>{% endfor %}
-    </ul>
-</div>
-{% endif %}
-<div class="card mb-4">
-    <div class="card-header d-flex align-items-center">
-        <h3 class="card-title">Content</h3>
-        <details class="ms-auto" data-be-json>
-            <summary class="btn btn-outline-secondary btn-sm">Edit as JSON (advanced)</summary>
-            <div class="mt-2">
-                <textarea class="form-control font-monospace" rows="10" data-be-json-area aria-label="Raw sections JSON"></textarea>
-                <p class="form-text mb-0">Editing here switches off the visual editor until you close this panel.</p>
-            </div>
-        </details>
-    </div>
-    <form method="post" action="/admin/content/{{ item.id }}/revise">
-        <div class="card-body">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ item.version }}">
-            <input type="hidden" name="sections" value="{{ latest ? latest.sections : '[]' }}">
-            <div class="mb-3">
-                <label for="title" class="form-label">Title</label>
-                <input id="title" name="title" type="text" class="form-control" required maxlength="255" value="{{ latest.title|default(item.title) }}">
-            </div>
-            <div data-block-editor data-slots="{{ slot_headings|json_encode }}"></div>
+<div class="editor-grid">
+    <div>
+        {% if flags %}
+        <div class="alert alert-warning">
+            <h5 class="alert-heading"><i class="bi bi-flag me-1"></i>Editorial flags</h5>
+            <ul class="mb-1">
+                {% for flag in flags %}
+                <li><code>{{ flag.code }}</code> — {{ flag.message }} <em>({{ flag.status }})</em></li>
+                {% endfor %}
+            </ul>
+            <a href="/admin/flags" class="alert-link">Resolve flags</a>
         </div>
-        <div class="card-footer d-flex flex-wrap gap-2">
-            <button type="submit" class="btn btn-primary">Save draft</button>
-            {% if can_publish %}
-            <button type="submit" formaction="/admin/content/{{ item.id }}/save-publish" class="btn btn-success"><i class="bi bi-cloud-arrow-up me-1"></i>Save &amp; publish</button>
-            {% endif %}
-        </div>
-    </form>
-</div>
-{% if item.content_type == 'publication' %}
-<div class="card mb-4">
-    <div class="card-header"><h3 class="card-title">Publication metadata</h3></div>
-    <form method="post" action="/admin/content/{{ item.id }}/meta">
-        <div class="card-body">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ item.version }}">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="category" class="form-label">Publication category</label>
-                    <input id="category" name="category" type="text" class="form-control" maxlength="60" value="{{ item.category }}" placeholder="e.g. Annual report, Research, Toolkit">
+        {% endif %}
+        <div class="card editor-canvas">
+            <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">Content</h3>
+                <details class="ms-auto" data-be-json>
+                    <summary class="btn btn-outline-secondary btn-sm">Edit as JSON (advanced)</summary>
+                    <div class="mt-2">
+                        <textarea class="form-control font-monospace" rows="10" data-be-json-area aria-label="Raw sections JSON"></textarea>
+                        <p class="form-text mb-0">Editing here switches off the visual editor until you close this panel.</p>
+                    </div>
+                </details>
+            </div>
+            <form method="post" action="/admin/content/{{ item.id }}/revise" id="content-form">
+                <div class="card-body">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="version" value="{{ item.version }}">
+                    <input type="hidden" name="sections" value="{{ latest ? latest.sections : '[]' }}">
+                    <div class="mb-4">
+                        <label for="title" class="visually-hidden">Title</label>
+                        <input id="title" name="title" type="text" class="form-control editor-title-input" required maxlength="255" placeholder="Page title" value="{{ latest.title|default(item.title) }}">
+                    </div>
+                    <div data-block-editor data-slots="{{ slot_headings|json_encode }}"></div>
                 </div>
-                <div class="col-md-6">
-                    <label for="pub_year" class="form-label">Publication year</label>
-                    <input id="pub_year" name="pub_year" type="number" class="form-control" min="1900" max="2200" value="{{ item.pub_year }}">
+            </form>
+        </div>
+    </div>
+    <aside class="editor-rail">
+        <div class="card rail-panel publish-panel">
+            <div class="card-header"><h3 class="card-title">Publish</h3></div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="status-pill status-{{ item.status }}">{{ item.status }}</span>
+                    <span class="publish-status">{{ item.working_state }} · v{{ item.version }}</span>
+                    <span data-be-dirty class="status-pill status-review" hidden>Unsaved changes</span>
+                </div>
+                <div class="publish-actions d-grid gap-2">
+                    <button type="submit" form="content-form" class="btn btn-primary"><i class="bi bi-save me-1"></i>Save draft</button>
+                    {% if can_publish %}
+                    <button type="submit" form="content-form" formaction="/admin/content/{{ item.id }}/save-publish" class="btn btn-success"><i class="bi bi-cloud-arrow-up me-1"></i>Save &amp; publish</button>
+                    {% endif %}
+                </div>
+                <hr>
+                <div class="d-grid gap-2">
+                    <form method="post" action="/admin/content/{{ item.id }}/submit-review">
+                        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                        <input type="hidden" name="version" value="{{ item.version }}">
+                        <button type="submit" class="btn btn-outline-primary w-100"{% if item.working_state != 'draft' or item.status == 'archived' %} disabled{% endif %}><i class="bi bi-send me-1"></i>Submit for review</button>
+                    </form>
+                    {% if can_publish %}
+                    <form method="post" action="/admin/content/{{ item.id }}/publish">
+                        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                        <input type="hidden" name="version" value="{{ item.version }}">
+                        <button type="submit" class="btn btn-outline-success w-100"{% if item.working_state != 'review' or item.status == 'archived' %} disabled{% endif %}><i class="bi bi-check2-circle me-1"></i>Publish current revision</button>
+                    </form>
+                    {% endif %}
+                </div>
+                <details class="mt-3">
+                    <summary class="text-body-secondary small desk-clickable">Schedule publication</summary>
+                    <form method="post" action="/admin/content/{{ item.id }}/schedule" class="mt-2">
+                        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                        <input type="hidden" name="version" value="{{ item.version }}">
+                        <label class="form-label" for="publish_at">Publish at (UTC)</label>
+                        <input id="publish_at" type="datetime-local" name="publish_at" class="form-control form-control-sm mb-2" value="{{ item.publish_at ? item.publish_at|date('Y-m-d\\TH:i') : '' }}">
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100"{% if item.working_state != 'review' %} disabled{% endif %}>{% if item.publish_at %}Update schedule{% else %}Schedule{% endif %}</button>
+                    </form>
+                </details>
+            </div>
+        </div>
+        <div class="card rail-panel">
+            <div class="card-header"><h3 class="card-title">Content details</h3></div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-5 text-body-secondary">Type</dt><dd class="col-7">{{ type_label }}</dd>
+                    <dt class="col-5 text-body-secondary">URL</dt><dd class="col-7"><code>{{ item.slug }}</code></dd>
+                    <dt class="col-5 text-body-secondary">Updated</dt><dd class="col-7">{{ item.updated_at|date('j M Y, H:i') }} UTC</dd>
+                </dl>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    {% if item.status == 'published' %}<a href="{{ item.slug }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-up-right me-1"></i>View live</a>{% endif %}
+                    {% if preview_url %}<a href="{{ preview_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye me-1"></i>Preview draft</a>{% endif %}
+                    <a href="/admin/content/{{ item.id }}/revisions" class="btn btn-outline-secondary btn-sm"><i class="bi bi-clock-history me-1"></i>Revisions</a>
                 </div>
             </div>
         </div>
-        <div class="card-footer"><button type="submit" class="btn btn-outline-primary">Save metadata</button></div>
-    </form>
-</div>
-{% endif %}
-<div class="card mb-4">
-    <div class="card-header"><h3 class="card-title">Workflow</h3></div>
-    <div class="card-body d-flex flex-wrap gap-2 align-items-center">
-        <form method="post" action="/admin/content/{{ item.id }}/submit-review">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ item.version }}">
-            <button type="submit" class="btn btn-outline-primary"{% if item.working_state != 'draft' or item.status == 'archived' %} disabled{% endif %}>Submit for review</button>
-        </form>
-        {% if can_publish %}
-        <form method="post" action="/admin/content/{{ item.id }}/publish">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ item.version }}">
-            <button type="submit" class="btn btn-primary"{% if item.working_state != 'review' or item.status == 'archived' %} disabled{% endif %}>Publish current revision</button>
-        </form>
+        {% if slot_hints %}
+        <div class="card rail-panel">
+            <div class="card-header"><h3 class="card-title">Layout map</h3></div>
+            <div class="card-body">
+                <p class="text-body-secondary small">This page uses a designed layout. Section headings decide where content appears — keep these exact headings to place content in its designed spot.</p>
+                <ul class="small mb-0 ps-3">
+                    {% for heading, slot in slot_hints %}<li><strong>{{ heading }}</strong> → {{ slot }}</li>{% endfor %}
+                </ul>
+            </div>
+        </div>
         {% endif %}
-        <form method="post" action="/admin/content/{{ item.id }}/schedule" class="d-flex gap-2 align-items-center">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ item.version }}">
-            <label class="col-form-label" for="publish_at">Publish at (UTC)</label>
-            <input id="publish_at" type="datetime-local" name="publish_at" class="form-control w-auto" value="{{ item.publish_at ? item.publish_at|date('Y-m-d\\TH:i') : '' }}">
-            <button type="submit" class="btn btn-outline-primary"{% if item.working_state != 'review' %} disabled{% endif %}>{% if item.publish_at %}Update schedule{% else %}Schedule{% endif %}</button>
-        </form>
-    </div>
-    <div class="card-footer">
-        <a href="/admin/content/{{ item.id }}/revisions">Revision history</a>{% if preview_url %} · <a href="{{ preview_url }}" target="_blank" rel="noopener">Preview latest draft</a>{% endif %}
-    </div>
-</div>
-<div class="card border-danger">
-    <div class="card-header"><h3 class="card-title text-danger">Danger zone</h3></div>
-    <div class="card-body d-flex flex-wrap gap-2 align-items-center">
-        {% if item.status == 'published' and can_publish %}
-        <form method="post" action="/admin/content/{{ item.id }}/archive" onsubmit="return confirm('Archive this page? It will no longer be public.');">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ item.version }}">
-            <button type="submit" class="btn btn-outline-danger"><i class="bi bi-archive me-1"></i>Archive (unpublish)</button>
-        </form>
+        {% if item.content_type == 'publication' %}
+        <div class="card rail-panel">
+            <div class="card-header"><h3 class="card-title">Publication details</h3></div>
+            <form method="post" action="/admin/content/{{ item.id }}/meta">
+                <div class="card-body">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="version" value="{{ item.version }}">
+                    <div class="mb-2">
+                        <label for="category" class="form-label">Category</label>
+                        <input id="category" name="category" type="text" class="form-control form-control-sm" maxlength="60" value="{{ item.category }}" placeholder="e.g. Annual report, Research, Toolkit">
+                    </div>
+                    <div class="mb-0">
+                        <label for="pub_year" class="form-label">Year</label>
+                        <input id="pub_year" name="pub_year" type="number" class="form-control form-control-sm" min="1900" max="2200" value="{{ item.pub_year }}">
+                    </div>
+                </div>
+                <div class="card-footer"><button type="submit" class="btn btn-outline-primary btn-sm w-100">Save details</button></div>
+            </form>
+        </div>
         {% endif %}
-        {% if item.status == 'archived' %}
-        <form method="post" action="/admin/content/{{ item.id }}/unarchive">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ item.version }}">
-            <button type="submit" class="btn btn-outline-primary"><i class="bi bi-arrow-counterclockwise me-1"></i>Restore to draft</button>
-        </form>
-        {% endif %}
-        {% if can_restore and item.status in ['draft', 'archived'] %}
-        <form method="post" action="/admin/content/{{ item.id }}/delete" onsubmit="return confirm('Permanently delete this content and all its revisions? This cannot be undone.');">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ item.version }}">
-            <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete permanently</button>
-        </form>
-        {% endif %}
-    </div>
+        <div class="card rail-panel border-danger">
+            <div class="card-body p-0">
+                <details>
+                    <summary class="card-header d-flex align-items-center text-danger desk-clickable"><h3 class="card-title text-danger">Danger zone</h3></summary>
+                    <div class="p-3 d-grid gap-2">
+                        {% if item.status == 'published' and can_publish %}
+                        <form method="post" action="/admin/content/{{ item.id }}/archive" onsubmit="return confirm('Archive this page? It will no longer be public.');">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <input type="hidden" name="version" value="{{ item.version }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="bi bi-archive me-1"></i>Archive (unpublish)</button>
+                        </form>
+                        {% endif %}
+                        {% if item.status == 'archived' %}
+                        <form method="post" action="/admin/content/{{ item.id }}/unarchive">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <input type="hidden" name="version" value="{{ item.version }}">
+                            <button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-arrow-counterclockwise me-1"></i>Restore to draft</button>
+                        </form>
+                        {% endif %}
+                        {% if can_restore and item.status in ['draft', 'archived'] %}
+                        <form method="post" action="/admin/content/{{ item.id }}/delete" onsubmit="return confirm('Permanently delete this content and all its revisions? This cannot be undone.');">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <input type="hidden" name="version" value="{{ item.version }}">
+                            <button type="submit" class="btn btn-danger btn-sm w-100"><i class="bi bi-trash me-1"></i>Delete permanently</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </details>
+            </div>
+        </div>
+    </aside>
 </div>
 {% endblock %}

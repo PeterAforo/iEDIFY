@@ -1,5 +1,6 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Team | iEDIFY Africa{% endblock %}
+{% block page_eyebrow %}People{% endblock %}
 {% block page_title %}Team members{% endblock %}
 {% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/content">Content</a></li><li class="breadcrumb-item active" aria-current="page">Team</li>{% endblock %}
 {% block admin %}
@@ -10,32 +11,42 @@
 {% for group, members in groups %}
 <div class="card mb-4">
     <div class="card-header"><h3 class="card-title">{{ group_labels[group]|default(group) }}</h3></div>
-    <div class="card-body table-responsive p-0">
-        <table class="table table-hover text-nowrap mb-0">
-            <thead><tr><th>Order</th><th>Name</th><th>Role</th><th>Portrait</th><th>Bio page</th><th></th></tr></thead>
-            <tbody>
-                {% for m in members %}
-                <tr>
-                    <td class="text-body-secondary">{{ m.display_order }}</td>
-                    <td>
-                        <a href="/admin/team/{{ m.id }}"><strong>{{ m.display_name }}</strong></a>
-                        {% if m.youth_adviser %}<span class="badge text-bg-info ms-1">Youth adviser</span>{% endif %}
-                        {% if m.status != 'published' %}<span class="badge text-bg-warning ms-1">{{ m.status }}</span>{% endif %}
-                    </td>
-                    <td>{{ m.role_label }}</td>
-                    <td>{% if m.portrait_asset_id %}<span class="badge text-bg-success">{{ m.portrait_name|default('set') }}</span>{% else %}<span class="text-body-secondary">none</span>{% endif %}</td>
-                    <td><code>{{ m.slug }}</code></td>
-                    <td class="text-end">
-                        <a href="/admin/team/{{ m.id }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for m in members %}
+            <div class="col-sm-6 col-lg-4 col-xxl-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        {% if m.portrait_asset_id %}
+                        <img src="/media/{{ m.portrait_asset_id }}" alt="" class="rounded-circle flex-shrink-0 desk-portrait">
+                        {% else %}
+                        <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center desk-avatar-fallback">{{ m.display_name|first }}</div>
+                        {% endif %}
+                        <div class="min-w-0">
+                            <a href="/admin/team/{{ m.id }}" class="fw-semibold text-decoration-none d-block text-truncate">{{ m.display_name }}</a>
+                            <div class="small text-body-secondary text-truncate">{{ m.role_label }}</div>
+                            <div class="mt-1">
+                                {% if m.youth_adviser %}<span class="badge text-bg-info">Youth adviser</span>{% endif %}
+                                {% if m.status != 'published' %}<span class="status-pill status-{{ m.status }}">{{ m.status }}</span>{% endif %}
+                            </div>
+                        </div>
+                        <span class="ms-auto text-body-secondary small text-nowrap">#{{ m.display_order }}</span>
+                    </div>
+                    <div class="card-footer d-flex gap-2 py-2">
+                        <a href="/admin/team/{{ m.id }}" class="btn btn-outline-primary btn-sm flex-grow-1"><i class="bi bi-pencil me-1"></i>Edit</a>
                         <a href="{{ m.slug }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm" title="View public page"><i class="bi bi-box-arrow-up-right"></i></a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% else %}
-<div class="card"><div class="card-body text-center text-body-secondary py-5">No team members yet. <a href="/admin/team/new">Add the first member</a>.</div></div>
+<div class="card"><div class="card-body text-center text-body-secondary py-5">
+    <div class="fw-semibold mb-1">No team members yet</div>
+    <div class="small mb-3">Add the people who appear on the public team page.</div>
+    <a href="/admin/team/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add the first member</a>
+</div></div>
 {% endfor %}
 {% endblock %}

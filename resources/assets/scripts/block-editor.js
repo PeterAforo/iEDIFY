@@ -83,8 +83,7 @@ function mediaControl(block, kind, onChange) {
                 const img = el('img');
                 img.src = '/media/' + block.media_id;
                 img.alt = '';
-                img.style.cssText = 'max-width:96px;max-height:64px;object-fit:cover;';
-                img.className = 'rounded border';
+                img.className = 'rounded border be-thumb';
                 img.addEventListener('error', () => { img.remove(); });
                 wrap.appendChild(img);
                 wrap.appendChild(el('small', '', 'Media #' + block.media_id));
@@ -98,8 +97,7 @@ function mediaControl(block, kind, onChange) {
             const img = el('img');
             img.src = block._media.url;
             img.alt = block._media.alt || '';
-            img.style.cssText = 'max-width:96px;max-height:64px;object-fit:cover;';
-            img.className = 'rounded border';
+            img.className = 'rounded border be-thumb';
             preview.appendChild(img);
         }
         preview.appendChild(el('small', 'd-block', block._media.filename || ('Media #' + block.media_id)));
@@ -126,7 +124,8 @@ function mediaControl(block, kind, onChange) {
     return wrap;
 }
 
-function collectionItems(block, itemLabel) {
+function collectionItems(block, itemLabel, onMutate) {
+    const mutate = () => { if (onMutate) { onMutate(); } };
     const list = el('div', 'vstack gap-2');
     const isGallery = block.type === 'gallery';
     const renderItems = () => {
@@ -141,23 +140,23 @@ function collectionItems(block, itemLabel) {
             up.innerHTML = '<i class="bi bi-arrow-up"></i>';
             up.title = 'Move up';
             up.disabled = idx === 0;
-            up.addEventListener('click', () => { [block.items[idx - 1], block.items[idx]] = [block.items[idx], block.items[idx - 1]]; renderItems(); });
+            up.addEventListener('click', () => { [block.items[idx - 1], block.items[idx]] = [block.items[idx], block.items[idx - 1]]; renderItems(); mutate(); });
             const down = el('button', 'btn btn-outline-secondary');
             down.type = 'button';
             down.innerHTML = '<i class="bi bi-arrow-down"></i>';
             down.title = 'Move down';
             down.disabled = idx === block.items.length - 1;
-            down.addEventListener('click', () => { [block.items[idx + 1], block.items[idx]] = [block.items[idx], block.items[idx + 1]]; renderItems(); });
+            down.addEventListener('click', () => { [block.items[idx + 1], block.items[idx]] = [block.items[idx], block.items[idx + 1]]; renderItems(); mutate(); });
             const del = el('button', 'btn btn-outline-danger');
             del.type = 'button';
             del.innerHTML = '<i class="bi bi-trash"></i>';
             del.title = 'Remove';
-            del.addEventListener('click', () => { block.items.splice(idx, 1); renderItems(); });
+            del.addEventListener('click', () => { block.items.splice(idx, 1); renderItems(); mutate(); });
             tools.append(up, down, del);
             head.appendChild(tools);
             row.appendChild(head);
             if (isGallery) {
-                row.appendChild(mediaControl(item, 'image'));
+                row.appendChild(mediaControl(item, 'image', mutate));
                 row.appendChild(field('Alt text', sync(input(item.alt), item, 'alt'), 'Describe the image for screen readers'));
             } else {
                 row.appendChild(field('Title', sync(input(item.title), item, 'title')));
@@ -176,6 +175,7 @@ function collectionItems(block, itemLabel) {
             block.items.push(isGallery ? { media_id: 0, alt: '' } : { title: '', text: '' });
             renderItems();
             add.disabled = block.items.length >= MAX_ITEMS;
+            mutate();
         }
     });
     const wrap = el('div', 'vstack gap-2');
@@ -183,7 +183,7 @@ function collectionItems(block, itemLabel) {
     return wrap;
 }
 
-function blockBody(block, quills) {
+function blockBody(block, quills, onMutate) {
     const body = el('div', 'card-body');
     switch (block.type) {
         case 'heading':
@@ -193,18 +193,17 @@ function blockBody(block, quills) {
             body.appendChild(field('Text', sync(textArea(block.text, 4), block, 'text'), 'Blank lines create paragraphs.'));
             break;
         case 'rich_text': {
-            const holder = el('div', 'quill-holder bg-body');
-            holder.style.minHeight = '140px';
+            const holder = el('div', 'quill-holder bg-body be-quill-holder');
             body.appendChild(field('Formatted content', holder));
             quills.set(block._uid, { holder, html: block.html || '' });
             break;
         }
         case 'image':
-            body.appendChild(field('Image', mediaControl(block, 'image')));
+            body.appendChild(field('Image', mediaControl(block, 'image', () => onMutate && onMutate())));
             body.appendChild(field('Alt text', sync(input(block.alt, { maxLength: 500 }), block, 'alt'), 'Describe the image for screen readers.'));
             break;
         case 'document':
-            body.appendChild(field('File', mediaControl(block, 'document')));
+            body.appendChild(field('File', mediaControl(block, 'document', () => onMutate && onMutate())));
             body.appendChild(field('Link label', sync(input(block.label, { maxLength: 200 }), block, 'label'), 'e.g. "Download the annual report".'));
             break;
         case 'quote':
@@ -234,7 +233,7 @@ function blockBody(block, quills) {
             break;
         }
         case 'cards': case 'accordion': case 'timeline': case 'gallery':
-            body.appendChild(collectionItems(block, COLLECTIONS[block.type] || 'item'));
+            body.appendChild(collectionItems(block, COLLECTIONS[block.type] || 'item', onMutate));
             break;
         default:
             body.appendChild(el('p', 'text-body-secondary small mb-0', 'This block type has no visual editor yet — use Edit as JSON.'));
@@ -255,8 +254,21 @@ export function initBlockEditor(mount) {
     const slotHeadings = (() => { try { return JSON.parse(mount.dataset.slots || '[]'); } catch { return []; } })();
     let blocks = [];
     let jsonMode = false;
+    let dirty = false;
+    let dragUid = null;
 
     const normalise = (s) => String(s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+
+    // Unsaved-changes marker — shown in the publish rail and guards navigation.
+    function markDirty() {
+        dirty = true;
+        document.querySelectorAll('[data-be-dirty]').forEach((pill) => { pill.hidden = false; });
+    }
+
+    function clearDirty() {
+        dirty = false;
+        document.querySelectorAll('[data-be-dirty]').forEach((pill) => { pill.hidden = true; });
+    }
 
     function warn(message) {
         alertBox.textContent = '';
@@ -270,10 +282,16 @@ export function initBlockEditor(mount) {
         }
     }
 
-    function makeCard(block, index) {
+    function makeCard(block) {
         const card = el('div', 'card be-block');
         card.dataset.uid = block._uid;
         const head = el('div', 'card-header d-flex align-items-center gap-2 py-2');
+        // Drag handle — the only draggable element so text selection still works.
+        const grip = el('span', 'be-grip');
+        grip.innerHTML = '<i class="bi bi-grip-vertical"></i>';
+        grip.title = 'Drag to reorder';
+        grip.draggable = true;
+        head.appendChild(grip);
         const meta = TYPES[block.type];
         const badge = el('span', 'badge text-bg-secondary');
         badge.innerHTML = '<i class="bi ' + (meta ? meta.icon : 'bi-puzzle') + ' me-1"></i>';
@@ -283,6 +301,13 @@ export function initBlockEditor(mount) {
             const slot = el('span', 'badge text-bg-info', 'Layout section');
             slot.title = 'This heading is used by the designed page layout — renaming it moves this section to generic rendering.';
             head.appendChild(slot);
+        }
+        // Resolve the block's index at click time — node reuse makes a
+        // captured index stale after reorders.
+        const idx = () => blocks.findIndex((b) => b._uid === block._uid);
+        const body = blockBody(block, quills, markDirty);
+        if (block._collapsed) {
+            body.classList.add('d-none');
         }
         const tools = el('div', 'btn-group btn-group-sm ms-auto');
         const mkBtn = (icon, title, disabled, fn) => {
@@ -294,13 +319,19 @@ export function initBlockEditor(mount) {
             b.addEventListener('click', fn);
             return b;
         };
-        tools.appendChild(mkBtn('bi-arrow-up', 'Move up', index === 0, () => move(index, -1)));
-        tools.appendChild(mkBtn('bi-arrow-down', 'Move down', index === blocks.length - 1, () => move(index, 1)));
-        tools.appendChild(mkBtn('bi-copy', 'Duplicate', false, () => { const copy = JSON.parse(JSON.stringify(block)); delete copy._uid; delete copy._media; insert(copy, index + 1); }));
-        tools.appendChild(mkBtn('bi-trash', 'Delete', false, () => { if (confirm('Delete this block?')) { remove(index); } }));
+        const collapse = mkBtn(block._collapsed ? 'bi-chevron-down' : 'bi-chevron-up', 'Collapse / expand', false, () => {
+            block._collapsed = !block._collapsed;
+            body.classList.toggle('d-none', block._collapsed);
+            collapse.querySelector('i').className = 'bi ' + (block._collapsed ? 'bi-chevron-down' : 'bi-chevron-up');
+        });
+        tools.appendChild(mkBtn('bi-arrow-up', 'Move up', false, () => move(idx(), -1)));
+        tools.appendChild(mkBtn('bi-arrow-down', 'Move down', false, () => move(idx(), 1)));
+        tools.appendChild(mkBtn('bi-copy', 'Duplicate', false, () => { const copy = JSON.parse(JSON.stringify(block)); delete copy._uid; delete copy._media; delete copy._collapsed; insert(copy, idx() + 1); }));
+        tools.appendChild(mkBtn('bi-trash', 'Delete', false, () => { if (confirm('Delete this block?')) { remove(idx()); } }));
+        tools.appendChild(collapse);
         head.appendChild(tools);
         card.appendChild(head);
-        card.appendChild(blockBody(block, quills));
+        card.appendChild(body);
         return card;
     }
 
@@ -319,9 +350,41 @@ export function initBlockEditor(mount) {
             entry.quill = quill;
             const block = blocks.find((b) => b._uid === uid);
             if (block) {
-                quill.on('text-change', () => { block.html = quill.getSemanticHTML(); });
+                quill.on('text-change', () => { block.html = quill.getSemanticHTML(); markDirty(); });
             }
         }
+    }
+
+    function clearDropMarks() {
+        blockList.querySelectorAll('.be-block').forEach((n) => {
+            n.classList.remove('dragging', 'drop-above', 'drop-below');
+            delete n.dataset.dropPos;
+        });
+    }
+
+    // "+" inserter between blocks — opens the same block-type menu.
+    function makeInserter(position) {
+        const wrap = el('div', 'be-inserter');
+        wrap.dataset.pos = position;
+        const drop = el('div', 'dropdown');
+        const btn = el('button', 'be-inserter-btn', '+');
+        btn.type = 'button';
+        btn.dataset.bsToggle = 'dropdown';
+        btn.title = 'Insert block here';
+        const menu = el('ul', 'dropdown-menu');
+        Object.entries(TYPES).forEach(([type, meta]) => {
+            const li = el('li');
+            const a = el('button', 'dropdown-item');
+            a.type = 'button';
+            a.innerHTML = '<i class="bi ' + meta.icon + ' me-2"></i>';
+            a.appendChild(document.createTextNode(meta.label));
+            a.addEventListener('click', () => addBlock(type, position));
+            li.appendChild(a);
+            menu.appendChild(li);
+        });
+        drop.append(btn, menu);
+        wrap.appendChild(drop);
+        return wrap;
     }
 
     function render() {
@@ -330,9 +393,10 @@ export function initBlockEditor(mount) {
         blockList.querySelectorAll('.be-block').forEach((n) => nodes.set(n.dataset.uid, n));
         blockList.textContent = '';
         blocks.forEach((block, i) => {
+            blockList.appendChild(makeInserter(i));
             let node = nodes.get(String(block._uid));
             if (!node) {
-                node = makeCard(block, i);
+                node = makeCard(block);
             }
             blockList.appendChild(node);
         });
@@ -342,31 +406,41 @@ export function initBlockEditor(mount) {
             }
         });
         if (blocks.length === 0) {
-            blockList.appendChild(el('p', 'text-body-secondary border rounded p-4 text-center', 'Empty page — use "Add block" to start building.'));
+            const empty = el('div', 'text-body-secondary rounded p-4 text-center be-empty');
+            empty.appendChild(el('div', 'fw-semibold mb-1', 'Start writing'));
+            empty.appendChild(el('div', 'small', 'Use "Add block" below to place your first piece of content.'));
+            blockList.appendChild(empty);
         }
         activateQuills();
         buildToolbar();
     }
 
     function move(index, dir) {
+        const target = index + dir;
+        if (index < 0 || target < 0 || target >= blocks.length) {
+            return;
+        }
         const [block] = blocks.splice(index, 1);
-        blocks.splice(index + dir, 0, block);
+        blocks.splice(target, 0, block);
+        markDirty();
         render();
     }
 
     function insert(data, index) {
         data._uid = 'b' + (++uidCounter);
         blocks.splice(index === undefined ? blocks.length : index, 0, data);
+        markDirty();
         render();
     }
 
     function remove(index) {
         const [block] = blocks.splice(index, 1);
         quills.delete(block._uid);
+        markDirty();
         render();
     }
 
-    function addBlock(type) {
+    function addBlock(type, index) {
         const base = { type };
         if (type === 'text') { base.text = ''; }
         if (type === 'heading') { base.text = ''; }
@@ -378,7 +452,7 @@ export function initBlockEditor(mount) {
         if (type === 'statistic') { base.kind = 'context'; base.label = ''; base.value = ''; base.source = ''; base.period = ''; }
         if (type === 'cards' || type === 'accordion' || type === 'timeline') { base.items = [{ title: '', text: '' }]; }
         if (type === 'gallery') { base.items = [{ media_id: 0, alt: '' }]; }
-        insert(base);
+        insert(base, index);
     }
 
     function buildToolbar() {
@@ -466,8 +540,81 @@ export function initBlockEditor(mount) {
         });
     }
 
+    // Dirty tracking: field edits bubble as input/change; structural
+    // mutations (move/insert/remove/media pick) call markDirty directly.
+    scope.addEventListener('input', markDirty);
+    scope.addEventListener('change', markDirty);
+    window.addEventListener('beforeunload', (e) => {
+        if (dirty) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Drag-and-drop reorder — the grip is the only draggable element.
+    blockList.addEventListener('dragstart', (e) => {
+        const card = e.target.closest('.be-block');
+        if (!card) {
+            return;
+        }
+        dragUid = card.dataset.uid;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', dragUid);
+        card.classList.add('dragging');
+    });
+    blockList.addEventListener('dragover', (e) => {
+        if (!dragUid) {
+            return;
+        }
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        clearDropMarks();
+        const over = e.target.closest('.be-block');
+        if (over && over.dataset.uid !== dragUid) {
+            const rect = over.getBoundingClientRect();
+            const before = e.clientY < rect.top + rect.height / 2;
+            over.classList.add(before ? 'drop-above' : 'drop-below');
+            over.dataset.dropPos = before ? 'before' : 'after';
+        }
+    });
+    blockList.addEventListener('drop', (e) => {
+        if (!dragUid) {
+            return;
+        }
+        e.preventDefault();
+        const from = blocks.findIndex((b) => String(b._uid) === dragUid);
+        let to = -1;
+        const over = e.target.closest('.be-block');
+        if (over && over.dataset.uid !== dragUid) {
+            to = blocks.findIndex((b) => String(b._uid) === over.dataset.uid);
+            if (over.dataset.dropPos === 'after') {
+                to += 1;
+            }
+        } else {
+            const ins = e.target.closest('.be-inserter');
+            if (ins) {
+                to = parseInt(ins.dataset.pos, 10);
+            }
+        }
+        if (from !== -1 && to !== -1) {
+            const [moved] = blocks.splice(from, 1);
+            if (to > from) {
+                to -= 1;
+            }
+            blocks.splice(to, 0, moved);
+            markDirty();
+            render();
+        }
+        dragUid = null;
+        clearDropMarks();
+    });
+    blockList.addEventListener('dragend', () => {
+        dragUid = null;
+        clearDropMarks();
+    });
+
     if (form) {
-        form.addEventListener('submit', serialize);
+        form.addEventListener('submit', () => { serialize(); clearDirty(); });
     }
 
     const visual = el('div', 'be-visual');

@@ -1,0 +1,1043 @@
+// The Desk — iEDIFY Africa's editorial studio theme for the CMS.
+// Reskins AdminLTE v4 / Bootstrap 5 via CSS variables and targeted
+// component overrides. Token values mirror the public site's
+// _tokens.scss so the CMS is unmistakably the same organisation.
+
+// ------------------------------------------------------------------
+// Self-hosted faces (OFL) — same files the public site serves
+// ------------------------------------------------------------------
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/fraunces-var.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('/fonts/instrument-sans-var.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('/fonts/instrument-sans-italic-var.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+// ------------------------------------------------------------------
+// Design tokens
+// ------------------------------------------------------------------
+:root {
+  --desk-paper: #fbfaf4;
+  --desk-raised: #ffffff;
+  --desk-sand: #f3efe1;
+  --desk-sand-deep: #eae4cf;
+  --desk-ink: #1e241f;
+  --desk-ink-soft: #4d574e;
+  --desk-ink-faint: #77816f;
+  --desk-forest: #173d29;
+  --desk-forest-deep: #0f2c1d;
+  --desk-moss: #245c38;
+  --desk-leaf: #6ebd52;
+  --desk-leaf-bright: #a5da8c;
+  --desk-leaf-soft: #dff0d5;
+  --desk-clay: #be4210;
+  --desk-clay-deep: #99300a;
+  --desk-ember: #8c0e20;
+  --desk-sun: #f39a1e;
+  --desk-sun-deep: #e0850a;
+  --desk-sun-soft: #fdeed6;
+  --desk-line: #e3e0d2;
+  --desk-line-strong: #cfcaba;
+  --desk-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --desk-body: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+  --desk-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  // Bootstrap variable layer — components that honour --bs-* re-theme
+  // for free.
+  --bs-body-font-family: var(--desk-body);
+  --bs-body-color: var(--desk-ink);
+  --bs-body-bg: var(--desk-paper);
+  --bs-secondary-color: var(--desk-ink-soft);
+  --bs-tertiary-bg: var(--desk-sand);
+  --bs-border-color: var(--desk-line);
+  --bs-primary: var(--desk-clay);
+  --bs-primary-rgb: 190, 66, 16;
+  --bs-success: var(--desk-moss);
+  --bs-success-rgb: 36, 92, 56;
+  --bs-danger: var(--desk-ember);
+  --bs-danger-rgb: 140, 14, 32;
+  --bs-warning: var(--desk-sun);
+  --bs-warning-rgb: 243, 154, 30;
+  --bs-info: var(--desk-moss);
+  --bs-info-rgb: 36, 92, 56;
+  --bs-link-color: var(--desk-moss);
+  --bs-link-color-rgb: 36, 92, 56;
+  --bs-link-hover-color: var(--desk-forest);
+  --bs-link-hover-color-rgb: 23, 61, 41;
+  --bs-border-radius: 0.55rem;
+  --bs-border-radius-sm: 0.4rem;
+  --bs-border-radius-lg: 0.75rem;
+}
+
+body {
+  font-family: var(--desk-body);
+  background-color: var(--desk-paper);
+  color: var(--desk-ink);
+}
+
+// ------------------------------------------------------------------
+// Sidebar — the signature element. Deep forest with a woven
+// clay/sun/leaf edge stripe, a quiet kente nod.
+// ------------------------------------------------------------------
+.app-sidebar {
+  --bs-body-bg: var(--desk-forest-deep);
+  background: linear-gradient(180deg, var(--desk-forest-deep) 0%, var(--desk-forest) 100%);
+  box-shadow: none;
+  border-right: 4px solid transparent;
+  border-image: linear-gradient(
+    180deg,
+    var(--desk-clay) 0%,
+    var(--desk-clay) 33%,
+    var(--desk-sun) 33%,
+    var(--desk-sun) 66%,
+    var(--desk-leaf) 66%,
+    var(--desk-leaf) 100%
+  ) 1;
+
+  .sidebar-brand {
+    border-bottom: 1px solid rgba(165, 218, 140, 0.15);
+    padding: 1.1rem 0;
+
+    .brand-link {
+      text-decoration: none;
+    }
+
+    .brand-text {
+      font-family: var(--desk-display);
+      font-weight: 600;
+      font-size: 1.3rem;
+      letter-spacing: 0.01em;
+      color: var(--desk-leaf-bright);
+    }
+
+    .brand-tag {
+      display: block;
+      font-family: var(--desk-body);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(165, 218, 140, 0.55);
+      margin-top: -0.1rem;
+    }
+  }
+
+  .nav-header {
+    font-family: var(--desk-body);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: rgba(165, 218, 140, 0.5);
+    padding: 0.9rem 1rem 0.3rem;
+  }
+
+  .sidebar-menu {
+    .nav-link {
+      color: rgba(223, 240, 213, 0.82);
+      border-radius: 0.5rem;
+      margin: 0 0.4rem;
+
+      &:hover {
+        color: #fff;
+        background: rgba(165, 218, 140, 0.1);
+      }
+
+      &.active {
+        color: var(--desk-forest-deep);
+        background: var(--desk-leaf);
+        font-weight: 600;
+
+        .nav-icon {
+          color: var(--desk-forest-deep);
+        }
+      }
+
+      .nav-icon {
+        color: rgba(165, 218, 140, 0.6);
+      }
+    }
+
+    .nav-treeview .nav-link {
+      font-size: 0.92em;
+    }
+  }
+}
+
+// ------------------------------------------------------------------
+// Top navbar
+// ------------------------------------------------------------------
+.app-header.navbar {
+  background: var(--desk-paper);
+  border-bottom: 1px solid var(--desk-line);
+  box-shadow: none;
+
+  .nav-link {
+    color: var(--desk-ink-soft);
+
+    &:hover {
+      color: var(--desk-forest);
+    }
+  }
+}
+
+// ------------------------------------------------------------------
+// Content header — masthead: eyebrow + Fraunces title + rule
+// ------------------------------------------------------------------
+.app-content-header {
+  padding-top: 1.4rem;
+  border-bottom: 1px solid var(--desk-line);
+
+  h3 {
+    font-family: var(--desk-display);
+    font-weight: 550;
+    font-size: 1.9rem;
+    letter-spacing: 0.005em;
+    color: var(--desk-ink);
+  }
+
+  .page-eyebrow {
+    font-family: var(--desk-body);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--desk-clay);
+    margin-bottom: 0.15rem;
+  }
+
+  .breadcrumb {
+    font-size: 0.85rem;
+
+    .breadcrumb-item a {
+      color: var(--desk-moss);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .breadcrumb-item.active {
+      color: var(--desk-ink-faint);
+    }
+  }
+}
+
+.app-content {
+  padding-top: 1.25rem;
+}
+
+.app-footer {
+  background: var(--desk-sand);
+  border-top: 1px solid var(--desk-line);
+  color: var(--desk-ink-faint);
+  font-size: 0.82rem;
+}
+
+// ------------------------------------------------------------------
+// Cards
+// ------------------------------------------------------------------
+.card {
+  background: var(--desk-raised);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--bs-border-radius-lg);
+  box-shadow: 0 1px 2px rgba(30, 36, 31, 0.05);
+
+  .card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--desk-line);
+    padding: 0.85rem 1.15rem;
+
+    .card-title {
+      font-family: var(--desk-body);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--desk-ink-soft);
+      margin-bottom: 0;
+    }
+  }
+
+  .card-footer {
+    background: var(--desk-sand);
+    border-top: 1px solid var(--desk-line);
+  }
+}
+
+// ------------------------------------------------------------------
+// Buttons — clay primary, forest publish, quiet outlines
+// ------------------------------------------------------------------
+.btn {
+  --bs-btn-font-weight: 600;
+  border-radius: 0.5rem;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--desk-clay);
+  --bs-btn-border-color: var(--desk-clay);
+  --bs-btn-hover-bg: var(--desk-clay-deep);
+  --bs-btn-hover-border-color: var(--desk-clay-deep);
+  --bs-btn-active-bg: var(--desk-clay-deep);
+  --bs-btn-active-border-color: var(--desk-clay-deep);
+  --bs-btn-disabled-bg: #d58a68;
+  --bs-btn-disabled-border-color: #d58a68;
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+}
+
+.btn-success {
+  --bs-btn-bg: var(--desk-forest);
+  --bs-btn-border-color: var(--desk-forest);
+  --bs-btn-hover-bg: var(--desk-moss);
+  --bs-btn-hover-border-color: var(--desk-moss);
+  --bs-btn-active-bg: var(--desk-moss);
+  --bs-btn-active-border-color: var(--desk-moss);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+}
+
+.btn-danger {
+  --bs-btn-bg: var(--desk-ember);
+  --bs-btn-border-color: var(--desk-ember);
+  --bs-btn-hover-bg: #6f0a19;
+  --bs-btn-hover-border-color: #6f0a19;
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--desk-clay);
+  --bs-btn-border-color: var(--desk-clay);
+  --bs-btn-hover-bg: var(--desk-clay);
+  --bs-btn-hover-border-color: var(--desk-clay);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--desk-clay-deep);
+  --bs-btn-active-border-color: var(--desk-clay-deep);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--desk-ink-soft);
+  --bs-btn-border-color: var(--desk-line-strong);
+  --bs-btn-hover-bg: var(--desk-sand);
+  --bs-btn-hover-border-color: var(--desk-line-strong);
+  --bs-btn-hover-color: var(--desk-ink);
+  --bs-btn-active-bg: var(--desk-sand-deep);
+  --bs-btn-active-border-color: var(--desk-line-strong);
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--desk-ember);
+  --bs-btn-border-color: var(--desk-ember);
+  --bs-btn-hover-bg: var(--desk-ember);
+  --bs-btn-hover-border-color: var(--desk-ember);
+  --bs-btn-hover-color: #fff;
+}
+
+.btn-outline-success {
+  --bs-btn-color: var(--desk-forest);
+  --bs-btn-border-color: var(--desk-forest);
+  --bs-btn-hover-bg: var(--desk-forest);
+  --bs-btn-hover-border-color: var(--desk-forest);
+  --bs-btn-hover-color: #fff;
+}
+
+// ------------------------------------------------------------------
+// Badges — soft tinted pills instead of saturated fills
+// ------------------------------------------------------------------
+.badge {
+  font-family: var(--desk-body);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  &.text-bg-primary { background: var(--desk-sun-soft) !important; color: var(--desk-clay-deep) !important; }
+  &.text-bg-secondary { background: var(--desk-sand-deep) !important; color: var(--desk-ink-soft) !important; }
+  &.text-bg-success { background: var(--desk-leaf-soft) !important; color: var(--desk-forest) !important; }
+  &.text-bg-danger { background: #f6dfe2 !important; color: var(--desk-ember) !important; }
+  &.text-bg-warning { background: var(--desk-sun-soft) !important; color: var(--desk-clay-deep) !important; }
+  &.text-bg-info { background: var(--desk-leaf-soft) !important; color: var(--desk-moss) !important; }
+  &.text-bg-dark { background: var(--desk-ink) !important; color: var(--desk-sand) !important; }
+  &.text-bg-light { background: var(--desk-paper) !important; color: var(--desk-ink-soft) !important; }
+}
+
+// ------------------------------------------------------------------
+// Forms
+// ------------------------------------------------------------------
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--desk-ink-soft);
+}
+
+.form-control,
+.form-select {
+  background-color: var(--desk-raised);
+  border-color: var(--desk-line-strong);
+  color: var(--desk-ink);
+
+  &:focus {
+    background-color: var(--desk-raised);
+    border-color: var(--desk-moss);
+    box-shadow: 0 0 0 0.2rem rgba(110, 189, 82, 0.18);
+  }
+}
+
+.form-control::placeholder {
+  color: var(--desk-ink-faint);
+}
+
+.form-text {
+  color: var(--desk-ink-faint);
+}
+
+.input-group-text {
+  background: var(--desk-sand);
+  border-color: var(--desk-line-strong);
+  color: var(--desk-ink-soft);
+}
+
+// ------------------------------------------------------------------
+// Tables
+// ------------------------------------------------------------------
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-striped-bg: var(--desk-sand);
+  --bs-table-hover-bg: var(--desk-sun-soft);
+  --bs-table-border-color: var(--desk-line);
+  color: var(--desk-ink);
+
+  > thead > tr > th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--desk-ink-faint);
+    border-bottom: 2px solid var(--desk-line-strong);
+    padding: 0.7rem 0.75rem;
+  }
+
+  > tbody > tr > td {
+    padding: 0.7rem 0.75rem;
+    vertical-align: middle;
+  }
+}
+
+// ------------------------------------------------------------------
+// Alerts
+// ------------------------------------------------------------------
+.alert {
+  border-radius: var(--bs-border-radius);
+  border-width: 1px;
+
+  &.alert-warning {
+    background: var(--desk-sun-soft);
+    border-color: var(--desk-sun);
+    color: var(--desk-clay-deep);
+  }
+
+  &.alert-success {
+    background: var(--desk-leaf-soft);
+    border-color: var(--desk-leaf);
+    color: var(--desk-forest);
+  }
+
+  &.alert-danger {
+    background: #f6dfe2;
+    border-color: var(--desk-ember);
+    color: var(--desk-ember);
+  }
+
+  &.alert-info {
+    background: #e9f3e2;
+    border-color: var(--desk-moss);
+    color: var(--desk-forest);
+  }
+
+  .alert-heading {
+    font-family: var(--desk-body);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+}
+
+// Components that use literal hexes rather than the --bs-* vars
+.nav-pills {
+  .nav-link {
+    color: var(--desk-ink-soft);
+    font-weight: 600;
+
+    &:hover {
+      color: var(--desk-forest);
+    }
+
+    &.active {
+      background: var(--desk-forest) !important;
+      color: #fff;
+    }
+  }
+}
+
+.btn-outline-warning {
+  --bs-btn-color: var(--desk-sun-deep);
+  --bs-btn-border-color: var(--desk-sun-deep);
+  --bs-btn-hover-bg: var(--desk-sun);
+  --bs-btn-hover-border-color: var(--desk-sun);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--desk-sun-deep);
+  --bs-btn-active-border-color: var(--desk-sun-deep);
+}
+
+.btn-secondary {
+  --bs-btn-bg: var(--desk-sand-deep);
+  --bs-btn-border-color: var(--desk-line-strong);
+  --bs-btn-color: var(--desk-ink);
+  --bs-btn-hover-bg: var(--desk-line);
+  --bs-btn-hover-border-color: var(--desk-line-strong);
+  --bs-btn-hover-color: var(--desk-ink);
+}
+
+.form-check-input {
+  border-color: var(--desk-line-strong);
+
+  &:checked {
+    background-color: var(--desk-forest);
+    border-color: var(--desk-forest);
+  }
+
+  &:focus {
+    border-color: var(--desk-moss);
+    box-shadow: 0 0 0 0.2rem rgba(110, 189, 82, 0.18);
+  }
+}
+
+.dropdown-item:active {
+  background: var(--desk-leaf-soft);
+  color: var(--desk-forest);
+}
+
+.list-group-item.active {
+  background: var(--desk-forest);
+  border-color: var(--desk-forest);
+}
+
+.page-link {
+  color: var(--desk-moss);
+}
+
+.page-item.active .page-link {
+  background: var(--desk-forest);
+  border-color: var(--desk-forest);
+}
+
+.progress-bar {
+  background: var(--desk-leaf);
+}
+
+// ------------------------------------------------------------------
+// Dropdowns, modals, list groups
+// ------------------------------------------------------------------
+.dropdown-menu {
+  --bs-dropdown-bg: var(--desk-raised);
+  --bs-dropdown-link-color: var(--desk-ink);
+  --bs-dropdown-link-hover-bg: var(--desk-sand);
+  --bs-dropdown-link-hover-color: var(--desk-ink);
+  --bs-dropdown-border-color: var(--desk-line-strong);
+  box-shadow: 0 8px 24px rgba(30, 36, 31, 0.12);
+}
+
+.modal-content {
+  background: var(--desk-paper);
+  border-color: var(--desk-line-strong);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--desk-line);
+}
+
+.list-group-item {
+  --bs-list-group-bg: var(--desk-raised);
+  --bs-list-group-border-color: var(--desk-line);
+  color: var(--desk-ink);
+}
+
+// ------------------------------------------------------------------
+// Small boxes (dashboard stats) — paper cards, Fraunces numbers
+// ------------------------------------------------------------------
+.small-box {
+  border-radius: var(--bs-border-radius-lg);
+  border: 1px solid var(--desk-line);
+  background: var(--desk-raised);
+  color: var(--desk-ink);
+  box-shadow: 0 1px 2px rgba(30, 36, 31, 0.05);
+
+  &.text-bg-primary,
+  &.text-bg-warning,
+  &.text-bg-info,
+  &.text-bg-secondary,
+  &.text-bg-success,
+  &.text-bg-danger {
+    background: var(--desk-raised) !important;
+    color: var(--desk-ink) !important;
+  }
+
+  .inner {
+    padding: 1rem 1.15rem;
+
+    h3 {
+      font-family: var(--desk-display);
+      font-weight: 600;
+      font-size: 2.4rem;
+      color: var(--desk-forest);
+    }
+
+    p {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--desk-ink-faint);
+    }
+  }
+
+  .small-box-icon {
+    color: var(--desk-sand-deep) !important;
+  }
+
+  .small-box-footer {
+    background: var(--desk-sand);
+    color: var(--desk-forest) !important;
+    font-weight: 600;
+    font-size: 0.82rem;
+    border-radius: 0 0 var(--bs-border-radius-lg) var(--bs-border-radius-lg);
+
+    &:hover {
+      background: var(--desk-sand-deep);
+      color: var(--desk-clay) !important;
+    }
+  }
+}
+
+// ------------------------------------------------------------------
+// Login page — a quiet, branded door
+// ------------------------------------------------------------------
+.login-page {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, var(--desk-sun-soft) 0%, transparent 60%),
+    var(--desk-paper);
+}
+
+.login-box {
+  .login-logo a {
+    font-family: var(--desk-display);
+    font-size: 1.9rem;
+    font-weight: 550;
+    color: var(--desk-forest);
+    text-decoration: none;
+
+    b {
+      color: var(--desk-clay);
+      font-weight: 600;
+    }
+  }
+
+  .card {
+    border: 1px solid var(--desk-line-strong);
+    box-shadow: 0 12px 40px rgba(15, 44, 29, 0.1);
+    border-top: 4px solid transparent;
+    border-image: linear-gradient(90deg, var(--desk-clay), var(--desk-sun), var(--desk-leaf)) 1;
+  }
+
+  .login-box-msg {
+    color: var(--desk-ink-soft);
+    font-size: 0.92rem;
+  }
+}
+
+// ------------------------------------------------------------------
+// The Desk — editor workspace skin
+// ------------------------------------------------------------------
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1.25rem;
+  align-items: start;
+
+  @media (max-width: 991.98px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editor-rail {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (max-width: 991.98px) {
+    position: static;
+  }
+}
+
+.editor-canvas {
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  // Title field styled as a page heading input
+  .editor-title-input {
+    font-family: var(--desk-display);
+    font-size: 1.7rem;
+    font-weight: 550;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    padding: 0.25rem 0;
+    color: var(--desk-ink);
+
+    &:focus {
+      background: transparent;
+      border-bottom-color: var(--desk-clay);
+      box-shadow: none;
+    }
+
+    &::placeholder {
+      color: var(--desk-line-strong);
+    }
+  }
+}
+
+// Right-rail panels
+.rail-panel {
+  .card-header .card-title {
+    font-size: 0.68rem;
+  }
+}
+
+.publish-panel {
+  .publish-status {
+    font-size: 0.85rem;
+    color: var(--desk-ink-soft);
+  }
+
+  .publish-actions .btn {
+    border-radius: 0.5rem;
+  }
+}
+
+// Block cards inside the editor
+.be-block {
+  border: 1px solid var(--desk-line-strong);
+  border-radius: 0.6rem;
+  box-shadow: 0 1px 2px rgba(30, 36, 31, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: var(--desk-moss);
+  }
+
+  &.dragging {
+    opacity: 0.45;
+    border-style: dashed;
+  }
+
+  .card-header {
+    padding: 0.5rem 0.85rem;
+    background: var(--desk-sand);
+    border-bottom: 1px solid var(--desk-line);
+    border-radius: 0.6rem 0.6rem 0 0;
+    cursor: default;
+  }
+
+  .be-grip {
+    cursor: grab;
+    color: var(--desk-ink-faint);
+    padding: 0 0.2rem;
+
+    &:hover {
+      color: var(--desk-forest);
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  .card-body {
+    padding: 0.9rem 1rem;
+  }
+}
+
+// Insert-between divider
+.be-inserter {
+  position: relative;
+  height: 14px;
+  margin: -4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+
+  &:hover,
+  &:focus-within {
+    opacity: 1;
+  }
+
+  .be-inserter-btn {
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--desk-line-strong);
+    background: var(--desk-raised);
+    color: var(--desk-moss);
+    box-shadow: 0 1px 3px rgba(30, 36, 31, 0.12);
+
+    &:hover {
+      background: var(--desk-forest);
+      border-color: var(--desk-forest);
+      color: #fff;
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--desk-line-strong);
+    z-index: -1;
+  }
+}
+
+// Drop indicator shown while dragging
+.be-block.drop-above {
+  box-shadow: 0 -3px 0 0 var(--desk-clay);
+}
+
+.be-block.drop-below {
+  box-shadow: 0 3px 0 0 var(--desk-clay);
+}
+
+// ------------------------------------------------------------------
+// Quill — harmonise the snow theme with the desk
+// ------------------------------------------------------------------
+.ql-toolbar.ql-snow {
+  border-color: var(--desk-line-strong);
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--desk-sand);
+  font-family: var(--desk-body);
+}
+
+.ql-container.ql-snow {
+  border-color: var(--desk-line-strong);
+  border-radius: 0 0 0.5rem 0.5rem;
+  background: var(--desk-raised);
+  font-family: var(--desk-body);
+  font-size: 0.95rem;
+}
+
+.ql-snow .ql-stroke {
+  stroke: var(--desk-ink-soft);
+}
+
+.ql-snow .ql-fill {
+  fill: var(--desk-ink-soft);
+}
+
+.ql-toolbar.ql-snow .ql-picker-label {
+  color: var(--desk-ink-soft);
+}
+
+// ------------------------------------------------------------------
+// Content list tabs
+// ------------------------------------------------------------------
+.desk-tabs {
+  border-bottom: 1px solid var(--desk-line);
+  margin-bottom: 1rem;
+
+  .nav-link {
+    color: var(--desk-ink-soft);
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 0.5rem 0.9rem;
+
+    &:hover {
+      color: var(--desk-forest);
+      border-bottom-color: var(--desk-leaf);
+    }
+
+    &.active {
+      color: var(--desk-forest);
+      border-bottom-color: var(--desk-clay);
+      background: transparent;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      vertical-align: 1px;
+    }
+  }
+}
+
+// Status pills used across lists
+.status-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+
+  &.status-published { background: var(--desk-leaf-soft); color: var(--desk-forest); }
+  &.status-draft { background: var(--desk-sand-deep); color: var(--desk-ink-soft); }
+  &.status-review { background: var(--desk-sun-soft); color: var(--desk-clay-deep); }
+  &.status-archived { background: var(--desk-ink); color: var(--desk-sand); }
+}
+
+// ------------------------------------------------------------------
+// Studio dashboard
+// ------------------------------------------------------------------
+.studio-masthead {
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--desk-line);
+  margin-bottom: 1.4rem;
+
+  .studio-greeting {
+    font-family: var(--desk-display);
+    font-weight: 550;
+    font-size: 2rem;
+    color: var(--desk-ink);
+    margin-bottom: 0.1rem;
+  }
+
+  .studio-date {
+    font-size: 0.85rem;
+    color: var(--desk-ink-faint);
+  }
+}
+
+.attention-card {
+  border-left: 4px solid var(--desk-sun);
+
+  &.attention-ok {
+    border-left-color: var(--desk-leaf);
+  }
+}
+
+// ------------------------------------------------------------------
+// Toasts
+// ------------------------------------------------------------------
+.desk-toast-container {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 1080;
+
+  .toast {
+    background: var(--desk-forest);
+    color: var(--desk-leaf-bright);
+    border: none;
+    box-shadow: 0 8px 24px rgba(15, 44, 29, 0.35);
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+}
+
+// ------------------------------------------------------------------
+// Misc
+// ------------------------------------------------------------------
+
+// Sizing utilities — the CSP forbids inline style attributes, so
+// widths/max-widths must come from classes.
+.desk-mw-36 { max-width: 36rem; }
+.desk-mw-40 { max-width: 40rem; }
+.desk-mw-48 { max-width: 48rem; }
+.desk-w-5 { width: 5rem; }
+.desk-w-6 { width: 6rem; }
+.desk-w-7 { width: 7rem; }
+.desk-w-9 { width: 9rem; }
+.desk-clickable { cursor: pointer; }
+.desk-num { font-family: var(--desk-display); }
+.desk-portrait {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: 2px solid var(--desk-line);
+}
+.desk-avatar-fallback {
+  width: 56px;
+  height: 56px;
+  background: var(--desk-sand);
+  color: var(--desk-ink-faint);
+  font-family: var(--desk-display);
+  font-size: 1.4rem;
+}
+.media-thumb-img { max-width: 64px; max-height: 64px; object-fit: cover; }
+.be-thumb { max-width: 96px; max-height: 64px; object-fit: cover; }
+.be-quill-holder { min-height: 140px; }
+.be-empty { border: 2px dashed var(--desk-line-strong); }
+.media-tile-fallback { min-height: 8rem; }
+
+code {
+  color: var(--desk-clay-deep);
+  background: var(--desk-sand);
+  padding: 0.1em 0.35em;
+  border-radius: 0.3rem;
+  font-family: var(--desk-mono);
+  font-size: 0.85em;
+}
+
+a {
+  color: var(--desk-moss);
+
+  &:hover {
+    color: var(--desk-forest);
+  }
+}
+
+.text-body-secondary {
+  color: var(--desk-ink-soft) !important;
+}
+
+// Focus visibility
+:focus-visible {
+  outline: 2px solid var(--desk-clay);
+  outline-offset: 2px;
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .be-block,
+  .be-inserter,
+  .toast {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -4,7 +4,7 @@
 {% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/programs">Programs</a></li><li class="breadcrumb-item active" aria-current="page">{{ program.title }}</li>{% endblock %}
 {% block admin %}
 <p class="text-body-secondary"><code>{{ program.slug }}</code> · status <span class="badge text-bg-{{ program.status == 'open' ? 'success' : 'secondary' }}">{{ program.status }}</span> · version {{ program.version }}</p>
-<div class="card mb-4" style="max-width:36rem">
+<div class="card mb-4 desk-mw-36">
     <div class="card-body">
         <form method="post" action="/admin/programs/{{ program.id }}/status" class="row g-2 align-items-end">
             <input type="hidden" name="_csrf" value="{{ csrf.token() }}">

@@ -38,7 +38,7 @@
 </div>
 
 {% if can_manage %}
-<div class="card mb-4" style="max-width:40rem">
+<div class="card mb-4 desk-mw-40">
     <div class="card-header"><h3 class="card-title">Workflow</h3></div>
     <form method="post" action="/admin/applications/{{ application.id }}/transition">
         <div class="card-body">
@@ -83,7 +83,7 @@
 {% endif %}
 
 {% if can_review %}
-<div class="card mb-4" style="max-width:40rem">
+<div class="card mb-4 desk-mw-40">
     <div class="card-header"><h3 class="card-title">Your review</h3></div>
     <form method="post" action="/admin/applications/{{ application.id }}/review">
         <div class="card-body">
@@ -117,7 +117,7 @@
 {% endif %}
 
 {% if can_enroll and application.status == 'accepted' %}
-<div class="card" style="max-width:40rem">
+<div class="card desk-mw-40">
     <div class="card-header"><h3 class="card-title">Enrollment</h3></div>
     <div class="card-body">
         <form method="post" action="/admin/applications/{{ application.id }}/enroll" class="row g-2 align-items-end">

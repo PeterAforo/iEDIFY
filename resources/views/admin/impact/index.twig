@@ -47,8 +47,8 @@
                     <td>
                         <form method="post" action="/admin/impact/indicators/{{ indicator.id }}/targets" class="d-flex gap-2 align-items-center">
                             <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-                            <input type="text" name="period" pattern="\d{4}(-\d{2})?" placeholder="2026" size="7" required class="form-control form-control-sm" aria-label="Period" style="width:6rem">
-                            <input type="number" name="target" min="0" step="any" required class="form-control form-control-sm" aria-label="Target" style="width:7rem">
+                            <input type="text" name="period" pattern="\d{4}(-\d{2})?" placeholder="2026" size="7" required class="form-control form-control-sm desk-w-6" aria-label="Period">
+                            <input type="number" name="target" min="0" step="any" required class="form-control form-control-sm desk-w-7" aria-label="Target">
                             <button type="submit" class="btn btn-outline-primary btn-sm">Save</button>
                         </form>
                     </td>

@@ -22,7 +22,7 @@
 </div>
 {% endif %}
 {% if request.rules %}
-<div class="card mb-4" style="max-width:40rem">
+<div class="card mb-4 desk-mw-40">
     <div class="card-header"><h3 class="card-title">Scorecard (v{{ request.rules.version }}, max {{ request.rules.max_score }})</h3></div>
     <form method="post" action="/admin/funding/requests/{{ request.id }}/reviews">
         <div class="card-body">
@@ -132,7 +132,7 @@
             <div class="col-12"><button type="submit" class="btn btn-primary">Schedule disbursement</button></div>
         </form>
         {% elseif request.status == 'approved' %}
-        <form method="post" action="/admin/funding/requests/{{ request.id }}/award" class="row g-3" style="max-width:40rem">
+        <form method="post" action="/admin/funding/requests/{{ request.id }}/award" class="row g-3 desk-mw-40">
             <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
             <div class="col-md-6"><label class="form-label">Award amount ({{ request.currency }})<input type="number" name="amount" min="0.01" max="{{ request.requested_amount }}" step="0.01" required class="form-control"></label></div>
             <div class="col-12"><label class="form-label">Conditions<textarea name="conditions" maxlength="8000" class="form-control"></textarea></label></div>

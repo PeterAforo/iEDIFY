@@ -18,6 +18,13 @@ final class DashboardController extends Controller
             'media_pending' => (int) $pdo->query("SELECT COUNT(*) FROM media_assets WHERE review_status = 'pending'")->fetchColumn(),
             'outbox_pending' => (int) $pdo->query("SELECT COUNT(*) FROM outbox_events WHERE status = 'pending'")->fetchColumn(),
         ];
-        return $this->render('admin/dashboard.twig', ['counts' => $counts]);
+        $recent = $pdo->query('SELECT id, title, slug, content_type, status, updated_at FROM content_items ORDER BY updated_at DESC LIMIT 6')->fetchAll();
+        $hour = (int) (new \DateTimeImmutable('now', new \DateTimeZone('Africa/Accra')))->format('G');
+        $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+        return $this->render('admin/dashboard.twig', [
+            'counts' => $counts,
+            'recent' => $recent,
+            'greeting' => $greeting,
+        ]);
     }
 }

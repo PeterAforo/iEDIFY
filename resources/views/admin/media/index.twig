@@ -31,7 +31,7 @@
             {% if asset.mime starts with 'image/' %}
             <img src="/media/{{ asset.id }}" class="card-img-top" alt="{{ asset.alt_text }}" loading="lazy">
             {% else %}
-            <div class="card-img-top d-flex align-items-center justify-content-center bg-body-tertiary" style="min-height:8rem"><span class="badge text-bg-secondary">{{ asset.mime }}</span></div>
+            <div class="card-img-top d-flex align-items-center justify-content-center bg-body-tertiary media-tile-fallback"><span class="badge text-bg-secondary">{{ asset.mime }}</span></div>
             {% endif %}
             <div class="card-body">
                 <p class="card-title fw-bold mb-1">{{ asset.original_filename }}</p>

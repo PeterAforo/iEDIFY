@@ -14,14 +14,14 @@
                     <td><input type="text" name="kicker" value="{{ slide.kicker }}" maxlength="255" class="form-control form-control-sm" form="hero-{{ slide.id }}"></td>
                     <td>
                         <input type="hidden" name="media_id" id="hero-media-{{ slide.id }}" value="{{ slide.media_id }}" form="hero-{{ slide.id }}">
-                        <div id="hero-media-preview-{{ slide.id }}" data-media-preview>{% if slide.media_id %}<img src="/media/{{ slide.media_id }}" alt="" class="rounded mb-1" style="max-width:72px;max-height:48px;object-fit:cover;">{% endif %}</div>
+                        <div id="hero-media-preview-{{ slide.id }}" data-media-preview>{% if slide.media_id %}<img src="/media/{{ slide.media_id }}" alt="" class="rounded mb-1 media-thumb-img">{% endif %}</div>
                         <button type="button" class="btn btn-outline-secondary btn-sm" data-media-picker data-media-kind="image" data-media-target="#hero-media-{{ slide.id }}" data-media-preview="#hero-media-preview-{{ slide.id }}"><i class="bi bi-images"></i></button>
                     </td>
                     <td>
                         <input type="text" name="cta_label" value="{{ slide.cta_label }}" maxlength="80" placeholder="Label" class="form-control form-control-sm mb-1" form="hero-{{ slide.id }}">
                         <input type="text" name="cta_url" value="{{ slide.cta_url }}" maxlength="500" placeholder="/path" class="form-control form-control-sm" form="hero-{{ slide.id }}">
                     </td>
-                    <td><input type="number" name="sort" value="{{ slide.sort }}" min="0" max="999" class="form-control form-control-sm" style="width:5rem" form="hero-{{ slide.id }}"></td>
+                    <td><input type="number" name="sort" value="{{ slide.sort }}" min="0" max="999" class="form-control form-control-sm desk-w-5" form="hero-{{ slide.id }}"></td>
                     <td class="text-center"><input type="checkbox" name="enabled" value="1" class="form-check-input"{% if slide.enabled %} checked{% endif %} form="hero-{{ slide.id }}"></td>
                     <td>
                         <form id="hero-{{ slide.id }}" method="post" action="/admin/hero">

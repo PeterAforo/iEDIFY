@@ -1,76 +1,94 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Edit {{ member.display_name }} | iEDIFY Africa{% endblock %}
-{% block page_title %}Edit team member{% endblock %}
+{% block page_eyebrow %}Team{% endblock %}
+{% block page_title %}{{ member.display_name }}{% endblock %}
 {% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/team">Team</a></li><li class="breadcrumb-item active" aria-current="page">{{ member.display_name }}</li>{% endblock %}
 {% block extra_head %}
-    {% for stylesheet in asset_styles('resources/assets/scripts/editor.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
+    {% for stylesheet in asset_styles('resources/assets/scripts/editor.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{%- endfor %}
     <script type="module" src="{{ asset('resources/assets/scripts/editor.js') }}"></script>
 {% endblock %}
 {% block admin %}
-<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-    <code>{{ member.slug }}</code>
-    <span class="badge text-bg-{{ member.status == 'published' ? 'success' : 'secondary' }}">{{ member.status }}</span>
-    {% if member.status == 'published' %}<a href="{{ member.slug }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm ms-auto"><i class="bi bi-box-arrow-up-right me-1"></i>View profile</a>{% endif %}
-</div>
-<div class="card mb-4">
-    <div class="card-header"><h3 class="card-title">Member details &amp; bio</h3></div>
-    <form method="post" action="/admin/team/{{ member.id }}">
-        <div class="card-body">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <input type="hidden" name="version" value="{{ member.version }}">
-            <input type="hidden" name="sections" value="{{ latest ? latest.sections : '[]' }}">
-            <div class="row g-3">
-                <div class="col-md-6">
+<div class="editor-grid">
+    <div>
+        <div class="card editor-canvas">
+            <div class="card-header"><h3 class="card-title">Bio page content</h3></div>
+            <form method="post" action="/admin/team/{{ member.id }}" id="member-form">
+                <div class="card-body">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <input type="hidden" name="version" value="{{ member.version }}">
+                    <input type="hidden" name="sections" value="{{ latest ? latest.sections : '[]' }}">
+                    <p class="text-body-secondary small">This is the member's public profile at <code>{{ member.slug }}</code>. Add paragraphs, quotes or images.</p>
+                    <div data-block-editor></div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <aside class="editor-rail">
+        <div class="card rail-panel publish-panel">
+            <div class="card-header"><h3 class="card-title">Member</h3></div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="status-pill status-{{ member.status }}">{{ member.status }}</span>
+                    <span data-be-dirty class="status-pill status-review" hidden>Unsaved changes</span>
+                </div>
+                <button type="submit" form="member-form" class="btn btn-primary w-100"><i class="bi bi-save me-1"></i>Save member</button>
+                <div class="d-flex gap-2 mt-2">
+                    {% if member.status == 'published' %}<a href="{{ member.slug }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm flex-grow-1"><i class="bi bi-box-arrow-up-right me-1"></i>View profile</a>{% endif %}
+                    <a href="/admin/content/{{ member.content_id }}" class="btn btn-outline-secondary btn-sm flex-grow-1"><i class="bi bi-arrow-repeat me-1"></i>Publishing</a>
+                </div>
+                <p class="text-body-secondary small mt-2 mb-0">Roster changes apply immediately; the bio page is published through the <a href="/admin/content/{{ member.content_id }}">content workflow</a>.</p>
+            </div>
+        </div>
+        <div class="card rail-panel">
+            <div class="card-header"><h3 class="card-title">Member details</h3></div>
+            <div class="card-body">
+                <div class="mb-3">
                     <label for="display_name" class="form-label">Full name</label>
-                    <input id="display_name" name="display_name" type="text" class="form-control" required maxlength="255" value="{{ member.display_name }}">
+                    <input id="display_name" name="display_name" form="member-form" type="text" class="form-control form-control-sm" required maxlength="255" value="{{ member.display_name }}">
                 </div>
-                <div class="col-md-6">
+                <div class="mb-3">
                     <label for="role_label" class="form-label">Role / title</label>
-                    <input id="role_label" name="role_label" type="text" class="form-control" required maxlength="255" value="{{ member.role_label }}">
+                    <input id="role_label" name="role_label" form="member-form" type="text" class="form-control form-control-sm" required maxlength="255" value="{{ member.role_label }}">
                 </div>
-                <div class="col-md-4">
+                <div class="mb-3">
                     <label for="roster_group" class="form-label">Team group</label>
-                    <select id="roster_group" name="roster_group" class="form-select">
+                    <select id="roster_group" name="roster_group" form="member-form" class="form-select form-select-sm">
                         {% for g, label in group_labels %}<option value="{{ g }}"{% if member.roster_group == g %} selected{% endif %}>{{ label }}</option>{% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label for="display_order" class="form-label">Display order</label>
-                    <input id="display_order" name="display_order" type="number" class="form-control" min="0" max="999" value="{{ member.display_order }}">
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <div class="form-check mb-2">
-                        <input id="youth_adviser" name="youth_adviser" type="checkbox" class="form-check-input" value="1"{% if member.youth_adviser %} checked{% endif %}>
-                        <label for="youth_adviser" class="form-check-label">Youth adviser</label>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label for="display_order" class="form-label">Display order</label>
+                        <input id="display_order" name="display_order" form="member-form" type="number" class="form-control form-control-sm" min="0" max="999" value="{{ member.display_order }}">
+                    </div>
+                    <div class="col-6 d-flex align-items-end">
+                        <div class="form-check mb-1">
+                            <input id="youth_adviser" name="youth_adviser" form="member-form" type="checkbox" class="form-check-input" value="1"{% if member.youth_adviser %} checked{% endif %}>
+                            <label for="youth_adviser" class="form-check-label small">Youth adviser</label>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="mt-3">
                 <label class="form-label d-block">Portrait photo</label>
-                <input type="hidden" id="portrait_asset_id" name="portrait_asset_id" value="{{ member.portrait_asset_id|default('') }}">
+                <input type="hidden" id="portrait_asset_id" name="portrait_asset_id" form="member-form" value="{{ member.portrait_asset_id|default('') }}">
                 {% set current = member.portrait_asset_id ? media[member.portrait_asset_id]|default(null) : null %}
                 <div id="portrait-preview" data-media-preview{% if current %} data-media-current="{{ {'id': member.portrait_asset_id, 'url': current.url, 'mime': current.mime, 'filename': current.filename}|json_encode }}"{% endif %}></div>
                 <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-media-picker data-media-kind="image" data-media-target="#portrait_asset_id" data-media-preview="#portrait-preview"><i class="bi bi-images me-1"></i>Choose from library</button>
             </div>
-            <hr>
-            <h4 class="h6 text-uppercase text-body-secondary">Bio page content</h4>
-            <p class="text-body-secondary small">This is the member's public profile at <code>{{ member.slug }}</code>. Add paragraphs, quotes or images.</p>
-            <div data-block-editor></div>
         </div>
-        <div class="card-footer d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Save member</button>
+        <div class="card rail-panel border-danger">
+            <div class="card-body p-0">
+                <details>
+                    <summary class="card-header d-flex align-items-center desk-clickable"><h3 class="card-title text-danger">Danger zone</h3></summary>
+                    <div class="p-3">
+                        <p class="text-body-secondary small">Removing a member takes them off the roster and archives their bio page.</p>
+                        <form method="post" action="/admin/team/{{ member.id }}/delete" onsubmit="return confirm('Remove {{ member.display_name }} from the team? Their bio page will be archived.');">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="bi bi-person-dash me-1"></i>Remove member</button>
+                        </form>
+                    </div>
+                </details>
+            </div>
         </div>
-    </form>
+    </aside>
 </div>
-<div class="card border-danger">
-    <div class="card-header"><h3 class="card-title text-danger">Danger zone</h3></div>
-    <div class="card-body d-flex align-items-center gap-2">
-        <p class="mb-0 text-body-secondary small">Removing a member takes them off the roster and archives their bio page.</p>
-        <form method="post" action="/admin/team/{{ member.id }}/delete" class="ms-auto" onsubmit="return confirm('Remove {{ member.display_name }} from the team? Their bio page will be archived.');">
-            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-            <button type="submit" class="btn btn-outline-danger"><i class="bi bi-person-dash me-1"></i>Remove member</button>
-        </form>
-    </div>
-</div>
-<p class="text-body-secondary small">Publishing the bio page happens through the <a href="/admin/content/{{ member.content_id }}">content workflow</a> — roster changes here apply immediately.</p>
 {% endblock %}

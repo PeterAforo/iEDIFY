@@ -86,6 +86,9 @@ export function openMediaPicker(kind, onPick) {
         items.forEach((item) => grid.appendChild(card(item, (picked) => {
             Modal.getOrCreateInstance(modalEl).hide();
             onPick(picked);
+            if (typeof window.cmsToast === 'function') {
+                window.cmsToast('Media selected: ' + (picked.filename || ('#' + picked.id)));
+            }
         })));
     }).catch(() => {
         empty.textContent = 'Could not load the media library.';
@@ -111,8 +114,7 @@ function renderPreview(container, item) {
         const img = document.createElement('img');
         img.src = item.url;
         img.alt = item.alt || '';
-        img.style.cssText = 'max-width:64px;max-height:64px;object-fit:cover;';
-        img.className = 'rounded';
+        img.className = 'rounded media-thumb-img';
         wrap.appendChild(img);
     } else {
         const icon = document.createElement('i');
