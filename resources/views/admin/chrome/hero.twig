@@ -2,7 +2,7 @@
 {% block title %}Hero slides | iEDIFY Africa{% endblock %}
 {% block page_title %}Hero slides{% endblock %}
 {% block admin %}
-<p class="text-body-secondary small">Slides render on the home page in sort order. Images must be approved public media (see the media library for IDs).</p>
+<p class="text-body-secondary small">Slides render on the home page in sort order. Images must be approved public media.</p>
 <div class="card mb-4">
     <div class="card-body table-responsive p-0">
         <table class="table table-hover align-middle">
@@ -12,7 +12,11 @@
                 <tr>
                     <td><input type="text" name="title" value="{{ slide.title }}" required maxlength="255" class="form-control form-control-sm" form="hero-{{ slide.id }}"></td>
                     <td><input type="text" name="kicker" value="{{ slide.kicker }}" maxlength="255" class="form-control form-control-sm" form="hero-{{ slide.id }}"></td>
-                    <td><input type="number" name="media_id" value="{{ slide.media_id }}" min="0" class="form-control form-control-sm" style="width:6rem" form="hero-{{ slide.id }}"></td>
+                    <td>
+                        <input type="hidden" name="media_id" id="hero-media-{{ slide.id }}" value="{{ slide.media_id }}" form="hero-{{ slide.id }}">
+                        <div id="hero-media-preview-{{ slide.id }}" data-media-preview>{% if slide.media_id %}<img src="/media/{{ slide.media_id }}" alt="" class="rounded mb-1" style="max-width:72px;max-height:48px;object-fit:cover;">{% endif %}</div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-media-picker data-media-kind="image" data-media-target="#hero-media-{{ slide.id }}" data-media-preview="#hero-media-preview-{{ slide.id }}"><i class="bi bi-images"></i></button>
+                    </td>
                     <td>
                         <input type="text" name="cta_label" value="{{ slide.cta_label }}" maxlength="80" placeholder="Label" class="form-control form-control-sm mb-1" form="hero-{{ slide.id }}">
                         <input type="text" name="cta_url" value="{{ slide.cta_url }}" maxlength="500" placeholder="/path" class="form-control form-control-sm" form="hero-{{ slide.id }}">
@@ -54,7 +58,12 @@
                 <div class="col-md-6 mb-3"><label class="form-label">CTA URL (site-relative)<input type="text" name="cta_url" maxlength="500" class="form-control" placeholder="/get-involved/participant"></label></div>
             </div>
             <div class="row">
-                <div class="col-md-4 mb-3"><label class="form-label">Media ID (optional)<input type="number" name="media_id" min="0" class="form-control"></label></div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label d-block">Image (optional)</label>
+                    <input type="hidden" id="hero-new-media" name="media_id" value="">
+                    <div id="hero-new-preview" data-media-preview></div>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-1" data-media-picker data-media-kind="image" data-media-target="#hero-new-media" data-media-preview="#hero-new-preview"><i class="bi bi-images me-1"></i>Choose image</button>
+                </div>
                 <div class="col-md-4 mb-3"><label class="form-label">Sort<input type="number" name="sort" value="10" min="0" max="999" class="form-control"></label></div>
                 <div class="col-md-4 mb-3 d-flex align-items-end"><div class="form-check"><input type="checkbox" name="enabled" value="1" class="form-check-input" checked id="hero-enabled"><label class="form-check-label" for="hero-enabled">Enabled</label></div></div>
             </div>

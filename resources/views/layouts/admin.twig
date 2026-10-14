@@ -60,7 +60,24 @@
                         </a>
                     </li>
                     <li class="nav-header">CONTENT</li>
-                    <li class="nav-item"><a href="/admin/content" class="nav-link{% if current_path starts with '/admin/content' %} active{% endif %}"><i class="nav-icon bi bi-file-earmark-text"></i><p>Content</p></a></li>
+                    <li class="nav-item{% if current_path starts with '/admin/content' %} menu-open{% endif %}">
+                        <a href="/admin/content" class="nav-link{% if current_path starts with '/admin/content' %} active{% endif %}">
+                            <i class="nav-icon bi bi-file-earmark-text"></i>
+                            <p>Content <i class="nav-arrow bi bi-chevron-right"></i></p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a href="/admin/content" class="nav-link"><i class="nav-icon bi bi-circle"></i><p>All content</p></a></li>
+                            <li class="nav-item"><a href="/admin/content?type=page" class="nav-link"><i class="nav-icon bi bi-file-earmark"></i><p>Pages</p></a></li>
+                            <li class="nav-item"><a href="/admin/content?type=news" class="nav-link"><i class="nav-icon bi bi-newspaper"></i><p>News &amp; stories</p></a></li>
+                            <li class="nav-item"><a href="/admin/content?type=faq" class="nav-link"><i class="nav-icon bi bi-question-circle"></i><p>FAQs</p></a></li>
+                            <li class="nav-item"><a href="/admin/content?type=publication" class="nav-link"><i class="nav-icon bi bi-journal-text"></i><p>Publications</p></a></li>
+                            <li class="nav-item"><a href="/admin/content?type=event" class="nav-link"><i class="nav-icon bi bi-calendar-event"></i><p>Events</p></a></li>
+                            <li class="nav-item"><a href="/admin/content?type=opportunity" class="nav-link"><i class="nav-icon bi bi-briefcase"></i><p>Opportunities</p></a></li>
+                            <li class="nav-item"><a href="/admin/content?type=legal" class="nav-link"><i class="nav-icon bi bi-shield-lock"></i><p>Legal pages</p></a></li>
+                            <li class="nav-item"><a href="/admin/content/new" class="nav-link"><i class="nav-icon bi bi-plus-circle"></i><p>Add new</p></a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="/admin/team" class="nav-link{% if current_path starts with '/admin/team' %} active{% endif %}"><i class="nav-icon bi bi-people"></i><p>Team</p></a></li>
                     <li class="nav-item"><a href="/admin/media" class="nav-link{% if current_path starts with '/admin/media' %} active{% endif %}"><i class="nav-icon bi bi-images"></i><p>Media</p></a></li>
                     <li class="nav-item"><a href="/admin/flags" class="nav-link{% if current_path starts with '/admin/flags' %} active{% endif %}"><i class="nav-icon bi bi-flag"></i><p>Review flags</p></a></li>
                     <li class="nav-item"><a href="/admin/menus" class="nav-link{% if current_path starts with '/admin/menus' %} active{% endif %}"><i class="nav-icon bi bi-list-ul"></i><p>Menus</p></a></li>

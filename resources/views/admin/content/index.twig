@@ -1,6 +1,7 @@
 {% extends 'layouts/admin.twig' %}
-{% block title %}Content | iEDIFY Africa{% endblock %}
-{% block page_title %}Content{% endblock %}
+{% block title %}{{ page_heading|default('Content') }} | iEDIFY Africa{% endblock %}
+{% block page_title %}{{ page_heading|default('All content') }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active" aria-current="page">{{ page_heading|default('All content') }}</li>{% endblock %}
 {% block admin %}
 <div class="card mb-4">
     <div class="card-body">
@@ -16,7 +17,7 @@
                 <label for="f-type" class="form-label">Type</label>
                 <select id="f-type" name="type" class="form-select">
                     <option value="">All</option>
-                    {% for t in ['page','legal','team','program','pillar','news','story','faq','event','opportunity','publication','hero','auth_copy'] %}<option value="{{ t }}"{% if filters.type == t %} selected{% endif %}>{{ t }}</option>{% endfor %}
+                    {% for t, label in type_labels %}<option value="{{ t }}"{% if filters.type == t %} selected{% endif %}>{{ label }}</option>{% endfor %}
                 </select>
             </div>
             <div class="col-auto">
@@ -24,28 +25,37 @@
                 <input id="f-q" name="q" type="search" maxlength="120" class="form-control" value="{{ filters.q }}">
             </div>
             <div class="col-auto">
-                <button type="submit" class="btn btn-primary">Filter</button>
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+            </div>
+            <div class="col-auto ms-auto">
+                <a href="/admin/content/new{% if filters.type in creatable_types %}?type={{ filters.type }}{% endif %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add new</a>
             </div>
         </form>
     </div>
 </div>
 <div class="card">
     <div class="card-body table-responsive p-0">
-        <table class="table table-hover text-nowrap">
-            <thead><tr><th scope="col">Title</th><th scope="col">Slug</th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Draft state</th><th scope="col">Flags</th><th scope="col">Updated (UTC)</th></tr></thead>
+        <table class="table table-hover text-nowrap mb-0">
+            <thead><tr><th scope="col">Title</th><th scope="col">URL</th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Flags</th><th scope="col">Updated (UTC)</th><th scope="col"></th></tr></thead>
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td><a href="/admin/content/{{ item.id }}">{{ item.title }}</a></td>
+                    <td><a href="/admin/content/{{ item.id }}"><strong>{{ item.title }}</strong></a></td>
                     <td><code>{{ item.slug }}</code></td>
-                    <td>{{ item.content_type }}</td>
-                    <td><span class="badge text-bg-{{ item.status == 'published' ? 'success' : (item.status == 'review' ? 'warning' : 'secondary') }}">{{ item.status }}</span></td>
-                    <td>{{ item.working_state }}</td>
+                    <td>{{ type_labels[item.content_type]|default(item.content_type) }}</td>
+                    <td>
+                        <span class="badge text-bg-{{ item.status == 'published' ? 'success' : (item.status == 'archived' ? 'dark' : (item.status == 'review' ? 'warning' : 'secondary')) }}">{{ item.status }}</span>
+                        {% if item.working_state != 'approved' and item.status != 'archived' %}<span class="badge text-bg-light border">{{ item.working_state }}</span>{% endif %}
+                    </td>
                     <td>{% if item.open_flags > 0 %}<span class="badge text-bg-danger">{{ item.open_flags }} open</span>{% else %}—{% endif %}</td>
                     <td>{{ item.updated_at }}</td>
+                    <td class="text-end">
+                        <a href="/admin/content/{{ item.id }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+                        {% if item.status == 'published' %}<a href="{{ item.slug }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm" title="View live"><i class="bi bi-box-arrow-up-right"></i></a>{% endif %}
+                    </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="7" class="text-center text-body-secondary">No content matches the current filters.</td></tr>
+                <tr><td colspan="7" class="text-center text-body-secondary py-4">No content matches the current filters. <a href="/admin/content/new">Create something</a>.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

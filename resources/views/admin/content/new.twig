@@ -1,0 +1,52 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Add content | iEDIFY Africa{% endblock %}
+{% block page_title %}Add new{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/content">Content</a></li><li class="breadcrumb-item active" aria-current="page">Add new</li>{% endblock %}
+{% block admin %}
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Create content</h3></div>
+            <form method="post" action="/admin/content/new">
+                <div class="card-body">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Content type</label>
+                        <select id="type" name="type" class="form-select">
+                            {% for t in types %}<option value="{{ t }}"{% if selected == t %} selected{% endif %}>{{ labels[t]|default(t) }}</option>{% endfor %}
+                        </select>
+                        <div class="form-text">Team members are added from the <a href="/admin/team/new">Team screen</a> so they join the roster.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input id="title" name="title" type="text" class="form-control" required maxlength="255" autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label for="slug" class="form-label">URL slug</label>
+                        <div class="input-group">
+                            <span class="input-group-text">iedifyafrica.com</span>
+                            <input id="slug" name="slug" type="text" class="form-control" required maxlength="190" pattern="/[a-z0-9/\-]+" placeholder="/my-page">
+                        </div>
+                        <div class="form-text">Lowercase letters, numbers and hyphens. For news use e.g. <code>/news/my-article</code>.</div>
+                    </div>
+                </div>
+                <div class="card-footer"><button type="submit" class="btn btn-primary">Create draft</button></div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card card-outline card-info">
+            <div class="card-header"><h3 class="card-title"><i class="bi bi-lightbulb me-1"></i>Tips</h3></div>
+            <div class="card-body small">
+                <ul class="mb-0">
+                    <li><strong>Pages</strong> get their own URL and can be linked from menus.</li>
+                    <li><strong>News articles &amp; stories</strong> appear automatically in the Latest news list.</li>
+                    <li><strong>FAQs</strong> appear on the public FAQ page — use the question as the title.</li>
+                    <li><strong>Publications</strong> get category and year fields after creating.</li>
+                    <li>New content starts as a draft — nothing is public until published.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

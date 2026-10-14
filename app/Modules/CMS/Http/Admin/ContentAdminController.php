@@ -12,6 +12,116 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class ContentAdminController extends Controller
 {
+    /** "Add new" form — pick a type, give a title and slug. */
+    public function newForm(): Response
+    {
+        $type = (string) $this->request->query->get('type', 'page');
+        return $this->render('admin/content/new.twig', [
+            'types' => \IEdify\Modules\CMS\Services\ContentTypes::CREATABLE,
+            'labels' => \IEdify\Modules\CMS\Services\ContentTypes::LABELS,
+            'selected' => in_array($type, \IEdify\Modules\CMS\Services\ContentTypes::CREATABLE, true) ? $type : 'page',
+        ]);
+    }
+
+    public function create(): Response
+    {
+        $type = (string) $this->request->request->get('type', 'page');
+        if (!in_array($type, \IEdify\Modules\CMS\Services\ContentTypes::CREATABLE, true)) {
+            $this->flash('error', 'Choose a content type you can create here. Team members are added from the Team screen.');
+            return $this->redirect('/admin/content/new');
+        }
+        $slug = '/' . ltrim((string) $this->request->request->get('slug', ''), '/');
+        $title = $this->input('title');
+        try {
+            $id = $this->app->cms()->create(
+                $this->requireActor(),
+                $type,
+                $slug,
+                $title,
+                \IEdify\Modules\CMS\Services\ContentTypes::starterBlocks($type, $title),
+            );
+        } catch (HttpError|\InvalidArgumentException $error) {
+            $this->flash('error', $error->getMessage());
+            return $this->redirect('/admin/content/new?type=' . urlencode($type));
+        }
+        $this->flash('success', 'Created. You are editing the first draft.');
+        return $this->redirect('/admin/content/' . $id);
+    }
+
+    /**
+     * One-click save and publish for actors that hold cms.publish: revise,
+     * submit for review and publish in sequence, re-reading the version
+     * between steps. Flag/media gates still apply — a blocked item is
+     * left in review and the error is surfaced.
+     */
+    public function savePublish(): Response
+    {
+        $record = $this->record();
+        $actor = $this->requireActor();
+        $id = (int) $record['id'];
+        try {
+            $sections = json_decode((string) $this->request->request->get('sections', ''), true, 512, JSON_THROW_ON_ERROR);
+            $cms = $this->app->cms();
+            $cms->revise($actor, $id, (int) $this->request->request->get('version'), $this->input('title'), $sections);
+            $cms->submitReview($actor, $id, $this->version($id));
+            $latest = $this->app->pdo()->prepare('SELECT COALESCE(MAX(revision_number), 0) FROM content_revisions WHERE content_id = ?');
+            $latest->execute([$id]);
+            $cms->publish($actor, $id, (int) $latest->fetchColumn(), $this->version($id));
+        } catch (JsonException) {
+            $this->flash('error', 'Sections must be valid JSON.');
+            return $this->redirect('/admin/content/' . $id);
+        } catch (HttpError|\InvalidArgumentException $error) {
+            $this->flash('error', $error->getMessage());
+            return $this->redirect('/admin/content/' . $id);
+        }
+        $this->flash('success', 'Published.');
+        return $this->redirect('/admin/content/' . $id);
+    }
+
+    public function archive(): Response
+    {
+        $record = $this->record();
+        try {
+            $this->app->cms()->archive($this->requireActor(), (int) $record['id'], (int) $this->request->request->get('version'));
+            $this->flash('success', 'Archived — the page is no longer public.');
+        } catch (HttpError $error) {
+            $this->flash('error', $error->getMessage());
+        }
+        return $this->redirect('/admin/content/' . (int) $record['id']);
+    }
+
+    public function unarchive(): Response
+    {
+        $record = $this->record();
+        try {
+            $this->app->cms()->unarchive($this->requireActor(), (int) $record['id'], (int) $this->request->request->get('version'));
+            $this->flash('success', 'Restored to draft.');
+        } catch (HttpError $error) {
+            $this->flash('error', $error->getMessage());
+        }
+        return $this->redirect('/admin/content/' . (int) $record['id']);
+    }
+
+    public function delete(): Response
+    {
+        $record = $this->record();
+        try {
+            $this->app->cms()->delete($this->requireActor(), (int) $record['id'], (int) $this->request->request->get('version'));
+            $this->flash('success', 'Deleted permanently.');
+            return $this->redirect('/admin/content');
+        } catch (HttpError $error) {
+            $this->flash('error', $error->getMessage());
+            return $this->redirect('/admin/content/' . (int) $record['id']);
+        }
+    }
+
+    private function version(int $id): int
+    {
+        $statement = $this->app->pdo()->prepare('SELECT version FROM content_items WHERE id = ?');
+        $statement->execute([$id]);
+        return (int) $statement->fetchColumn();
+    }
+
     public function index(): Response
     {
         $pdo = $this->app->pdo();
@@ -36,9 +146,13 @@ final class ContentAdminController extends Controller
         $sql .= ' ORDER BY c.updated_at DESC LIMIT 200';
         $statement = $pdo->prepare($sql);
         $statement->execute($params);
+        $labels = \IEdify\Modules\CMS\Services\ContentTypes::LABELS;
         return $this->render('admin/content/index.twig', [
             'items' => $statement->fetchAll(),
             'filters' => ['status' => $status, 'type' => $type, 'q' => $query],
+            'type_labels' => $labels,
+            'creatable_types' => \IEdify\Modules\CMS\Services\ContentTypes::CREATABLE,
+            'page_heading' => $type !== '' ? ($labels[$type] ?? ucfirst($type)) . 's' : 'All content',
         ]);
     }
 
@@ -57,6 +171,10 @@ final class ContentAdminController extends Controller
             'flags' => $flags->fetchAll(),
             'can_publish' => $this->app->policy()->allows($this->actor(), 'cms.publish'),
             'can_review' => $this->app->policy()->allows($this->actor(), 'cms.review'),
+            'can_restore' => $this->app->policy()->allows($this->actor(), 'cms.restore'),
+            'slot_hints' => \IEdify\Modules\CMS\Services\ContentTypes::slotHints((string) $record['slug']),
+            'slot_headings' => \IEdify\Modules\CMS\Services\ContentTypes::slotHeadings((string) $record['slug']),
+            'type_label' => \IEdify\Modules\CMS\Services\ContentTypes::label((string) $record['content_type']),
         ]);
     }
 

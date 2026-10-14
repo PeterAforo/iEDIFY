@@ -1,0 +1,50 @@
+{% extends 'layouts/admin.twig' %}
+{% block title %}Add team member | iEDIFY Africa{% endblock %}
+{% block page_title %}Add team member{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/team">Team</a></li><li class="breadcrumb-item active" aria-current="page">Add member</li>{% endblock %}
+{% block admin %}
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card">
+            <form method="post" action="/admin/team/new">
+                <div class="card-body">
+                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                    <div class="mb-3">
+                        <label for="display_name" class="form-label">Full name</label>
+                        <input id="display_name" name="display_name" type="text" class="form-control" required maxlength="255" autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role_label" class="form-label">Role / title</label>
+                        <input id="role_label" name="role_label" type="text" class="form-control" required maxlength="255" placeholder="e.g. Program Lead, Education">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="roster_group" class="form-label">Team group</label>
+                            <select id="roster_group" name="roster_group" class="form-select">
+                                {% for g, label in group_labels %}<option value="{{ g }}">{{ label }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="display_order" class="form-label">Display order</label>
+                            <input id="display_order" name="display_order" type="number" class="form-control" min="0" max="999" value="99">
+                            <div class="form-text">Lower numbers appear first within the group.</div>
+                        </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input id="youth_adviser" name="youth_adviser" type="checkbox" class="form-check-input" value="1">
+                        <label for="youth_adviser" class="form-check-label">Youth adviser <span class="text-body-secondary">(shown in the youth advisory section)</span></label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block">Portrait photo</label>
+                        <input type="hidden" id="portrait_asset_id" name="portrait_asset_id" value="">
+                        <div id="portrait-preview" data-media-preview></div>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-media-picker data-media-kind="image" data-media-target="#portrait_asset_id" data-media-preview="#portrait-preview"><i class="bi bi-images me-1"></i>Choose from library</button>
+                        <div class="form-text">Optional — must be an approved image in the media library.</div>
+                    </div>
+                </div>
+                <div class="card-footer"><button type="submit" class="btn btn-primary">Create member</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

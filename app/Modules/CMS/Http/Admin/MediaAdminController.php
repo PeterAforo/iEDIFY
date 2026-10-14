@@ -28,6 +28,35 @@ final class MediaAdminController extends Controller
         return $this->render('admin/media/index.twig', ['assets' => $statement->fetchAll(), 'status' => $status]);
     }
 
+    /**
+     * JSON list of approved public media for the editor's picker modal.
+     * kind=image filters to images, kind=document filters to non-visual files.
+     */
+    public function options(): Response
+    {
+        $kind = (string) $this->request->query->get('kind', 'any');
+        $sql = "SELECT id, mime, width, height, alt_text, original_filename FROM media_assets WHERE classification = 'public_content' AND review_status = 'approved'";
+        if ($kind === 'image') {
+            $sql .= " AND mime LIKE 'image/%'";
+        } elseif ($kind === 'document') {
+            $sql .= " AND mime NOT LIKE 'image/%' AND mime NOT LIKE 'video/%'";
+        }
+        $sql .= ' ORDER BY created_at DESC LIMIT 500';
+        $items = [];
+        foreach ($this->app->pdo()->query($sql)->fetchAll() as $row) {
+            $items[] = [
+                'id' => (int) $row['id'],
+                'url' => '/media/' . (int) $row['id'],
+                'mime' => (string) $row['mime'],
+                'width' => (int) $row['width'],
+                'height' => (int) $row['height'],
+                'alt' => (string) $row['alt_text'],
+                'filename' => (string) $row['original_filename'],
+            ];
+        }
+        return new \Symfony\Component\HttpFoundation\JsonResponse(['items' => $items]);
+    }
+
     /** Public-content uploads enter the review queue; nothing serves until approved. */
     public function upload(): Response
     {

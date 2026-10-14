@@ -154,6 +154,53 @@ final readonly class CmsService
         return $published;
     }
 
+    /** Unpublish a live item: it stops resolving publicly but keeps its revisions. */
+    public function archive(Actor $actor, int $id, int $expectedVersion): void
+    {
+        $this->authorize($actor, 'cms.publish');
+        (new Transaction($this->pdo))->run(function () use ($actor, $id, $expectedVersion): void {
+            $record = $this->locked($id, $expectedVersion);
+            if ($record['status'] !== 'published') {
+                throw new HttpError(409, 'Only published content can be archived.');
+            }
+            $this->execute("UPDATE content_items SET status = 'archived', working_state = 'draft', publish_at = NULL, version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?", [$id]);
+            $this->audit($actor, 'cms.archived', $id, $expectedVersion + 1);
+        });
+    }
+
+    /** Return an archived item to draft so it can be edited and republished. */
+    public function unarchive(Actor $actor, int $id, int $expectedVersion): void
+    {
+        $this->authorize($actor, 'cms.edit');
+        (new Transaction($this->pdo))->run(function () use ($actor, $id, $expectedVersion): void {
+            $record = $this->locked($id, $expectedVersion);
+            if ($record['status'] !== 'archived') {
+                throw new HttpError(409, 'Only archived content can be restored.');
+            }
+            $this->execute("UPDATE content_items SET status = 'draft', published_revision_id = NULL, working_state = 'draft', version = version + 1, updated_at = UTC_TIMESTAMP(6) WHERE id = ?", [$id]);
+            $this->audit($actor, 'cms.unarchived', $id, $expectedVersion + 1);
+        });
+    }
+
+    /** Permanently delete a draft or archived item and everything attached to it. */
+    public function delete(Actor $actor, int $id, int $expectedVersion): void
+    {
+        $this->authorize($actor, 'cms.restore');
+        (new Transaction($this->pdo))->run(function () use ($actor, $id, $expectedVersion): void {
+            $record = $this->locked($id, $expectedVersion);
+            if (!in_array($record['status'], ['draft', 'archived'], true)) {
+                throw new HttpError(409, 'Only drafts and archived content can be deleted. Archive a published item first.');
+            }
+            $this->execute('UPDATE content_items SET published_revision_id = NULL WHERE id = ?', [$id]);
+            $this->execute('DELETE FROM publication_events WHERE content_id = ?', [$id]);
+            $this->execute('DELETE FROM team_members WHERE content_id = ?', [$id]);
+            $this->execute('UPDATE source_mappings SET content_id = NULL WHERE content_id = ?', [$id]);
+            $this->execute('DELETE FROM content_revisions WHERE content_id = ?', [$id]);
+            $this->execute('DELETE FROM content_items WHERE id = ?', [$id]);
+            $this->audit($actor, 'cms.deleted', $id, $expectedVersion + 1);
+        });
+    }
+
     public function restore(Actor $actor, int $id, int $revisionNumber, int $expectedVersion): void
     {
         $this->authorize($actor, 'cms.restore');
