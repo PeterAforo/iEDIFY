@@ -1,28 +1,36 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Learning | iEDIFY Africa{% endblock %}
+{% block page_title %}Learning{% endblock %}
 {% block admin %}
-<h1>Learning</h1>
-<table class="admin-table">
-    <thead><tr><th scope="col">Course</th><th scope="col">Status</th><th scope="col">Enrolled</th><th scope="col">Updated</th></tr></thead>
-    <tbody>
-        {% for course in courses %}
-        <tr>
-            <td><a href="/admin/courses/{{ course.id }}">{{ course.title }}</a></td>
-            <td>{{ course.status }}</td>
-            <td>{{ course.enrolled }}</td>
-            <td>{{ course.updated_at|date('j M Y') }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="4">No courses yet.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h2>New course</h2>
-<form method="post" action="/admin/courses" class="stacked-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <label>Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="120"></label>
-    <label>Title<input type="text" name="title" required maxlength="255"></label>
-    <label>Summary<textarea name="summary" maxlength="4000"></textarea></label>
-    <button type="submit" class="button-secondary">Create course</button>
-</form>
+<div class="card mb-4">
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+            <thead><tr><th scope="col">Course</th><th scope="col">Status</th><th scope="col">Enrolled</th><th scope="col">Updated</th></tr></thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td><a href="/admin/courses/{{ course.id }}">{{ course.title }}</a></td>
+                    <td><span class="badge text-bg-{{ course.status == 'published' ? 'success' : 'secondary' }}">{{ course.status }}</span></td>
+                    <td>{{ course.enrolled }}</td>
+                    <td>{{ course.updated_at|date('j M Y') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-body-secondary">No courses yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card" style="max-width:40rem">
+    <div class="card-header"><h3 class="card-title">New course</h3></div>
+    <form method="post" action="/admin/courses">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="mb-3"><label class="form-label">Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="120" class="form-control"></label></div>
+            <div class="mb-3"><label class="form-label">Title<input type="text" name="title" required maxlength="255" class="form-control"></label></div>
+            <div class="mb-3"><label class="form-label">Summary<textarea name="summary" maxlength="4000" class="form-control"></textarea></label></div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Create course</button></div>
+    </form>
+</div>
 {% endblock %}

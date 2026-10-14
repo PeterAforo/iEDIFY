@@ -1,6 +1,29 @@
-{% extends 'layouts/auth.twig' %}
+{% extends admin_flow|default(false) ? 'layouts/admin-auth.twig' : 'layouts/auth.twig' %}
 {% block title %}Security check | iEDIFY Africa{% endblock %}
 {% block auth %}
+    {% if admin_flow|default(false) %}
+    <p class="login-box-msg">Enter the six-digit code from your authenticator app.</p>
+    <form method="post" action="/sign-in/mfa" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <div class="input-group mb-3">
+            <input id="code" name="code" type="text" class="form-control" inputmode="numeric" pattern="[0-9]{6}" required autocomplete="one-time-code" maxlength="6" placeholder="Authentication code" aria-label="Authentication code">
+            <div class="input-group-text"><i class="bi bi-shield-lock"></i></div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Verify</button>
+    </form>
+    <p class="mb-0 mt-3">
+        <a data-bs-toggle="collapse" href="#admin-recovery" role="button" aria-expanded="false" aria-controls="admin-recovery">Use a recovery code instead</a>
+    </p>
+    <div class="collapse mt-2" id="admin-recovery">
+        <form method="post" action="/sign-in/mfa/recovery" novalidate>
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="input-group mb-3">
+                <input id="recovery_code" name="recovery_code" type="text" class="form-control" required autocomplete="off" placeholder="Recovery code" aria-label="Recovery code">
+            </div>
+            <button type="submit" class="btn btn-outline-secondary w-100">Use recovery code</button>
+        </form>
+    </div>
+    {% else %}
     <h1>Security check</h1>
     <p class="auth-lead">Enter the six-digit code from your authenticator app.</p>
     <form method="post" action="/sign-in/mfa" class="auth-form" novalidate>
@@ -22,4 +45,5 @@
             <button type="submit" class="button-secondary">Use recovery code</button>
         </form>
     </details>
+    {% endif %}
 {% endblock %}

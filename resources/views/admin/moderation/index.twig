@@ -1,78 +1,92 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Moderation | iEDIFY Africa{% endblock %}
+{% block page_title %}Moderation{% endblock %}
 {% block admin %}
-<h1>Moderation</h1>
-<h2>Open reports</h2>
-<table class="admin-table">
-    <thead><tr><th scope="col">Target</th><th scope="col">Reporter</th><th scope="col">Reason</th><th scope="col"></th></tr></thead>
-    <tbody>
-        {% for report in reports %}
-        <tr>
-            <td>{{ report.target_type }} #{{ report.target_id }}</td>
-            <td>{{ report.reporter }}</td>
-            <td>{{ report.reason }}</td>
-            <td>
-                <form method="post" action="/admin/moderation/{{ report.id }}" class="inline-form">
-                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-                    <label>Note<input type="text" name="note" maxlength="1000"></label>
-                    <button type="submit" name="action" value="hide" class="button-secondary">Hide</button>
-                    <button type="submit" name="action" value="remove" class="button-secondary">Remove</button>
-                    <button type="submit" name="action" value="dismiss" class="button-secondary">Dismiss</button>
-                </form>
-            </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="4">No open reports.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Open reports</h3></div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+            <thead><tr><th scope="col">Target</th><th scope="col">Reporter</th><th scope="col">Reason</th><th scope="col"></th></tr></thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td>{{ report.target_type }} #{{ report.target_id }}</td>
+                    <td>{{ report.reporter }}</td>
+                    <td>{{ report.reason }}</td>
+                    <td>
+                        <form method="post" action="/admin/moderation/{{ report.id }}" class="d-flex gap-2 align-items-center">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <input type="text" name="note" maxlength="1000" class="form-control form-control-sm" placeholder="Note" aria-label="Moderation note">
+                            <button type="submit" name="action" value="hide" class="btn btn-outline-warning btn-sm">Hide</button>
+                            <button type="submit" name="action" value="remove" class="btn btn-outline-danger btn-sm">Remove</button>
+                            <button type="submit" name="action" value="dismiss" class="btn btn-outline-secondary btn-sm">Dismiss</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-body-secondary">No open reports.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% if events is defined %}
-<h2>Events</h2>
-<table class="admin-table">
-    <thead><tr><th scope="col">Event</th><th scope="col">Starts (UTC)</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
-    <tbody>
-        {% for event in events %}
-        <tr>
-            <td>{{ event.title }}</td>
-            <td>{{ event.starts_at }}</td>
-            <td>{{ event.status }}</td>
-            <td>
-                <form method="post" action="/admin/events/{{ event.id }}/status" class="inline-form">
-                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-                    <input type="hidden" name="version" value="{{ event.version }}">
-                    <select name="status">
-                        {% for s in ['draft','published','cancelled'] %}<option value="{{ s }}"{% if event.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
-                    </select>
-                    <button type="submit" class="button-secondary">Update</button>
-                </form>
-            </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="4">No events yet.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h2>New event</h2>
-<form method="post" action="/admin/events" class="stacked-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <label>Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="160"></label>
-    <label>Title<input type="text" name="title" required maxlength="255"></label>
-    <label>Description<textarea name="description" maxlength="20000"></textarea></label>
-    <label>Location<input type="text" name="location" maxlength="255"></label>
-    <label>Starts (UTC)<input type="datetime-local" name="starts_at" required></label>
-    <label>Ends (UTC)<input type="datetime-local" name="ends_at"></label>
-    <label>Capacity<input type="number" name="capacity" min="0"></label>
-    <button type="submit" class="button-secondary">Create event</button>
-</form>
-<h2>New opportunity</h2>
-<form method="post" action="/admin/opportunities" class="stacked-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <label>Title<input type="text" name="title" required maxlength="255"></label>
-    <label>Category<input type="text" name="category" maxlength="60" value="general"></label>
-    <label>Summary<textarea name="summary" required maxlength="20000"></textarea></label>
-    <label>Details<textarea name="details" maxlength="20000"></textarea></label>
-    <label>Deadline<input type="date" name="deadline"></label>
-    <button type="submit" class="button-secondary">Publish opportunity</button>
-</form>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Events</h3></div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+            <thead><tr><th scope="col">Event</th><th scope="col">Starts (UTC)</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>{{ event.title }}</td>
+                    <td>{{ event.starts_at }}</td>
+                    <td><span class="badge text-bg-{{ event.status == 'published' ? 'success' : 'secondary' }}">{{ event.status }}</span></td>
+                    <td>
+                        <form method="post" action="/admin/events/{{ event.id }}/status" class="d-flex gap-2 align-items-center">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <input type="hidden" name="version" value="{{ event.version }}">
+                            <select name="status" class="form-select form-select-sm w-auto" aria-label="Event status">
+                                {% for s in ['draft','published','cancelled'] %}<option value="{{ s }}"{% if event.status == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-outline-primary btn-sm">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-body-secondary">No events yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-body border-top">
+        <h4 class="fs-6 fw-bold">New event</h4>
+        <form method="post" action="/admin/events" class="row g-3">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="col-md-4"><label class="form-label">Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="160" class="form-control"></label></div>
+            <div class="col-md-8"><label class="form-label">Title<input type="text" name="title" required maxlength="255" class="form-control"></label></div>
+            <div class="col-12"><label class="form-label">Description<textarea name="description" maxlength="20000" class="form-control"></textarea></label></div>
+            <div class="col-md-4"><label class="form-label">Location<input type="text" name="location" maxlength="255" class="form-control"></label></div>
+            <div class="col-md-3"><label class="form-label">Starts (UTC)<input type="datetime-local" name="starts_at" required class="form-control"></label></div>
+            <div class="col-md-3"><label class="form-label">Ends (UTC)<input type="datetime-local" name="ends_at" class="form-control"></label></div>
+            <div class="col-md-2"><label class="form-label">Capacity<input type="number" name="capacity" min="0" class="form-control"></label></div>
+            <div class="col-12"><button type="submit" class="btn btn-primary">Create event</button></div>
+        </form>
+    </div>
+</div>
+<div class="card" style="max-width:48rem">
+    <div class="card-header"><h3 class="card-title">New opportunity</h3></div>
+    <form method="post" action="/admin/opportunities">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="mb-3"><label class="form-label">Title<input type="text" name="title" required maxlength="255" class="form-control"></label></div>
+            <div class="mb-3"><label class="form-label">Category<input type="text" name="category" maxlength="60" value="general" class="form-control"></label></div>
+            <div class="mb-3"><label class="form-label">Summary<textarea name="summary" required maxlength="20000" class="form-control"></textarea></label></div>
+            <div class="mb-3"><label class="form-label">Details<textarea name="details" maxlength="20000" class="form-control"></textarea></label></div>
+            <div class="mb-3"><label class="form-label">Deadline<input type="date" name="deadline" class="form-control"></label></div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Publish opportunity</button></div>
+    </form>
+</div>
 {% endif %}
 {% endblock %}

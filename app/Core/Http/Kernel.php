@@ -65,7 +65,7 @@ final readonly class Kernel
             $response = $this->guard($request, $options) ?? (new $class($this->app, $request, $match[2]))->$method();
         } catch (HttpError $error) {
             if ($error->status === 401) {
-                $response = new RedirectResponse('/sign-in');
+                $response = new RedirectResponse($this->signInPath($request));
             } else {
                 $response = $this->error($error->status, $error->getMessage(), $requestId);
                 $response->headers->add($error->headers);
@@ -96,9 +96,13 @@ final readonly class Kernel
         $requiresIdentity = ($options['auth'] ?? false) || isset($options['permission']) || ($options['privileged'] ?? false);
         if ($requiresIdentity && $actor === null) {
             $this->app->session->set(Application::SESSION_INTENDED, $request->getPathInfo());
-            return new RedirectResponse('/sign-in');
+            return new RedirectResponse($this->signInPath($request));
         }
         if (($options['privileged'] ?? false) && $actor !== null && !($actor->privileged && $actor->mfaComplete)) {
+            if (str_starts_with($request->getPathInfo(), '/admin')) {
+                $this->app->session->set(Application::SESSION_INTENDED, $request->getPathInfo());
+                return new RedirectResponse('/admin/login');
+            }
             throw new HttpError(403, 'Administrative access requires a privileged account with multi-factor authentication.');
         }
         if (isset($options['permission']) && !$this->app->policy()->allows($actor, $options['permission'])) {
@@ -108,9 +112,18 @@ final readonly class Kernel
             if ($actor !== null && $actor->privileged && !$actor->mfaComplete) {
                 return new RedirectResponse('/account/security');
             }
+            if (str_starts_with($request->getPathInfo(), '/admin') && !($actor !== null && $actor->privileged)) {
+                $this->app->session->set(Application::SESSION_INTENDED, $request->getPathInfo());
+                return new RedirectResponse('/admin/login');
+            }
             throw new HttpError(403, 'You do not have permission to perform this action.');
         }
         return null;
+    }
+
+    private function signInPath(Request $request): string
+    {
+        return str_starts_with($request->getPathInfo(), '/admin') ? '/admin/login' : '/sign-in';
     }
 
     private function error(int $status, string $message, string $requestId): Response

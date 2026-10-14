@@ -1,68 +1,85 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Edit {{ item.title }} | iEDIFY Africa{% endblock %}
+{% block page_title %}Edit content{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/content">Content</a></li><li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>{% endblock %}
 {% block admin %}
-<h1>Edit content</h1>
-<p><code>{{ item.slug }}</code> · {{ item.content_type }} · status {{ item.status }} · draft state {{ item.working_state }} · version {{ item.version }}</p>
+<p class="text-body-secondary"><code>{{ item.slug }}</code> · {{ item.content_type }} · status <span class="badge text-bg-{{ item.status == 'published' ? 'success' : 'secondary' }}">{{ item.status }}</span> · draft state {{ item.working_state }} · version {{ item.version }}</p>
 {% if flags %}
-<section class="flag-list" aria-labelledby="flags-heading">
-    <h2 id="flags-heading">Editorial flags</h2>
-    <ul>
+<div class="alert alert-warning">
+    <h5 class="alert-heading"><i class="bi bi-flag me-1"></i>Editorial flags</h5>
+    <ul class="mb-1">
         {% for flag in flags %}
-        <li>{{ flag.code }} — {{ flag.message }} <em>({{ flag.status }})</em></li>
+        <li><code>{{ flag.code }}</code> — {{ flag.message }} <em>({{ flag.status }})</em></li>
         {% endfor %}
     </ul>
-    <p><a href="/admin/flags">Resolve flags</a></p>
-</section>
+    <a href="/admin/flags" class="alert-link">Resolve flags</a>
+</div>
 {% endif %}
-<form method="post" action="/admin/content/{{ item.id }}/revise" class="editor-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <input type="hidden" name="version" value="{{ item.version }}">
-    <div class="field">
-        <label for="title">Title</label>
-        <input id="title" name="title" type="text" required maxlength="255" value="{{ latest.title|default(item.title) }}">
-    </div>
-    <div class="field">
-        <label for="sections">Sections (JSON)</label>
-        <textarea id="sections" name="sections" rows="24" required>{{ latest ? latest.sections|json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES')) : '[]' }}</textarea>
-        <p class="field-hint">Blocks: heading, text, rich_text, image, document, quote, cta, statistic, cards, gallery, accordion, timeline.</p>
-    </div>
-    <button type="submit" class="button-primary">Save draft</button>
-</form>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Content</h3></div>
+    <form method="post" action="/admin/content/{{ item.id }}/revise">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <input type="hidden" name="version" value="{{ item.version }}">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input id="title" name="title" type="text" class="form-control" required maxlength="255" value="{{ latest.title|default(item.title) }}">
+            </div>
+            <div class="mb-3">
+                <label for="sections" class="form-label">Sections (JSON)</label>
+                <textarea id="sections" name="sections" rows="24" class="form-control font-monospace" required>{{ latest ? latest.sections|json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES')) : '[]' }}</textarea>
+                <p class="form-text">Blocks: heading, text, rich_text, image, document, quote, cta, statistic, cards, gallery, accordion, timeline.</p>
+            </div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Save draft</button></div>
+    </form>
+</div>
 {% if item.content_type == 'publication' %}
-<form method="post" action="/admin/content/{{ item.id }}/meta" class="editor-form meta-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <input type="hidden" name="version" value="{{ item.version }}">
-    <div class="field">
-        <label for="category">Publication category</label>
-        <input id="category" name="category" type="text" maxlength="60" value="{{ item.category }}" placeholder="e.g. Annual report, Research, Toolkit">
-    </div>
-    <div class="field">
-        <label for="pub_year">Publication year</label>
-        <input id="pub_year" name="pub_year" type="number" min="1900" max="2200" value="{{ item.pub_year }}">
-    </div>
-    <button type="submit" class="button-secondary">Save metadata</button>
-</form>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Publication metadata</h3></div>
+    <form method="post" action="/admin/content/{{ item.id }}/meta">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <input type="hidden" name="version" value="{{ item.version }}">
+            <div class="mb-3">
+                <label for="category" class="form-label">Publication category</label>
+                <input id="category" name="category" type="text" class="form-control" maxlength="60" value="{{ item.category }}" placeholder="e.g. Annual report, Research, Toolkit">
+            </div>
+            <div class="mb-3">
+                <label for="pub_year" class="form-label">Publication year</label>
+                <input id="pub_year" name="pub_year" type="number" class="form-control" min="1900" max="2200" value="{{ item.pub_year }}">
+            </div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-outline-primary">Save metadata</button></div>
+    </form>
+</div>
 {% endif %}
-<div class="action-row">
-    <form method="post" action="/admin/content/{{ item.id }}/submit-review">
-        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-        <input type="hidden" name="version" value="{{ item.version }}">
-        <button type="submit" class="button-secondary"{% if item.working_state != 'draft' %} disabled{% endif %}>Submit for review</button>
-    </form>
-    {% if can_publish %}
-    <form method="post" action="/admin/content/{{ item.id }}/publish">
-        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-        <input type="hidden" name="version" value="{{ item.version }}">
-        <button type="submit" class="button-primary"{% if item.working_state != 'review' %} disabled{% endif %}>Publish current revision</button>
-    </form>
-    {% endif %}
-    <form method="post" action="/admin/content/{{ item.id }}/schedule" class="inline-form">
-        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-        <input type="hidden" name="version" value="{{ item.version }}">
-        <label>Publish at (UTC) <input type="datetime-local" name="publish_at" value="{{ item.publish_at ? item.publish_at|date('Y-m-d\\TH:i') : '' }}"></label>
-        <button type="submit" class="button-secondary"{% if item.working_state != 'review' %} disabled{% endif %}>{% if item.publish_at %}Update schedule{% else %}Schedule{% endif %}</button>
-        {% if item.publish_at %}<small>Scheduled for {{ item.publish_at }} UTC</small>{% endif %}
-    </form>
-    <p><a href="/admin/content/{{ item.id }}/revisions">Revision history</a>{% if preview_url %} · <a href="{{ preview_url }}" target="_blank" rel="noopener">Preview latest draft</a>{% endif %}</p>
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Workflow</h3></div>
+    <div class="card-body d-flex flex-wrap gap-2 align-items-center">
+        <form method="post" action="/admin/content/{{ item.id }}/submit-review">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <input type="hidden" name="version" value="{{ item.version }}">
+            <button type="submit" class="btn btn-outline-primary"{% if item.working_state != 'draft' %} disabled{% endif %}>Submit for review</button>
+        </form>
+        {% if can_publish %}
+        <form method="post" action="/admin/content/{{ item.id }}/publish">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <input type="hidden" name="version" value="{{ item.version }}">
+            <button type="submit" class="btn btn-primary"{% if item.working_state != 'review' %} disabled{% endif %}>Publish current revision</button>
+        </form>
+        {% endif %}
+        <form method="post" action="/admin/content/{{ item.id }}/schedule" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <input type="hidden" name="version" value="{{ item.version }}">
+            <label class="col-form-label" for="publish_at">Publish at (UTC)</label>
+            <input id="publish_at" type="datetime-local" name="publish_at" class="form-control w-auto" value="{{ item.publish_at ? item.publish_at|date('Y-m-d\\TH:i') : '' }}">
+            <button type="submit" class="btn btn-outline-primary"{% if item.working_state != 'review' %} disabled{% endif %}>{% if item.publish_at %}Update schedule{% else %}Schedule{% endif %}</button>
+            {% if item.publish_at %}<small class="text-body-secondary">Scheduled for {{ item.publish_at }} UTC</small>{% endif %}
+        </form>
+    </div>
+    <div class="card-footer">
+        <a href="/admin/content/{{ item.id }}/revisions">Revision history</a>{% if preview_url %} · <a href="{{ preview_url }}" target="_blank" rel="noopener">Preview latest draft</a>{% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -88,6 +88,6 @@ final class PublicSiteTest extends TestCase
     {
         $response = $this->kernel->handle(Request::create('http://127.0.0.1:8080/admin'));
         self::assertSame(302, $response->getStatusCode());
-        self::assertSame('/sign-in', $response->headers->get('Location'));
+        self::assertSame('/admin/login', $response->headers->get('Location'));
     }
 }

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>{% block title %}Admin sign in | iEDIFY Africa{% endblock %}</title>
+    {% for stylesheet in asset_styles('resources/assets/scripts/admin.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
+    <script type="module" src="{{ asset('resources/assets/scripts/admin.js') }}"></script>
+</head>
+<body class="login-page bg-body-secondary">
+<div class="login-box">
+    <div class="login-logo">
+        <a href="/">iEDIFY <b>Africa</b> CMS</a>
+    </div>
+    <div class="card">
+        <div class="card-body login-card-body">
+            {% if flashes %}
+                {% for type, messages in flashes %}{% for message in messages %}
+                <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}{% endfor %}
+            {% endif %}
+            {% block auth %}{% endblock %}
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,100 +1,136 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Application #{{ application.id }} | iEDIFY Africa{% endblock %}
+{% block page_title %}Application #{{ application.id }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item"><a href="/admin/applications">Applications</a></li><li class="breadcrumb-item active" aria-current="page">#{{ application.id }}</li>{% endblock %}
 {% block admin %}
-<h1>Application #{{ application.id }}</h1>
-<p>{{ intake.name }} · status <strong>{{ application.status|replace({'_': ' '}) }}</strong> · version {{ application.version }} · submitted {{ application.submitted_at ?? '—' }}</p>
+<p class="text-body-secondary">{{ intake.name }} · status <span class="badge text-bg-primary">{{ application.status|replace({'_': ' '}) }}</span> · version {{ application.version }} · submitted {{ application.submitted_at ?? '—' }}</p>
 
-<h2>Answers</h2>
-<dl class="detail-list">
-    {% for field in fields %}
-    <div class="detail-row"><dt>{{ field.label }}</dt><dd>{% if field.type == 'document' %}{% set doc = documents|filter(d => d.field_key == field.key)|first %}{% if doc %}<a href="/media/{{ doc.media_id }}">{{ doc.original_filename }}</a>{% else %}—{% endif %}{% elseif field.type == 'checkbox' %}{{ answers[field.key]|default(false) ? 'Yes' : 'No' }}{% else %}{{ answers[field.key]|default('—') }}{% endif %}</dd></div>
-    {% endfor %}
-</dl>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Answers</h3></div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            {% for field in fields %}
+            <dt class="col-sm-4">{{ field.label }}</dt>
+            <dd class="col-sm-8">{% if field.type == 'document' %}{% set doc = documents|filter(d => d.field_key == field.key)|first %}{% if doc %}<a href="/media/{{ doc.media_id }}">{{ doc.original_filename }}</a>{% else %}—{% endif %}{% elseif field.type == 'checkbox' %}{{ answers[field.key]|default(false) ? 'Yes' : 'No' }}{% else %}{{ answers[field.key]|default('—') }}{% endif %}</dd>
+            {% endfor %}
+        </dl>
+    </div>
+</div>
 {% if application.eligibility_snapshot %}
-<h2>Eligibility check (frozen at submission)</h2>
-<pre class="code-block">{{ application.eligibility_snapshot }}</pre>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Eligibility check (frozen at submission)</h3></div>
+    <div class="card-body"><pre class="bg-body-tertiary p-3 rounded font-monospace small mb-0">{{ application.eligibility_snapshot }}</pre></div>
+</div>
 {% endif %}
 
-<h2>Status history</h2>
-<table class="admin-table">
-    <thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">By</th><th scope="col">Note</th><th scope="col">When (UTC)</th></tr></thead>
-    <tbody>
-        {% for event in application.history %}
-        <tr><td>{{ event.from_status ?? '—' }}</td><td>{{ event.to_status }}</td><td>{{ event.actor_name ?? 'System' }}</td><td>{{ event.note ?? '' }}</td><td>{{ event.created_at }}</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Status history</h3></div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+            <thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">By</th><th scope="col">Note</th><th scope="col">When (UTC)</th></tr></thead>
+            <tbody>
+                {% for event in application.history %}
+                <tr><td>{{ event.from_status ?? '—' }}</td><td>{{ event.to_status }}</td><td>{{ event.actor_name ?? 'System' }}</td><td>{{ event.note ?? '' }}</td><td>{{ event.created_at }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% if can_manage %}
-<h2>Workflow</h2>
-<form method="post" action="/admin/applications/{{ application.id }}/transition" class="editor-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <input type="hidden" name="version" value="{{ application.version }}">
-    <div class="field"><label for="t-status">Move to</label>
-        <select id="t-status" name="status">
-            <option value="screening">Screening</option>
-            <option value="under_review">Under review</option>
-            <option value="request_info">Request information</option>
-            {% if can_decide %}<option value="shortlisted">Shortlist</option><option value="waitlisted">Waitlist</option><option value="accepted">Accept</option><option value="rejected">Reject</option>{% endif %}
-        </select>
-    </div>
-    <div class="field"><label for="t-note">Note (required for information requests; visible to staff)</label><textarea id="t-note" name="note" rows="2" maxlength="1000"></textarea></div>
-    <button type="submit" class="button-primary">Update status</button>
-</form>
+<div class="card mb-4" style="max-width:40rem">
+    <div class="card-header"><h3 class="card-title">Workflow</h3></div>
+    <form method="post" action="/admin/applications/{{ application.id }}/transition">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <input type="hidden" name="version" value="{{ application.version }}">
+            <div class="mb-3"><label for="t-status" class="form-label">Move to</label>
+                <select id="t-status" name="status" class="form-select">
+                    <option value="screening">Screening</option>
+                    <option value="under_review">Under review</option>
+                    <option value="request_info">Request information</option>
+                    {% if can_decide %}<option value="shortlisted">Shortlist</option><option value="waitlisted">Waitlist</option><option value="accepted">Accept</option><option value="rejected">Reject</option>{% endif %}
+                </select>
+            </div>
+            <div class="mb-3"><label for="t-note" class="form-label">Note (required for information requests; visible to staff)</label><textarea id="t-note" name="note" rows="2" maxlength="1000" class="form-control"></textarea></div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Update status</button></div>
+    </form>
+</div>
 
-<h2>Reviewer assignments</h2>
-<ul>
-    {% for assignment in assignments %}
-    <li>{{ assignment.name }} ({{ assignment.email }}){% if assignment.completed_at %} — review submitted{% endif %}</li>
-    {% else %}
-    <li>No reviewers assigned.</li>
-    {% endfor %}
-</ul>
-<form method="post" action="/admin/applications/{{ application.id }}/assign" class="filter-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <label for="r-id">Reviewer</label>
-    <select id="r-id" name="reviewer_id">
-        {% for reviewer in reviewers %}<option value="{{ reviewer.id }}">{{ reviewer.name }}</option>{% endfor %}
-    </select>
-    <button type="submit" class="button-secondary">Assign</button>
-</form>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Reviewer assignments</h3></div>
+    <div class="card-body">
+        <ul class="list-unstyled mb-3">
+            {% for assignment in assignments %}
+            <li>{{ assignment.name }} ({{ assignment.email }}){% if assignment.completed_at %} — <span class="badge text-bg-success">review submitted</span>{% endif %}</li>
+            {% else %}
+            <li class="text-body-secondary">No reviewers assigned.</li>
+            {% endfor %}
+        </ul>
+        <form method="post" action="/admin/applications/{{ application.id }}/assign" class="row g-2 align-items-end">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="col-auto">
+                <label for="r-id" class="form-label">Reviewer</label>
+                <select id="r-id" name="reviewer_id" class="form-select">
+                    {% for reviewer in reviewers %}<option value="{{ reviewer.id }}">{{ reviewer.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-auto"><button type="submit" class="btn btn-outline-primary">Assign</button></div>
+        </form>
+    </div>
+</div>
 {% endif %}
 
 {% if can_review %}
-<h2>Your review</h2>
-<form method="post" action="/admin/applications/{{ application.id }}/review" class="editor-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <div class="field"><label for="rv-score">Score (0–100)</label><input id="rv-score" name="score" type="number" min="0" max="100" required></div>
-    <div class="field"><label for="rv-int">Internal notes (confidential — never shown to the applicant)</label><textarea id="rv-int" name="internal_notes" rows="3"></textarea></div>
-    <div class="field"><label for="rv-pub">Applicant feedback (may be shared)</label><textarea id="rv-pub" name="applicant_feedback" rows="3"></textarea></div>
-    <div class="field"><label for="rv-rec">Recommendation</label>
-        <select id="rv-rec" name="recommendation"><option value="shortlist">Shortlist</option><option value="waitlist">Waitlist</option><option value="accept">Accept</option><option value="reject">Reject</option></select>
-    </div>
-    <button type="submit" class="button-primary">Record review</button>
-</form>
+<div class="card mb-4" style="max-width:40rem">
+    <div class="card-header"><h3 class="card-title">Your review</h3></div>
+    <form method="post" action="/admin/applications/{{ application.id }}/review">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="mb-3"><label for="rv-score" class="form-label">Score (0–100)</label><input id="rv-score" name="score" type="number" min="0" max="100" required class="form-control"></div>
+            <div class="mb-3"><label for="rv-int" class="form-label">Internal notes (confidential — never shown to the applicant)</label><textarea id="rv-int" name="internal_notes" rows="3" class="form-control"></textarea></div>
+            <div class="mb-3"><label for="rv-pub" class="form-label">Applicant feedback (may be shared)</label><textarea id="rv-pub" name="applicant_feedback" rows="3" class="form-control"></textarea></div>
+            <div class="mb-3"><label for="rv-rec" class="form-label">Recommendation</label>
+                <select id="rv-rec" name="recommendation" class="form-select"><option value="shortlist">Shortlist</option><option value="waitlist">Waitlist</option><option value="accept">Accept</option><option value="reject">Reject</option></select>
+            </div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Record review</button></div>
+    </form>
+</div>
 {% endif %}
 
 {% if application.reviews %}
-<h2>Recorded reviews</h2>
-<table class="admin-table">
-    <thead><tr><th scope="col">Reviewer</th><th scope="col">Score</th><th scope="col">Recommendation</th><th scope="col">When (UTC)</th></tr></thead>
-    <tbody>
-        {% for review in application.reviews %}
-        <tr><td>{{ review.reviewer_name }}</td><td>{{ review.score }}</td><td>{{ review.recommendation }}</td><td>{{ review.created_at }}</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Recorded reviews</h3></div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+            <thead><tr><th scope="col">Reviewer</th><th scope="col">Score</th><th scope="col">Recommendation</th><th scope="col">When (UTC)</th></tr></thead>
+            <tbody>
+                {% for review in application.reviews %}
+                <tr><td>{{ review.reviewer_name }}</td><td>{{ review.score }}</td><td>{{ review.recommendation }}</td><td>{{ review.created_at }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endif %}
 
 {% if can_enroll and application.status == 'accepted' %}
-<h2>Enrollment</h2>
-<form method="post" action="/admin/applications/{{ application.id }}/enroll" class="filter-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <label for="e-cohort">Cohort</label>
-    <select id="e-cohort" name="cohort_id">
-        {% for cohort in cohorts %}<option value="{{ cohort.id }}">{{ cohort.name }}</option>{% endfor %}
-    </select>
-    <button type="submit" class="button-primary"{% if cohorts is empty %} disabled{% endif %}>Enroll</button>
-</form>
+<div class="card" style="max-width:40rem">
+    <div class="card-header"><h3 class="card-title">Enrollment</h3></div>
+    <div class="card-body">
+        <form method="post" action="/admin/applications/{{ application.id }}/enroll" class="row g-2 align-items-end">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="col-auto">
+                <label for="e-cohort" class="form-label">Cohort</label>
+                <select id="e-cohort" name="cohort_id" class="form-select">
+                    {% for cohort in cohorts %}<option value="{{ cohort.id }}">{{ cohort.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-auto"><button type="submit" class="btn btn-primary"{% if cohorts is empty %} disabled{% endif %}>Enroll</button></div>
+        </form>
+    </div>
+</div>
 {% endif %}
 {% endblock %}

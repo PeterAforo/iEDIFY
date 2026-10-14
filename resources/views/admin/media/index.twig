@@ -1,52 +1,61 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Media | iEDIFY Africa{% endblock %}
+{% block page_title %}Media review{% endblock %}
 {% block admin %}
-<h1>Media review</h1>
-<form method="post" action="/admin/media/upload" enctype="multipart/form-data" class="editor-form media-upload">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <div class="field">
-        <label for="document">New public asset (PDF, PNG or JPEG, up to 10 MB)</label>
-        <input id="document" name="document" type="file" required accept="application/pdf,image/png,image/jpeg">
-    </div>
-    <div class="field">
-        <label for="alt_text">Alt text / accessible description</label>
-        <input id="alt_text" name="alt_text" type="text" maxlength="500">
-    </div>
-    <button type="submit" class="button-primary">Upload for review</button>
-</form>
-<nav class="filter-tabs" aria-label="Filter media by status">
-    {% for s in ['pending','approved','rejected'] %}<a href="/admin/media?status={{ s }}"{% if status == s %} aria-current="page"{% endif %}>{{ s }}</a>{% endfor %}
-</nav>
-<div class="media-grid">
-    {% for asset in assets %}
-    <figure class="media-card">
-        {% if asset.mime starts with 'image/' %}
-        <img src="/media/{{ asset.id }}" alt="{{ asset.alt_text }}" loading="lazy">
-        {% else %}
-        <p class="media-file-badge">{{ asset.mime }}</p>
-        {% endif %}
-        <figcaption>
-            <p><strong>{{ asset.original_filename }}</strong></p>
-            <p>{{ asset.mime }}{% if asset.width %} · {{ asset.width }}×{{ asset.height }}{% endif %} · {{ asset.review_status }}</p>
-            <p>{{ asset.alt_text }}</p>
-            {% if asset.review_status == 'pending' %}
-            <div class="action-row">
-                <form method="post" action="/admin/media/{{ asset.id }}/review">
-                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-                    <input type="hidden" name="decision" value="approved">
-                    <button type="submit" class="button-primary">Approve</button>
-                </form>
-                <form method="post" action="/admin/media/{{ asset.id }}/review">
-                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-                    <input type="hidden" name="decision" value="rejected">
-                    <button type="submit" class="button-secondary">Reject</button>
-                </form>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Upload new asset</h3></div>
+    <form method="post" action="/admin/media/upload" enctype="multipart/form-data">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="mb-3">
+                <label for="document" class="form-label">New public asset (PDF, PNG or JPEG, up to 10 MB)</label>
+                <input id="document" name="document" type="file" class="form-control" required accept="application/pdf,image/png,image/jpeg">
             </div>
+            <div class="mb-3">
+                <label for="alt_text" class="form-label">Alt text / accessible description</label>
+                <input id="alt_text" name="alt_text" type="text" class="form-control" maxlength="500">
+            </div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Upload for review</button></div>
+    </form>
+</div>
+<ul class="nav nav-pills mb-4">
+    {% for s in ['pending','approved','rejected'] %}
+    <li class="nav-item"><a href="/admin/media?status={{ s }}" class="nav-link{% if status == s %} active{% endif %}"{% if status == s %} aria-current="page"{% endif %}>{{ s|capitalize }}</a></li>
+    {% endfor %}
+</ul>
+<div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-3">
+    {% for asset in assets %}
+    <div class="col">
+        <div class="card h-100">
+            {% if asset.mime starts with 'image/' %}
+            <img src="/media/{{ asset.id }}" class="card-img-top" alt="{{ asset.alt_text }}" loading="lazy">
+            {% else %}
+            <div class="card-img-top d-flex align-items-center justify-content-center bg-body-tertiary" style="min-height:8rem"><span class="badge text-bg-secondary">{{ asset.mime }}</span></div>
             {% endif %}
-        </figcaption>
-    </figure>
+            <div class="card-body">
+                <p class="card-title fw-bold mb-1">{{ asset.original_filename }}</p>
+                <p class="card-text text-body-secondary small mb-1">{{ asset.mime }}{% if asset.width %} · {{ asset.width }}×{{ asset.height }}{% endif %} · <span class="badge text-bg-{{ asset.review_status == 'approved' ? 'success' : (asset.review_status == 'pending' ? 'warning' : 'danger') }}">{{ asset.review_status }}</span></p>
+                <p class="card-text small">{{ asset.alt_text }}</p>
+                {% if asset.review_status == 'pending' %}
+                <div class="d-flex gap-2">
+                    <form method="post" action="/admin/media/{{ asset.id }}/review">
+                        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                        <input type="hidden" name="decision" value="approved">
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <form method="post" action="/admin/media/{{ asset.id }}/review">
+                        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                        <input type="hidden" name="decision" value="rejected">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Reject</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
     {% else %}
-    <p>No media in this state.</p>
+    <div class="col"><p class="text-body-secondary">No media in this state.</p></div>
     {% endfor %}
 </div>
 {% endblock %}

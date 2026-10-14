@@ -31,6 +31,7 @@ final class Application
     public const SESSION_MFA = 'auth.mfa_complete';
     public const SESSION_PENDING_MFA = 'auth.pending_mfa_user_id';
     public const SESSION_INTENDED = 'auth.intended_path';
+    public const SESSION_ADMIN_FLOW = 'auth.admin_flow';
 
     private ?PDO $pdo = null;
     private ?Actor $actor = null;
@@ -185,13 +186,14 @@ final class Application
         $this->session->set(self::SESSION_VERSION, $this->identity()->currentVersion($userId));
         $this->session->set(self::SESSION_MFA, $mfaComplete);
         $this->session->remove(self::SESSION_PENDING_MFA);
+        $this->session->remove(self::SESSION_ADMIN_FLOW);
         $this->actor = null;
         $this->actorResolved = false;
     }
 
     public function clearAuthentication(): void
     {
-        foreach ([self::SESSION_USER, self::SESSION_VERSION, self::SESSION_MFA, self::SESSION_PENDING_MFA, self::SESSION_INTENDED] as $key) {
+        foreach ([self::SESSION_USER, self::SESSION_VERSION, self::SESSION_MFA, self::SESSION_PENDING_MFA, self::SESSION_INTENDED, self::SESSION_ADMIN_FLOW] as $key) {
             $this->session->remove($key);
         }
         $this->actor = null;

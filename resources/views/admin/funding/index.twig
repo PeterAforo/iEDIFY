@@ -1,51 +1,67 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Funding | iEDIFY Africa{% endblock %}
+{% block page_title %}Funding{% endblock %}
 {% block admin %}
-<h1>Funding</h1>
-<h2>Rounds</h2>
-<table class="admin-table">
-    <thead><tr><th scope="col">Round</th><th scope="col">Window (UTC)</th><th scope="col">Currency</th><th scope="col">Status</th><th scope="col">Requests</th></tr></thead>
-    <tbody>
-        {% for round in rounds %}
-        <tr>
-            <td><a href="/admin/funding/rounds/{{ round.id }}">{{ round.title }}</a></td>
-            <td>{{ round.opens_at }} – {{ round.closes_at }}</td>
-            <td>{{ round.currency }}</td>
-            <td>{{ round.status }}</td>
-            <td>{{ round.requests }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5">No funding rounds yet.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h2>Requests</h2>
-<table class="admin-table">
-    <thead><tr><th scope="col">Request</th><th scope="col">Applicant</th><th scope="col">Round</th><th scope="col">Amount</th><th scope="col">Status</th></tr></thead>
-    <tbody>
-        {% for request in requests %}
-        <tr>
-            <td><a href="/admin/funding/requests/{{ request.id }}">{{ request.title }}</a></td>
-            <td>{{ request.applicant_name }}</td>
-            <td>{{ request.round_title }}</td>
-            <td>{{ request.requested_amount }} {{ request.currency }}</td>
-            <td>{{ request.status }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5">No requests yet.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h2>New round</h2>
-<form method="post" action="/admin/funding/rounds" class="stacked-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <label>Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="160"></label>
-    <label>Title<input type="text" name="title" required maxlength="255"></label>
-    <label>Description<textarea name="description" maxlength="20000"></textarea></label>
-    <label>Currency (ISO)<input type="text" name="currency" required pattern="[A-Z]{3}" maxlength="3" value="USD"></label>
-    <label>Maximum award<input type="number" name="max_award" min="0" step="0.01"></label>
-    <label>Opens (UTC)<input type="datetime-local" name="opens_at" required></label>
-    <label>Closes (UTC)<input type="datetime-local" name="closes_at" required></label>
-    <button type="submit" class="button-secondary">Create round</button>
-</form>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Rounds</h3></div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+            <thead><tr><th scope="col">Round</th><th scope="col">Window (UTC)</th><th scope="col">Currency</th><th scope="col">Status</th><th scope="col">Requests</th></tr></thead>
+            <tbody>
+                {% for round in rounds %}
+                <tr>
+                    <td><a href="/admin/funding/rounds/{{ round.id }}">{{ round.title }}</a></td>
+                    <td>{{ round.opens_at }} – {{ round.closes_at }}</td>
+                    <td>{{ round.currency }}</td>
+                    <td><span class="badge text-bg-{{ round.status == 'open' ? 'success' : 'secondary' }}">{{ round.status }}</span></td>
+                    <td>{{ round.requests }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-body-secondary">No funding rounds yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Requests</h3></div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+            <thead><tr><th scope="col">Request</th><th scope="col">Applicant</th><th scope="col">Round</th><th scope="col">Amount</th><th scope="col">Status</th></tr></thead>
+            <tbody>
+                {% for request in requests %}
+                <tr>
+                    <td><a href="/admin/funding/requests/{{ request.id }}">{{ request.title }}</a></td>
+                    <td>{{ request.applicant_name }}</td>
+                    <td>{{ request.round_title }}</td>
+                    <td>{{ request.requested_amount }} {{ request.currency }}</td>
+                    <td><span class="badge text-bg-{{ request.status == 'approved' ? 'success' : (request.status == 'rejected' ? 'danger' : 'secondary') }}">{{ request.status }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-body-secondary">No requests yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card" style="max-width:48rem">
+    <div class="card-header"><h3 class="card-title">New round</h3></div>
+    <form method="post" action="/admin/funding/rounds">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="mb-3"><label class="form-label">Slug<input type="text" name="slug" required pattern="[a-z0-9-]+" maxlength="160" class="form-control"></label></div>
+            <div class="mb-3"><label class="form-label">Title<input type="text" name="title" required maxlength="255" class="form-control"></label></div>
+            <div class="mb-3"><label class="form-label">Description<textarea name="description" maxlength="20000" class="form-control"></textarea></label></div>
+            <div class="row g-3">
+                <div class="col-md-4"><label class="form-label">Currency (ISO)<input type="text" name="currency" required pattern="[A-Z]{3}" maxlength="3" value="USD" class="form-control"></label></div>
+                <div class="col-md-4"><label class="form-label">Maximum award<input type="number" name="max_award" min="0" step="0.01" class="form-control"></label></div>
+            </div>
+            <div class="row g-3 mt-0">
+                <div class="col-md-6"><label class="form-label">Opens (UTC)<input type="datetime-local" name="opens_at" required class="form-control"></label></div>
+                <div class="col-md-6"><label class="form-label">Closes (UTC)<input type="datetime-local" name="closes_at" required class="form-control"></label></div>
+            </div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Create round</button></div>
+    </form>
+</div>
 {% endblock %}

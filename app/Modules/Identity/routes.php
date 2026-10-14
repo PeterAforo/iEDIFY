@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use IEdify\Modules\Identity\Http\AccountController;
+use IEdify\Modules\Identity\Http\Admin\AdminAuthController;
 use IEdify\Modules\Identity\Http\Admin\DataRequestController;
 use IEdify\Modules\Identity\Http\Admin\InvitationController;
 use IEdify\Modules\Identity\Http\MfaController;
@@ -28,6 +29,9 @@ return [
     ['GET', '/password/reset/{token:[a-f0-9]{64}}', [PasswordResetController::class, 'form'], ['guest' => true]],
     ['POST', '/password/reset/{token:[a-f0-9]{64}}', [PasswordResetController::class, 'submit'], ['guest' => true]],
     ['POST', '/sign-out', [AccountController::class, 'signOut'], ['auth' => true]],
+    ['GET', '/admin/login', [AdminAuthController::class, 'form']],
+    ['POST', '/admin/login', [AdminAuthController::class, 'submit']],
+    ['POST', '/admin/logout', [AdminAuthController::class, 'logout'], ['auth' => true]],
     ['GET', '/account', [AccountController::class, 'index'], ['auth' => true]],
     ['POST', '/account/email/resend', [AccountController::class, 'resendVerification'], ['auth' => true]],
     ['GET', '/account/notifications', [AccountController::class, 'notifications'], ['auth' => true]],

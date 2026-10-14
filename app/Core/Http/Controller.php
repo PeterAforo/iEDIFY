@@ -25,7 +25,7 @@ abstract class Controller
             'actor' => $this->app->actor(),
             'csrf' => $this->app->csrf(),
             'chrome' => $this->chrome(),
-            'flashes' => $this->app->flashes()->peekAll(),
+            'flashes' => $this->app->flashes()->all(),
             'current_path' => $this->request->getPathInfo(),
             'canonical_url' => rtrim($this->app->config->string('APP_URL'), '/') . $this->request->getPathInfo(),
             'environment' => $this->app->config->environment(),

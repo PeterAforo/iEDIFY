@@ -1,29 +1,37 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Partners | iEDIFY Africa{% endblock %}
+{% block page_title %}Partners &amp; donors{% endblock %}
 {% block admin %}
-<h1>Partners &amp; donors</h1>
-<table class="admin-table">
-    <thead><tr><th scope="col">Organization</th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Members</th><th scope="col">Shared items</th></tr></thead>
-    <tbody>
-        {% for org in orgs %}
-        <tr>
-            <td><a href="/admin/partners/{{ org.id }}">{{ org.name }}</a></td>
-            <td>{{ org.org_type }}</td>
-            <td>{{ org.status }}</td>
-            <td>{{ org.members }}</td>
-            <td>{{ org.shares }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5">No partner organizations yet.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h2>New organization</h2>
-<form method="post" action="/admin/partners" class="stacked-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <label>Name<input type="text" name="name" required maxlength="200"></label>
-    <label>Type<select name="org_type"><option value="donor">donor</option><option value="partner" selected>partner</option><option value="sponsor">sponsor</option><option value="other">other</option></select></label>
-    <label>Website<input type="url" name="website" maxlength="255"></label>
-    <button type="submit" class="button-secondary">Create</button>
-</form>
+<div class="card mb-4">
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+            <thead><tr><th scope="col">Organization</th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Members</th><th scope="col">Shared items</th></tr></thead>
+            <tbody>
+                {% for org in orgs %}
+                <tr>
+                    <td><a href="/admin/partners/{{ org.id }}">{{ org.name }}</a></td>
+                    <td>{{ org.org_type }}</td>
+                    <td><span class="badge text-bg-{{ org.status == 'active' ? 'success' : 'secondary' }}">{{ org.status }}</span></td>
+                    <td>{{ org.members }}</td>
+                    <td>{{ org.shares }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-body-secondary">No partner organizations yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card" style="max-width:40rem">
+    <div class="card-header"><h3 class="card-title">New organization</h3></div>
+    <form method="post" action="/admin/partners">
+        <div class="card-body">
+            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+            <div class="mb-3"><label class="form-label">Name<input type="text" name="name" required maxlength="200" class="form-control"></label></div>
+            <div class="mb-3"><label class="form-label">Type<select name="org_type" class="form-select"><option value="donor">donor</option><option value="partner" selected>partner</option><option value="sponsor">sponsor</option><option value="other">other</option></select></label></div>
+            <div class="mb-3"><label class="form-label">Website<input type="url" name="website" maxlength="255" class="form-control"></label></div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Create</button></div>
+    </form>
+</div>
 {% endblock %}

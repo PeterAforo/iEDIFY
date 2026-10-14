@@ -1,46 +1,56 @@
 {% extends 'layouts/admin.twig' %}
 {% block title %}Menus | iEDIFY Africa{% endblock %}
+{% block page_title %}Menus{% endblock %}
 {% block admin %}
-<h1>Menus</h1>
-<p><small>Links must be site-relative paths. Empty menus fall back to the default navigation.</small></p>
-<table class="admin-table">
-    <thead><tr><th scope="col">Menu</th><th scope="col">Label</th><th scope="col">URL</th><th scope="col">Sort</th><th scope="col">Enabled</th><th scope="col"></th><th scope="col"></th></tr></thead>
-    <tbody>
-        {% for item in items %}
-        <tr>
-            <td><select name="menu" form="nav-{{ item.id }}"><option value="main"{% if item.menu == 'main' %} selected{% endif %}>main</option><option value="footer"{% if item.menu == 'footer' %} selected{% endif %}>footer</option></select></td>
-            <td><input type="text" name="label" value="{{ item.label }}" required maxlength="120" form="nav-{{ item.id }}"></td>
-            <td><input type="text" name="url" value="{{ item.url }}" required maxlength="500" form="nav-{{ item.id }}"></td>
-            <td><input type="number" name="sort" value="{{ item.sort }}" min="0" max="999" form="nav-{{ item.id }}"></td>
-            <td><input type="checkbox" name="enabled" value="1"{% if item.enabled %} checked{% endif %} form="nav-{{ item.id }}"></td>
-            <td>
-                <form id="nav-{{ item.id }}" method="post" action="/admin/menus">
-                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-                    <input type="hidden" name="id" value="{{ item.id }}">
-                    <button type="submit" class="button-secondary">Save</button>
-                </form>
-            </td>
-            <td>
-                <form method="post" action="/admin/menus/delete">
-                    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-                    <input type="hidden" name="id" value="{{ item.id }}">
-                    <button type="submit" class="button-secondary">Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="7">No custom items yet — the default navigation is in use.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h2>Add item</h2>
-<form method="post" action="/admin/menus" class="inline-form">
-    <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
-    <select name="menu"><option value="main">main</option><option value="footer">footer</option></select>
-    <input type="text" name="label" placeholder="Label" required maxlength="120">
-    <input type="text" name="url" placeholder="/path" required maxlength="500">
-    <input type="number" name="sort" value="10" min="0" max="999">
-    <label><input type="checkbox" name="enabled" value="1" checked> Enabled</label>
-    <button type="submit" class="button-primary">Add</button>
-</form>
+<p class="text-body-secondary small">Links must be site-relative paths. Empty menus fall back to the default navigation.</p>
+<div class="card mb-4">
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover align-middle">
+            <thead><tr><th scope="col">Menu</th><th scope="col">Label</th><th scope="col">URL</th><th scope="col">Sort</th><th scope="col">Enabled</th><th scope="col"></th><th scope="col"></th></tr></thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><select name="menu" class="form-select form-select-sm" form="nav-{{ item.id }}"><option value="main"{% if item.menu == 'main' %} selected{% endif %}>main</option><option value="footer"{% if item.menu == 'footer' %} selected{% endif %}>footer</option></select></td>
+                    <td><input type="text" name="label" value="{{ item.label }}" required maxlength="120" class="form-control form-control-sm" form="nav-{{ item.id }}"></td>
+                    <td><input type="text" name="url" value="{{ item.url }}" required maxlength="500" class="form-control form-control-sm" form="nav-{{ item.id }}"></td>
+                    <td><input type="number" name="sort" value="{{ item.sort }}" min="0" max="999" class="form-control form-control-sm" style="width:5rem" form="nav-{{ item.id }}"></td>
+                    <td class="text-center"><input type="checkbox" name="enabled" value="1" class="form-check-input"{% if item.enabled %} checked{% endif %} form="nav-{{ item.id }}"></td>
+                    <td>
+                        <form id="nav-{{ item.id }}" method="post" action="/admin/menus">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <input type="hidden" name="id" value="{{ item.id }}">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">Save</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="post" action="/admin/menus/delete">
+                            <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                            <input type="hidden" name="id" value="{{ item.id }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-body-secondary">No custom items yet — the default navigation is in use.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Add item</h3></div>
+    <form method="post" action="/admin/menus">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+                <div class="col-auto"><label class="form-label">Menu<select name="menu" class="form-select"><option value="main">main</option><option value="footer">footer</option></select></label></div>
+                <div class="col-auto"><label class="form-label">Label<input type="text" name="label" placeholder="Label" required maxlength="120" class="form-control"></label></div>
+                <div class="col-auto"><label class="form-label">URL<input type="text" name="url" placeholder="/path" required maxlength="500" class="form-control"></label></div>
+                <div class="col-auto"><label class="form-label">Sort<input type="number" name="sort" value="10" min="0" max="999" class="form-control" style="width:6rem"></label></div>
+                <div class="col-auto"><div class="form-check"><input type="checkbox" name="enabled" value="1" class="form-check-input" checked id="menu-enabled"><label class="form-check-label" for="menu-enabled">Enabled</label></div></div>
+            </div>
+        </div>
+        <div class="card-footer"><button type="submit" class="btn btn-primary">Add</button></div>
+    </form>
+</div>
 {% endblock %}

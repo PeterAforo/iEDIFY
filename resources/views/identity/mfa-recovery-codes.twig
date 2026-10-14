@@ -1,10 +1,18 @@
-{% extends 'layouts/auth.twig' %}
+{% extends admin_flow|default(false) ? 'layouts/admin-auth.twig' : 'layouts/auth.twig' %}
 {% block title %}Recovery codes | iEDIFY Africa{% endblock %}
 {% block auth %}
+    {% if admin_flow|default(false) %}
+    <p class="login-box-msg">Each code works once. Store them somewhere safe — you will not see them again.</p>
+    <ol class="list-group list-group-numbered mb-3">
+        {% for code in codes %}<li class="list-group-item"><code>{{ code }}</code></li>{% endfor %}
+    </ol>
+    <a class="btn btn-primary w-100" href="/admin">Continue to administration</a>
+    {% else %}
     <h1>Save your recovery codes</h1>
     <p class="auth-lead">Each code works once. Store them somewhere safe — you will not see them again.</p>
     <ol class="recovery-codes">
         {% for code in codes %}<li><code>{{ code }}</code></li>{% endfor %}
     </ol>
     <p><a class="button-primary" href="/account">Continue to your account</a></p>
+    {% endif %}
 {% endblock %}

@@ -123,12 +123,16 @@ final class PhaseEHttpTest extends TestCase
             ->execute([bin2hex(random_bytes(16)), $intakeId, $formId, $applicantId]);
         $applicationId = (int) $this->app->pdo()->lastInsertId();
 
-        // Guest is redirected; the signed-in applicant is forbidden.
+        // Guest is redirected; the signed-in applicant is sent to the admin login.
         $this->kernel = $this->newKernel();
-        self::assertSame(302, $this->get('/admin/applications/export.csv')->getStatusCode());
+        $guestResponse = $this->get('/admin/applications/export.csv');
+        self::assertSame(302, $guestResponse->getStatusCode());
+        self::assertSame('/admin/login', $guestResponse->headers->get('Location'));
         $this->kernel = $this->newKernel();
         $this->app->grantSession($applicantId, false);
-        self::assertSame(403, $this->get('/admin/applications/export.csv')->getStatusCode());
+        $applicantResponse = $this->get('/admin/applications/export.csv');
+        self::assertSame(302, $applicantResponse->getStatusCode());
+        self::assertSame('/admin/login', $applicantResponse->headers->get('Location'));
 
         // Assigned reviewer exports the row; the formula cell is escaped.
         $this->kernel = $this->newKernel();

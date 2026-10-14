@@ -8,6 +8,13 @@
             <p class="auth-panel-note">A member account gives you access to programs, learning, mentoring, funding opportunities and the community.</p>
         </div>
         <div class="auth-card">
+            {% if flashes %}
+            <div aria-live="polite">
+                {% for type, messages in flashes %}{% for message in messages %}
+                <p class="flash flash-{{ type }}" role="status">{{ message }}</p>
+                {% endfor %}{% endfor %}
+            </div>
+            {% endif %}
             {% block auth %}{% endblock %}
         </div>
     </div>

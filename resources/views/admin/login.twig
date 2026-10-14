@@ -1,0 +1,22 @@
+{% extends 'layouts/admin-auth.twig' %}
+{% block title %}Admin sign in | iEDIFY Africa{% endblock %}
+{% block auth %}
+    <p class="login-box-msg">Sign in to the administration area. An administrative account with multi-factor authentication is required.</p>
+    <form method="post" action="/admin/login" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <div class="input-group mb-3">
+            <input name="email" type="email" class="form-control" placeholder="Email address" required autocomplete="email" maxlength="254" value="{{ email|default('') }}">
+            <div class="input-group-text"><i class="bi bi-envelope"></i></div>
+        </div>
+        <div class="input-group mb-3">
+            <input name="password" type="password" class="form-control" placeholder="Password" required autocomplete="current-password">
+            <div class="input-group-text"><i class="bi bi-lock-fill"></i></div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary w-100">Sign in</button>
+            </div>
+        </div>
+    </form>
+    <p class="mb-0 mt-3"><a href="/password/forgot">Forgot your password?</a></p>
+{% endblock %}

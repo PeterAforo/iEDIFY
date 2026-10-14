@@ -1,6 +1,22 @@
-{% extends 'layouts/auth.twig' %}
+{% extends admin_flow|default(false) ? 'layouts/admin-auth.twig' : 'layouts/auth.twig' %}
 {% block title %}Set up multi-factor authentication | iEDIFY Africa{% endblock %}
 {% block auth %}
+    {% if admin_flow|default(false) %}
+    <p class="login-box-msg">Administrative accounts require an authenticator app. Add this account in your app, then enter the code it shows.</p>
+    <div class="mb-3">
+        <label for="uri" class="form-label">Setup link</label>
+        <input id="uri" type="text" class="form-control" readonly value="{{ uri }}" onclick="this.select()">
+        <p class="form-text">Paste this link into your authenticator app, or scan it where supported.</p>
+    </div>
+    <form method="post" action="/sign-in/mfa/setup" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
+        <div class="input-group mb-3">
+            <input id="code" name="code" type="text" class="form-control" inputmode="numeric" pattern="[0-9]{6}" required autocomplete="one-time-code" maxlength="6" placeholder="Authentication code" aria-label="Authentication code">
+            <div class="input-group-text"><i class="bi bi-shield-lock"></i></div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Confirm setup</button>
+    </form>
+    {% else %}
     <h1>Set up multi-factor authentication</h1>
     <p class="auth-lead">Staff and privileged accounts require an authenticator app. Add this account in your app, then enter the code it shows.</p>
     <div class="field">
@@ -16,4 +32,5 @@
         </div>
         <button type="submit" class="button-primary">Confirm setup</button>
     </form>
+    {% endif %}
 {% endblock %}
