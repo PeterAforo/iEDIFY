@@ -5,6 +5,7 @@ import { initNav } from './nav.js';
 import { initCarousel } from './carousel.js';
 import { initAccordions } from './accordion.js';
 import { initLightbox } from './lightbox.js';
+import { initAuth } from './auth.js';
 
 document.documentElement.classList.add('js');
 
@@ -23,6 +24,7 @@ const init = () => {
   initCarousel();
   initAccordions();
   initLightbox();
+  initAuth();
 };
 
 if (document.readyState === 'loading') {

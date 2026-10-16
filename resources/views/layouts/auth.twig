@@ -1,11 +1,27 @@
 {% extends 'layouts/base.twig' %}
+{% import 'partials/africa-defs.twig' as africa %}
 {% block content %}
 <section class="container">
     <div class="auth-shell" data-reveal>
         <div class="auth-panel weave-texture">
-            {% if chrome.logo_url %}<img class="brand-logo" src="{{ chrome.logo_url }}" alt="" width="160" height="71">{% endif %}
-            <p class="auth-panel-tag">Empowering Africa's youth through innovation, education and entrepreneurship.</p>
-            <p class="auth-panel-note">A member account gives you access to programs, learning, mentoring, funding opportunities and the community.</p>
+            <svg class="auth-panel-map" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false">
+                <use class="auth-panel-map-fill" href="#africa-shape"></use>
+                <use class="auth-panel-map-line" href="#africa-shape"></use>
+            </svg>
+            <span class="float-dot auth-dot auth-dot-a" aria-hidden="true"></span>
+            <span class="float-dot auth-dot auth-dot-b" aria-hidden="true"></span>
+            <span class="float-dot auth-dot auth-dot-c" aria-hidden="true"></span>
+            {% if chrome.logo_url %}<img class="brand-logo" src="{{ chrome.logo_url }}" alt="iEDIFY Africa" width="160" height="71">{% endif %}
+            <div class="auth-panel-copy">
+                <p class="auth-panel-eyebrow">Member access</p>
+                <p class="auth-panel-tag">Empowering Africa's youth through <em>innovation</em>, education and entrepreneurship.</p>
+                <ul class="auth-panel-perks">
+                    <li>Programs &amp; learning journeys</li>
+                    <li>Mentoring &amp; community</li>
+                    <li>Funding opportunities</li>
+                </ul>
+            </div>
+            <div class="weave-band auth-panel-band" aria-hidden="true"></div>
         </div>
         <div class="auth-card">
             {% if flashes %}
