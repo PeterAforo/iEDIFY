@@ -3,5 +3,10 @@
 Require all denied
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    # Canonical host: www (and http) requests redirect to the https apex
+    # before reaching the app, whose host allowlist only accepts APP_URL.
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC,OR]
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://iedifyafrica.com/$1 [R=301,L]
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
