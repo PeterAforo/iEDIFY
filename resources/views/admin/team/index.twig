@@ -18,7 +18,7 @@
                 <div class="card h-100">
                     <div class="card-body d-flex align-items-center gap-3">
                         {% if m.portrait_asset_id %}
-                        <img src="/media/{{ m.portrait_asset_id }}" alt="" class="rounded-circle flex-shrink-0 desk-portrait">
+                        <img src="/media/{{ m.portrait_asset_id }}/w480" alt="" class="rounded-circle flex-shrink-0 desk-portrait">
                         {% else %}
                         <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center desk-avatar-fallback">{{ m.display_name|first }}</div>
                         {% endif %}

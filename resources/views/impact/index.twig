@@ -135,7 +135,7 @@
     <section class="home-section about-story" aria-labelledby="story-heading">
         <div class="about-story-panel weave-texture" data-reveal>
             {% if media[2] is defined %}
-            <img class="about-story-bg" src="{{ media[2].url }}" alt="" loading="lazy" data-parallax>
+            <img class="about-story-bg" src="{{ media[2].url }}"{% if media[2].srcset %} srcset="{{ media[2].srcset }}" sizes="100vw"{% endif %} alt="" loading="lazy" decoding="async" data-parallax>
             {% endif %}
             <div class="container">
                 <p class="about-eyebrow-light">{{ p.story.heading }}</p>
@@ -154,7 +154,7 @@
         <div class="container">
             <div class="theory-banner about-perspective shift-banner" data-reveal>
                 {% if media[9] is defined %}
-                <img class="about-story-bg" src="{{ media[9].url }}" alt="" loading="lazy" data-parallax>
+                <img class="about-story-bg" src="{{ media[9].url }}"{% if media[9].srcset %} srcset="{{ media[9].srcset }}" sizes="100vw"{% endif %} alt="" loading="lazy" decoding="async" data-parallax>
                 {% endif %}
                 <div>
                     <p class="about-eyebrow-light">{{ p.shift.heading }}</p>

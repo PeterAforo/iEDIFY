@@ -51,7 +51,7 @@
                 {% if img and media[img.media_id]|default(null) %}
                 {% set m = media[img.media_id] %}
                 <figure class="feature-media">
-                    <img src="{{ m.url }}" alt="{{ img.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
+                    <img src="{{ m.url }}"{% if m.srcset %} srcset="{{ m.srcset }}" sizes="(min-width: 1024px) 46vw, 92vw"{% endif %} alt="{{ img.alt }}" loading="lazy" decoding="async"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
                 </figure>
                 {% endif %}
                 <div class="feature-copy">

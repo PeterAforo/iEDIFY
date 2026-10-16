@@ -13,6 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class MediaAdminController extends Controller
 {
+    /** Longest edge below which an image is flagged as likely to look soft in large placements. */
+    private const MIN_SHARP_EDGE = 800;
+
     public function index(): Response
     {
         $status = (string) $this->request->query->get('status', 'pending');
@@ -44,14 +47,17 @@ final class MediaAdminController extends Controller
         $sql .= ' ORDER BY created_at DESC LIMIT 500';
         $items = [];
         foreach ($this->app->pdo()->query($sql)->fetchAll() as $row) {
+            $isImage = str_starts_with((string) $row['mime'], 'image/');
             $items[] = [
                 'id' => (int) $row['id'],
                 'url' => '/media/' . (int) $row['id'],
+                'thumb' => $isImage ? '/media/' . (int) $row['id'] . '/w480' : '/media/' . (int) $row['id'],
                 'mime' => (string) $row['mime'],
                 'width' => (int) $row['width'],
                 'height' => (int) $row['height'],
                 'alt' => (string) $row['alt_text'],
                 'filename' => (string) $row['original_filename'],
+                'low_res' => $isImage && (int) $row['width'] > 0 && max((int) $row['width'], (int) $row['height']) < self::MIN_SHARP_EDGE,
             ];
         }
         return new \Symfony\Component\HttpFoundation\JsonResponse(['items' => $items]);
@@ -66,15 +72,24 @@ final class MediaAdminController extends Controller
         }
         $alt = mb_substr(trim((string) $this->request->request->get('alt_text', '')), 0, 500);
         $actor = $this->requireActor();
-        (new Transaction($this->app->pdo()))->run(function () use ($file, $alt, $actor): void {
+        $mediaId = (new Transaction($this->app->pdo()))->run(function () use ($file, $alt, $actor): int {
             $store = new DocumentStore($this->app->pdo(), $this->app->config->path('CONTENT_STORAGE', $this->app->root . '/storage/private/content'));
             $mediaId = $store->store($file, 'public_content', 'pending');
             if ($alt !== '') {
                 $this->app->pdo()->prepare('UPDATE media_assets SET alt_text = ? WHERE id = ?')->execute([$alt, $mediaId]);
             }
             (new AuditLog($this->app->pdo()))->record($actor->id, 'media.uploaded', 'media', (string) $mediaId);
+            return $mediaId;
         });
-        $this->flash('success', 'Uploaded for review — it will not be served until approved.');
+        $meta = $this->app->pdo()->prepare('SELECT mime, width, height FROM media_assets WHERE id = ?');
+        $meta->execute([$mediaId]);
+        $meta = $meta->fetch();
+        if ($meta !== false && str_starts_with((string) $meta['mime'], 'image/')
+            && (int) $meta['width'] > 0 && max((int) $meta['width'], (int) $meta['height']) < self::MIN_SHARP_EDGE) {
+            $this->flash('warning', "Uploaded for review — but at {$meta['width']}×{$meta['height']}px it will look soft in large placements. For sharp heroes and covers, upload at least " . self::MIN_SHARP_EDGE . 'px on the long edge.');
+        } else {
+            $this->flash('success', 'Uploaded for review — it will not be served until approved.');
+        }
         return $this->redirect('/admin/media');
     }
 

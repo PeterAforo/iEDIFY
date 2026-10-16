@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace IEdify\Modules\Programs\Services;
 
 use IEdify\Core\Http\HttpError;
+use IEdify\Modules\CMS\Services\ImageProcessor;
 use PDO;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -18,6 +19,7 @@ final readonly class DocumentStore
         'application/pdf' => 'pdf',
         'image/png' => 'png',
         'image/jpeg' => 'jpg',
+        'image/webp' => 'webp',
     ];
     private const MAX_BYTES = 10485760;
 
@@ -42,7 +44,7 @@ final readonly class DocumentStore
         }
         $mime = $file->getMimeType() ?: '';
         if (!isset(self::ALLOWED_MIME[$mime])) {
-            throw new HttpError(422, 'Only PDF, PNG or JPEG documents are accepted.');
+            throw new HttpError(422, 'Only PDF, PNG, JPEG or WebP documents are accepted.');
         }
         $contents = file_get_contents($file->getPathname());
         if ($contents === false) {
@@ -61,6 +63,14 @@ final readonly class DocumentStore
         }
         if (file_put_contents($this->storageDir . '/' . $filename, $contents, LOCK_EX) === false) {
             throw new HttpError(500, 'The document could not be stored.');
+        }
+        // Responsive renditions make public imagery sharp on every display;
+        // failures are non-fatal since the original still serves.
+        if (str_starts_with($mime, 'image/')) {
+            try {
+                (new ImageProcessor())->generate($this->storageDir . '/' . $filename);
+            } catch (\Throwable) {
+            }
         }
         $original = mb_substr(preg_replace('/[^\x20-\x7E]/', '_', (string) $file->getClientOriginalName()), 0, 255);
         $width = null;

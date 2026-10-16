@@ -41,7 +41,7 @@
                 {% if hub_img and media[hub_img.media_id]|default(null) %}
                 {% set m = media[hub_img.media_id] %}
                 <figure class="community-photo" data-reveal>
-                    <img src="{{ m.url }}" alt="{{ hub_img.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
+                    <img src="{{ m.url }}"{% if m.srcset %} srcset="{{ m.srcset }}" sizes="(min-width: 1024px) 46vw, 92vw"{% endif %} alt="{{ hub_img.alt }}" loading="lazy" decoding="async"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
                 </figure>
                 {% endif %}
                 <div class="community-feature-list" data-reveal-group>
@@ -64,7 +64,7 @@
                     {% if media[shot.media_id]|default(null) %}
                     {% set m = media[shot.media_id] %}
                     <figure class="community-gallery-item">
-                        <img src="{{ m.url }}" alt="{{ shot.alt }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
+                        <img src="{{ m.url }}"{% if m.srcset %} srcset="{{ m.srcset }}" sizes="(min-width: 1024px) 30vw, 46vw"{% endif %} alt="{{ shot.alt }}" loading="lazy" decoding="async"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
                     </figure>
                     {% endif %}
                 {% endfor %}
@@ -103,7 +103,7 @@
         <div class="container">
             <div class="theory-banner shift-banner" data-reveal>
                 {% if media[9] is defined %}
-                <img class="about-story-bg" src="{{ media[9].url }}" alt="" loading="lazy" data-parallax>
+                <img class="about-story-bg" src="{{ media[9].url }}"{% if media[9].srcset %} srcset="{{ media[9].srcset }}" sizes="100vw"{% endif %} alt="" loading="lazy" decoding="async" data-parallax>
                 {% endif %}
                 <div>
                     {% if actor %}

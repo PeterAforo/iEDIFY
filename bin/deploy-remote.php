@@ -46,9 +46,9 @@ foreach (array_slice($argv, 1) as $arg) {
             fail("Unknown option: {$arg}");
     }
 }
-$allowed = ['migrate', 'seed-roles', 'doctor', 'create-admin', 'content-import', 'content-publish', 'content-structure', 'log-tail'];
+$allowed = ['migrate', 'seed-roles', 'doctor', 'create-admin', 'content-import', 'content-publish', 'content-structure', 'log-tail', 'media-renditions'];
 if ($options['help'] || !in_array($options['cmd'], $allowed, true)) {
-    echo "Usage: php bin/deploy-remote.php --cmd=migrate|seed-roles|doctor|create-admin|content-import|content-publish|content-structure|log-tail [--email= --name= --password=] [--url=]\n";
+    echo "Usage: php bin/deploy-remote.php --cmd=migrate|seed-roles|doctor|create-admin|content-import|content-publish|content-structure|log-tail|media-renditions [--email= --name= --password=] [--url=]\n";
     exit($options['help'] ? 0 : 1);
 }
 
@@ -282,6 +282,26 @@ foreach ($data['team_members'] as $t) {
 }
 echo 'team synced: ', count($data['team_members']), "\n";
 echo 'done=', count($done), "\nDONE\n";
+PHP,
+        // Generates the fixed-width WebP/JPEG renditions for every stored
+        // image so srcset markup resolves immediately, and reports assets
+        // too small to ever look sharp in large placements.
+        'media-renditions' => <<<'PHP'
+$dir = $config->path('CONTENT_STORAGE', $root . '/storage/private/content');
+$pdo = IEdify\Core\Database\Connection::open($config);
+$processor = new IEdify\Modules\CMS\Services\ImageProcessor();
+$made = 0; $skipped = 0; $lowres = [];
+foreach ($pdo->query("SELECT id, storage_path, mime, width, height, original_filename FROM media_assets WHERE mime LIKE 'image/%'") as $row) {
+    $path = $dir . '/' . basename((string) $row['storage_path']);
+    if (!is_file($path)) { $skipped++; continue; }
+    $made += count($processor->generate($path));
+    if ((int) $row['width'] > 0 && max((int) $row['width'], (int) $row['height']) < 800) {
+        $lowres[] = "#{$row['id']} {$row['original_filename']} ({$row['width']}x{$row['height']})";
+    }
+}
+echo "renditions written: {$made}\nskipped (missing file): {$skipped}\n";
+foreach ($lowres as $line) { echo "LOWRES {$line}\n"; }
+echo 'lowres count: ', count($lowres), "\nDONE\n";
 PHP,
         // Last lines of the application log for diagnosing production errors.
         'log-tail' => <<<'PHP'

@@ -52,11 +52,18 @@ function card(item, onPick) {
     btn.className = 'btn btn-outline-secondary w-100 h-100 p-1 text-start';
     if (item.mime.startsWith('image/')) {
         const img = document.createElement('img');
-        img.src = item.url;
+        img.src = item.thumb || item.url;
         img.alt = item.alt || item.filename;
         img.className = 'img-fluid rounded mb-1';
         img.loading = 'lazy';
         btn.appendChild(img);
+        if (item.low_res) {
+            const flag = document.createElement('span');
+            flag.className = 'badge text-bg-danger mb-1';
+            flag.textContent = 'Low res';
+            flag.title = 'Smaller than 800px on every side — it will look soft in large placements.';
+            btn.appendChild(flag);
+        }
     } else {
         const icon = document.createElement('div');
         icon.className = 'display-6 text-center py-3';
@@ -112,7 +119,7 @@ function renderPreview(container, item) {
     wrap.className = 'd-flex align-items-center gap-2 border rounded p-2 bg-body';
     if (item.mime && item.mime.startsWith('image/')) {
         const img = document.createElement('img');
-        img.src = item.url;
+        img.src = item.thumb || item.url;
         img.alt = item.alt || '';
         img.className = 'rounded media-thumb-img';
         wrap.appendChild(img);

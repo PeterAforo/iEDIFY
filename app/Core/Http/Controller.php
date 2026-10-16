@@ -134,15 +134,37 @@ abstract class Controller
         $statement->execute($ids);
         $media = [];
         foreach ($statement->fetchAll() as $row) {
-            $media[(int) $row['id']] = [
-                'url' => '/media/' . (int) $row['id'],
-                'width' => (int) $row['width'],
+            $id = (int) $row['id'];
+            $width = (int) $row['width'];
+            $media[$id] = [
+                'url' => '/media/' . $id,
+                'srcset' => $this->srcset($id, $width, (string) $row['mime']),
+                'width' => $width,
                 'height' => (int) $row['height'],
                 'mime' => (string) $row['mime'],
                 'filename' => (string) $row['original_filename'],
             ];
         }
         return $media;
+    }
+
+    /**
+     * srcset descriptor list for the generated rendition widths plus the
+     * original. Missing renditions are produced on demand by MediaController.
+     */
+    private function srcset(int $id, int $width, string $mime): ?string
+    {
+        if (!str_starts_with($mime, 'image/') || $width <= 0) {
+            return null;
+        }
+        $parts = [];
+        foreach (\IEdify\Modules\CMS\Services\ImageProcessor::WIDTHS as $w) {
+            if ($w < $width) {
+                $parts[] = '/media/' . $id . '/w' . $w . ' ' . $w . 'w';
+            }
+        }
+        $parts[] = '/media/' . $id . ' ' . $width . 'w';
+        return implode(', ', $parts);
     }
 
     protected function redirect(string $path): RedirectResponse

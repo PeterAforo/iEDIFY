@@ -175,18 +175,22 @@ final class CmsEditorJourneyTest extends TestCase
         preg_match('/name="_csrf" value="([a-f0-9]{64})"/', (string) $page->getContent(), $match);
         self::assertNotEmpty($match[1] ?? '', 'No CSRF token on media page');
 
-        // 1x1 transparent PNG.
-        $bytes = (string) base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
-        $hash = hash('sha256', $bytes);
+        // 1200x900 PNG generated via GD so rendition widths below it exist.
+        $image = imagecreatetruecolor(1200, 900);
+        imagefill($image, 0, 0, imagecolorallocate($image, 23, 61, 41));
+        imagestring($image, 5, 20, 20, 'rendition source', imagecolorallocate($image, 255, 255, 255));
         $png = tempnam(sys_get_temp_dir(), 'up') . '.png';
-        file_put_contents($png, $bytes);
-        $file = new UploadedFile($png, 'pixel.png', null, null, true);
+        imagepng($image, $png);
+        $bytes = (string) file_get_contents($png);
+        $hash = hash('sha256', $bytes);
+        $file = new UploadedFile($png, 'wide.png', null, null, true);
 
+        $storageDir = dirname(__DIR__, 2) . '/storage/private/content-test';
         try {
             $response = $this->kernel->handle(Request::create(
                 'http://127.0.0.1:8080/admin/media/upload',
                 'POST',
-                ['_csrf' => $match[1], 'alt_text' => 'test pixel'],
+                ['_csrf' => $match[1], 'alt_text' => 'test image'],
                 [],
                 ['document' => $file],
                 ['REMOTE_ADDR' => $this->ip]
@@ -194,12 +198,29 @@ final class CmsEditorJourneyTest extends TestCase
             self::assertSame(302, $response->getStatusCode());
             self::assertSame('/admin/media', $response->headers->get('Location'));
 
-            $statement = $this->app->pdo()->prepare("SELECT COUNT(*) FROM media_assets WHERE sha256 = ? AND review_status = 'pending'");
+            $statement = $this->app->pdo()->prepare("SELECT id FROM media_assets WHERE sha256 = ? AND review_status = 'pending'");
             $statement->execute([$hash]);
-            self::assertGreaterThan(0, (int) $statement->fetchColumn());
+            $mediaId = (int) $statement->fetchColumn();
+            self::assertGreaterThan(0, $mediaId);
+
+            // Renditions were generated at upload time for every width below the source.
+            self::assertFileExists($storageDir . '/' . $hash . '_w480.webp');
+            self::assertFileExists($storageDir . '/' . $hash . '_w960.webp');
+
+            // Approving makes the rendition publicly serveable.
+            $approve = $this->post('/admin/media/' . $mediaId . '/review', ['decision' => 'approved'], '/admin/media');
+            self::assertSame(302, $approve->getStatusCode());
+            $rendition = $this->get('/media/' . $mediaId . '/w480');
+            self::assertSame(200, $rendition->getStatusCode());
+            self::assertStringStartsWith('image/', (string) $rendition->headers->get('Content-Type'));
+            self::assertInstanceOf(\Symfony\Component\HttpFoundation\BinaryFileResponse::class, $rendition);
+            $renditionSize = getimagesize($rendition->getFile()->getPathname());
+            self::assertSame(480, $renditionSize[0]);
         } finally {
             $this->app->pdo()->prepare('DELETE FROM media_assets WHERE sha256 = ?')->execute([$hash]);
-            @unlink(dirname(__DIR__, 2) . '/storage/private/content-test/' . $hash . '.png');
+            foreach (glob($storageDir . '/' . $hash . '*') ?: [] as $created) {
+                @unlink($created);
+            }
         }
     }
 }

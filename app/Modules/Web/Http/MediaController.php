@@ -6,6 +6,7 @@ namespace IEdify\Modules\Web\Http;
 
 use IEdify\Core\Http\Controller;
 use IEdify\Core\Http\HttpError;
+use IEdify\Modules\CMS\Services\ImageProcessor;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -13,7 +14,56 @@ final class MediaController extends Controller
 {
     public function serve(): Response
     {
-        $id = (int) $this->vars['id'];
+        [$asset, $approved] = $this->asset((int) $this->vars['id']);
+        $path = $this->storedPath($asset);
+        $response = new BinaryFileResponse($path, 200, [
+            'Content-Type' => $asset['mime'],
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => $approved ? 'public, max-age=31536000, immutable' : 'private, no-store',
+        ]);
+        $response->headers->set('Content-Disposition', 'inline; filename="' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $asset['original_filename']) . '"');
+        return $response->prepare($this->request);
+    }
+
+    /**
+     * Fixed-width rendition for responsive srcset. The rendition file is
+     * generated on demand when absent and falls back to the original when
+     * the source cannot be resampled. Images only - other media 404s.
+     */
+    public function serveRendition(): Response
+    {
+        $width = (int) $this->vars['w'];
+        if (!in_array($width, ImageProcessor::WIDTHS, true)) {
+            throw new HttpError(404, 'This file is not available.');
+        }
+        [$asset, $approved] = $this->asset((int) $this->vars['id']);
+        if (!str_starts_with((string) $asset['mime'], 'image/')) {
+            throw new HttpError(404, 'This file is not available.');
+        }
+        $directory = $this->app->config->path('CONTENT_STORAGE', $this->app->root . '/storage/private/content');
+        $hash = pathinfo((string) $asset['storage_path'], PATHINFO_FILENAME);
+        $path = ImageProcessor::renditionPath($directory, $hash, $width);
+        if ($path !== null && !is_file($path)) {
+            try {
+                (new ImageProcessor())->generate($directory . '/' . basename($asset['storage_path']));
+            } catch (\Throwable) {
+            }
+        }
+        if ($path === null || !is_file($path)) {
+            return $this->serve();
+        }
+        $response = new BinaryFileResponse($path, 200, [
+            'Content-Type' => ImageProcessor::renditionMime($path),
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => $approved ? 'public, max-age=31536000, immutable' : 'private, no-store',
+        ]);
+        $response->headers->set('Content-Disposition', 'inline; filename="' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $asset['original_filename']) . '"');
+        return $response->prepare($this->request);
+    }
+
+    /** @return array{0: array, 1: bool} the asset row and whether it is approved public content */
+    private function asset(int $id): array
+    {
         $statement = $this->app->pdo()->prepare('SELECT * FROM media_assets WHERE id = ?');
         $statement->execute([$id]);
         $asset = $statement->fetch();
@@ -24,18 +74,17 @@ final class MediaController extends Controller
         if (!$approved && !$this->maySeePrivate((int) $asset['id'])) {
             throw new HttpError(404, 'This file is not available.');
         }
+        return [$asset, $approved];
+    }
+
+    private function storedPath(array $asset): string
+    {
         $directory = $this->app->config->path('CONTENT_STORAGE', $this->app->root . '/storage/private/content');
         $path = realpath($directory . '/' . basename($asset['storage_path']));
         if ($path === false || !str_starts_with(str_replace('\\', '/', $path), str_replace('\\', '/', realpath($directory) ?: $directory))) {
             throw new HttpError(404, 'This file is not available.');
         }
-        $response = new BinaryFileResponse($path, 200, [
-            'Content-Type' => $asset['mime'],
-            'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => $approved ? 'public, max-age=31536000, immutable' : 'private, no-store',
-        ]);
-        $response->headers->set('Content-Disposition', 'inline; filename="' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $asset['original_filename']) . '"');
-        return $response->prepare($this->request);
+        return $path;
     }
 
     /**

@@ -75,11 +75,11 @@
         <div class="container about-collage">
             <svg class="about-collage-dots" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape" fill="url(#africa-dots)"/></svg>
             <figure class="about-collage-main" data-reveal>
-                <img src="/media/{{ collage_main.media_id }}" alt="{{ collage_main.title }}" loading="lazy"{% if collage_main.width %} width="{{ collage_main.width }}" height="{{ collage_main.height }}"{% endif %}>
+                <img src="/media/{{ collage_main.media_id }}/w1600" alt="{{ collage_main.title }}" loading="lazy" decoding="async"{% if collage_main.width %} width="{{ collage_main.width }}" height="{{ collage_main.height }}"{% endif %}>
             </figure>
             {% if collage_side %}
             <a class="about-collage-card" href="{{ collage_side.cta_url|default('/community') }}" data-reveal>
-                <img src="/media/{{ collage_side.media_id }}" alt="{{ collage_side.title }}" loading="lazy"{% if collage_side.width %} width="{{ collage_side.width }}" height="{{ collage_side.height }}"{% endif %}>
+                <img src="/media/{{ collage_side.media_id }}/w960" alt="{{ collage_side.title }}" loading="lazy" decoding="async"{% if collage_side.width %} width="{{ collage_side.width }}" height="{{ collage_side.height }}"{% endif %}>
                 <span class="about-collage-caption">
                     <span class="about-collage-kicker">{{ collage_side.kicker }}</span>
                     <span class="about-collage-title">{{ collage_side.title }}</span>
@@ -97,7 +97,7 @@
     <section class="home-section about-story" aria-labelledby="story-heading">
         <div class="about-story-panel weave-texture" data-reveal>
             {% if story_bg %}
-            <img class="about-story-bg" src="/media/{{ story_bg.media_id }}" alt="" loading="lazy" data-parallax>
+            <img class="about-story-bg" src="/media/{{ story_bg.media_id }}/w2400" alt="" loading="lazy" decoding="async" data-parallax>
             {% endif %}
             <div class="container">
                 <p class="about-eyebrow-light">{{ a.reflections.heading }}</p>
@@ -151,7 +151,7 @@
                 </div>
                 {% if media[9] is defined %}
                 <figure class="about-perspective-media">
-                    <img src="{{ media[9].url }}" alt="iEDIFY Africa team" loading="lazy"{% if media[9].width and media[9].height %} width="{{ media[9].width }}" height="{{ media[9].height }}"{% endif %}>
+                    <img src="{{ media[9].url }}"{% if media[9].srcset %} srcset="{{ media[9].srcset }}" sizes="(min-width: 1024px) 60vw, 92vw"{% endif %} alt="iEDIFY Africa team" loading="lazy" decoding="async"{% if media[9].width and media[9].height %} width="{{ media[9].width }}" height="{{ media[9].height }}"{% endif %}>
                 </figure>
                 {% endif %}
             </div>

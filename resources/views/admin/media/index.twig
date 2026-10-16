@@ -8,8 +8,8 @@
         <div class="card-body">
             <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
             <div class="mb-3">
-                <label for="document" class="form-label">New public asset (PDF, PNG or JPEG, up to 10 MB)</label>
-                <input id="document" name="document" type="file" class="form-control" required accept="application/pdf,image/png,image/jpeg">
+                <label for="document" class="form-label">New public asset (PDF, PNG, JPEG or WebP, up to 10 MB — images of at least 800px on the long edge stay sharp everywhere)</label>
+                <input id="document" name="document" type="file" class="form-control" required accept="application/pdf,image/png,image/jpeg,image/webp">
             </div>
             <div class="mb-3">
                 <label for="alt_text" class="form-label">Alt text / accessible description</label>
@@ -29,13 +29,13 @@
     <div class="col">
         <div class="card h-100">
             {% if asset.mime starts with 'image/' %}
-            <img src="/media/{{ asset.id }}" class="card-img-top" alt="{{ asset.alt_text }}" loading="lazy">
+            <img src="/media/{{ asset.id }}/w480" class="card-img-top" alt="{{ asset.alt_text }}" loading="lazy" decoding="async">
             {% else %}
             <div class="card-img-top d-flex align-items-center justify-content-center bg-body-tertiary media-tile-fallback"><span class="badge text-bg-secondary">{{ asset.mime }}</span></div>
             {% endif %}
             <div class="card-body">
                 <p class="card-title fw-bold mb-1">{{ asset.original_filename }}</p>
-                <p class="card-text text-body-secondary small mb-1">{{ asset.mime }}{% if asset.width %} · {{ asset.width }}×{{ asset.height }}{% endif %} · <span class="badge text-bg-{{ asset.review_status == 'approved' ? 'success' : (asset.review_status == 'pending' ? 'warning' : 'danger') }}">{{ asset.review_status }}</span></p>
+                <p class="card-text text-body-secondary small mb-1">{{ asset.mime }}{% if asset.width %} · {{ asset.width }}×{{ asset.height }}{% endif %} · <span class="badge text-bg-{{ asset.review_status == 'approved' ? 'success' : (asset.review_status == 'pending' ? 'warning' : 'danger') }}">{{ asset.review_status }}</span>{% if asset.mime starts with 'image/' and asset.width and asset.height and asset.width < 800 and asset.height < 800 %} <span class="badge text-bg-danger" title="Smaller than 800px on every side — it will look soft in large placements. Replace with a bigger version.">Low res</span>{% endif %}</p>
                 <p class="card-text small">{{ asset.alt_text }}</p>
                 {% if asset.review_status == 'pending' %}
                 <div class="d-flex gap-2">

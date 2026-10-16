@@ -9,6 +9,7 @@ use IEdify\Modules\Web\Http\SiteController;
 return [
     ['GET', '/', [PageController::class, 'home']],
     ['GET', '/media/{id:\d+}', [MediaController::class, 'serve']],
+    ['GET', '/media/{id:\d+}/w{w:\d+}', [MediaController::class, 'serveRendition']],
     ['GET', '/search', [SiteController::class, 'search']],
     ['GET', '/news', [SiteController::class, 'news']],
     ['GET', '/publications', [SiteController::class, 'publications']],

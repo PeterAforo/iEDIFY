@@ -37,7 +37,7 @@
                         {% if entry.cover.mime starts with 'video/' %}
                         <video class="album-card-media" src="{{ entry.cover.url }}" preload="metadata" muted playsinline aria-hidden="true"></video>
                         {% else %}
-                        <img class="album-card-media" src="{{ entry.cover.url }}" alt="" loading="lazy"{% if entry.cover.width and entry.cover.height %} width="{{ entry.cover.width }}" height="{{ entry.cover.height }}"{% endif %}>
+                        <img class="album-card-media" src="{{ entry.cover.url }}"{% if entry.cover.srcset %} srcset="{{ entry.cover.srcset }}" sizes="(min-width: 1024px) 44vw, 92vw"{% endif %} alt="" loading="lazy" decoding="async"{% if entry.cover.width and entry.cover.height %} width="{{ entry.cover.width }}" height="{{ entry.cover.height }}"{% endif %}>
                         {% endif %}
                         {% if entry.videos %}
                         <span class="album-card-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
@@ -61,7 +61,7 @@
                     {% if item.mime starts with 'video/' %}
                     <video src="/media/{{ item.id }}" controls preload="metadata" playsinline>{% if item.alt_text %}{{ item.alt_text }}{% endif %}</video>
                     {% else %}
-                    <img src="/media/{{ item.id }}" alt="{{ item.alt_text }}" loading="lazy"{% if item.width and item.height %} width="{{ item.width }}" height="{{ item.height }}"{% endif %}>
+                    <img src="/media/{{ item.id }}/w960" alt="{{ item.alt_text }}" loading="lazy" decoding="async"{% if item.width and item.height %} width="{{ item.width }}" height="{{ item.height }}"{% endif %}>
                     {% endif %}
                     {% if item.alt_text %}<figcaption>{{ item.alt_text }}</figcaption>{% endif %}
                 </figure>

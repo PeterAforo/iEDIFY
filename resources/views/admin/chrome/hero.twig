@@ -14,7 +14,7 @@
                     <td><input type="text" name="kicker" value="{{ slide.kicker }}" maxlength="255" class="form-control form-control-sm" form="hero-{{ slide.id }}"></td>
                     <td>
                         <input type="hidden" name="media_id" id="hero-media-{{ slide.id }}" value="{{ slide.media_id }}" form="hero-{{ slide.id }}">
-                        <div id="hero-media-preview-{{ slide.id }}" data-media-preview>{% if slide.media_id %}<img src="/media/{{ slide.media_id }}" alt="" class="rounded mb-1 media-thumb-img">{% endif %}</div>
+                        <div id="hero-media-preview-{{ slide.id }}" data-media-preview>{% if slide.media_id %}<img src="/media/{{ slide.media_id }}/w480" alt="" class="rounded mb-1 media-thumb-img">{% endif %}</div>
                         <button type="button" class="btn btn-outline-secondary btn-sm" data-media-picker data-media-kind="image" data-media-target="#hero-media-{{ slide.id }}" data-media-preview="#hero-media-preview-{{ slide.id }}"><i class="bi bi-images"></i></button>
                     </td>
                     <td>

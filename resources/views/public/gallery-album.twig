@@ -30,7 +30,7 @@
                     <video src="{{ item.url }}" preload="metadata" muted playsinline aria-hidden="true"></video>
                     <span class="media-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
                     {% else %}
-                    <img src="{{ item.url }}" alt="{{ item.alt }}" loading="lazy"{% if item.width and item.height %} width="{{ item.width }}" height="{{ item.height }}"{% endif %}>
+                    <img src="{{ item.url }}"{% if item.srcset %} srcset="{{ item.srcset }}" sizes="(min-width: 1024px) 30vw, 46vw"{% endif %} alt="{{ item.alt }}" loading="lazy" decoding="async"{% if item.width and item.height %} width="{{ item.width }}" height="{{ item.height }}"{% endif %}>
                     {% endif %}
                 </a>
                 {% endfor %}

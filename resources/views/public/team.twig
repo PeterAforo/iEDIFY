@@ -10,7 +10,7 @@
     <a class="member-link" href="{{ member.slug }}" aria-label="{{ member.display_name }} — {{ member.role_label }}">
         {% if member.portrait_asset_id and media[member.portrait_asset_id]|default(null) %}
         {% set m = media[member.portrait_asset_id] %}
-        <img class="member-img member-img-{{ cycle(['tall', 'mid', 'sq'], i) }}" src="{{ m.url }}" alt="Portrait of {{ member.display_name }}" loading="lazy"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
+        <img class="member-img member-img-{{ cycle(['tall', 'mid', 'sq'], i) }}" src="{{ m.url }}"{% if m.srcset %} srcset="{{ m.srcset }}" sizes="(min-width: 1024px) 30vw, 46vw"{% endif %} alt="Portrait of {{ member.display_name }}" loading="lazy" decoding="async"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %}>
         {% else %}
         {% set parts = member.display_name|split(' ') %}
         <span class="member-initials" aria-hidden="true">{{ parts[0]|first }}{{ parts[1]|default('')|first }}</span>
