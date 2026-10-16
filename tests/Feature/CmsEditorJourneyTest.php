@@ -14,6 +14,7 @@ use IEdify\Modules\Identity\Services\RoleSeeder;
 use OTPHP\TOTP;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
@@ -165,5 +166,40 @@ final class CmsEditorJourneyTest extends TestCase
         $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertArrayHasKey('items', $payload);
         self::assertIsArray($payload['items']);
+    }
+
+    public function testMediaUploadStoresAsset(): void
+    {
+        $this->signInAdmin();
+        $page = $this->get('/admin/media');
+        preg_match('/name="_csrf" value="([a-f0-9]{64})"/', (string) $page->getContent(), $match);
+        self::assertNotEmpty($match[1] ?? '', 'No CSRF token on media page');
+
+        // 1x1 transparent PNG.
+        $bytes = (string) base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+        $hash = hash('sha256', $bytes);
+        $png = tempnam(sys_get_temp_dir(), 'up') . '.png';
+        file_put_contents($png, $bytes);
+        $file = new UploadedFile($png, 'pixel.png', null, null, true);
+
+        try {
+            $response = $this->kernel->handle(Request::create(
+                'http://127.0.0.1:8080/admin/media/upload',
+                'POST',
+                ['_csrf' => $match[1], 'alt_text' => 'test pixel'],
+                [],
+                ['document' => $file],
+                ['REMOTE_ADDR' => $this->ip]
+            ));
+            self::assertSame(302, $response->getStatusCode());
+            self::assertSame('/admin/media', $response->headers->get('Location'));
+
+            $statement = $this->app->pdo()->prepare("SELECT COUNT(*) FROM media_assets WHERE sha256 = ? AND review_status = 'pending'");
+            $statement->execute([$hash]);
+            self::assertGreaterThan(0, (int) $statement->fetchColumn());
+        } finally {
+            $this->app->pdo()->prepare('DELETE FROM media_assets WHERE sha256 = ?')->execute([$hash]);
+            @unlink(dirname(__DIR__, 2) . '/storage/private/content-test/' . $hash . '.png');
+        }
     }
 }

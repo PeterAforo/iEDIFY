@@ -26,6 +26,7 @@
         "symfony/console": "^7.4",
         "symfony/html-sanitizer": "^7.4",
         "symfony/http-foundation": "^7.4",
+        "symfony/mime": "^7.4",
         "symfony/validator": "^7.4",
         "twig/twig": "^3.22",
         "vlucas/phpdotenv": "^5.6"
