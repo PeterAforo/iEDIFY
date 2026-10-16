@@ -14,7 +14,7 @@ final class SignInController extends Controller
 {
     public function form(): Response
     {
-        return $this->render('identity/sign-in.twig');
+        return $this->view();
     }
 
     public function submit(): Response
@@ -28,12 +28,12 @@ final class SignInController extends Controller
                 (new AuditLog($this->app->pdo()))->record(null, 'identity.sign_in_failed', 'session', 'anonymous');
             });
             $this->flash('error', 'The email or password is incorrect.');
-            return $this->render('identity/sign-in.twig', ['email' => $email], 422);
+            return $this->view(['email' => $email], 422);
         }
         $actor = $this->app->identity()->actor($result['id']);
         if ($actor === null) {
             $this->flash('error', 'This account is not available. Contact iEDIFY Africa for help.');
-            return $this->render('identity/sign-in.twig', ['email' => $email], 422);
+            return $this->view(['email' => $email], 422);
         }
         if ($actor->privileged) {
             $this->app->session->migrate(true);
@@ -49,6 +49,14 @@ final class SignInController extends Controller
             (new AuditLog($this->app->pdo()))->record($result['id'], 'identity.signed_in', 'user', (string) $result['id']);
         });
         return $this->redirect($this->intended());
+    }
+
+    /** @param array<string, mixed> $data */
+    private function view(array $data = [], int $status = 200): Response
+    {
+        return $this->render('identity/sign-in.twig', $data + [
+            'signup_enabled' => $this->app->config->boolean('SIGNUP_ENABLED'),
+        ], $status);
     }
 
     private function intended(): string
