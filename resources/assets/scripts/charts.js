@@ -6,7 +6,7 @@ Chart.register(...registerables);
 
 Chart.defaults.font.family = "'Instrument Sans', 'Segoe UI', sans-serif";
 Chart.defaults.color = '#4b4638';
-Chart.defaults.borderColor = 'rgba(23, 61, 41, .12)';
+Chart.defaults.borderColor = 'rgba(26, 77, 51, .12)';
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.boxWidth = 8;
 

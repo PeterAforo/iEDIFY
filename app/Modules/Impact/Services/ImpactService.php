@@ -229,7 +229,7 @@ final readonly class ImpactService
                     'data' => [
                         'labels' => $data['labels'],
                         'datasets' => [
-                            ['label' => 'Actual', 'data' => $data['actual'], 'backgroundColor' => '#245c38', 'borderRadius' => 6],
+                            ['label' => 'Actual', 'data' => $data['actual'], 'backgroundColor' => '#2b6e44', 'borderRadius' => 6],
                             ['label' => 'Target', 'data' => $data['target'], 'backgroundColor' => '#c9ddba', 'borderRadius' => 6],
                         ],
                     ],

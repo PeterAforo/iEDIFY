@@ -38,12 +38,12 @@
   --desk-raised: #ffffff;
   --desk-sand: #f3efe1;
   --desk-sand-deep: #eae4cf;
-  --desk-ink: #1e241f;
+  --desk-ink: #2a322c;
   --desk-ink-soft: #4d574e;
   --desk-ink-faint: #77816f;
-  --desk-forest: #173d29;
-  --desk-forest-deep: #0f2c1d;
-  --desk-moss: #245c38;
+  --desk-forest: #1a4d33;
+  --desk-forest-deep: #143a27;
+  --desk-moss: #2b6e44;
   --desk-leaf: #6ebd52;
   --desk-leaf-bright: #a5da8c;
   --desk-leaf-soft: #dff0d5;
@@ -70,17 +70,17 @@
   --bs-primary: var(--desk-clay);
   --bs-primary-rgb: 190, 66, 16;
   --bs-success: var(--desk-moss);
-  --bs-success-rgb: 36, 92, 56;
+  --bs-success-rgb: 43, 110, 68;
   --bs-danger: var(--desk-ember);
   --bs-danger-rgb: 140, 14, 32;
   --bs-warning: var(--desk-sun);
   --bs-warning-rgb: 243, 154, 30;
   --bs-info: var(--desk-moss);
-  --bs-info-rgb: 36, 92, 56;
+  --bs-info-rgb: 43, 110, 68;
   --bs-link-color: var(--desk-moss);
-  --bs-link-color-rgb: 36, 92, 56;
+  --bs-link-color-rgb: 43, 110, 68;
   --bs-link-hover-color: var(--desk-forest);
-  --bs-link-hover-color-rgb: 23, 61, 41;
+  --bs-link-hover-color-rgb: 26, 77, 51;
   --bs-border-radius: 0.55rem;
   --bs-border-radius-sm: 0.4rem;
   --bs-border-radius-lg: 0.75rem;
@@ -258,7 +258,7 @@ body {
   background: var(--desk-raised);
   border: 1px solid var(--desk-line);
   border-radius: var(--bs-border-radius-lg);
-  box-shadow: 0 1px 2px rgba(30, 36, 31, 0.05);
+  box-shadow: 0 1px 2px rgba(42, 50, 44, 0.05);
 
   .card-header {
     background: transparent;
@@ -559,7 +559,7 @@ body {
   --bs-dropdown-link-hover-bg: var(--desk-sand);
   --bs-dropdown-link-hover-color: var(--desk-ink);
   --bs-dropdown-border-color: var(--desk-line-strong);
-  box-shadow: 0 8px 24px rgba(30, 36, 31, 0.12);
+  box-shadow: 0 8px 24px rgba(42, 50, 44, 0.12);
 }
 
 .modal-content {
@@ -586,7 +586,7 @@ body {
   border: 1px solid var(--desk-line);
   background: var(--desk-raised);
   color: var(--desk-ink);
-  box-shadow: 0 1px 2px rgba(30, 36, 31, 0.05);
+  box-shadow: 0 1px 2px rgba(42, 50, 44, 0.05);
 
   &.text-bg-primary,
   &.text-bg-warning,
@@ -660,7 +660,7 @@ body {
 
   .card {
     border: 1px solid var(--desk-line-strong);
-    box-shadow: 0 12px 40px rgba(15, 44, 29, 0.1);
+    box-shadow: 0 12px 40px rgba(20, 58, 39, 0.1);
     border-top: 4px solid transparent;
     border-image: linear-gradient(90deg, var(--desk-clay), var(--desk-sun), var(--desk-leaf)) 1;
   }
@@ -748,7 +748,7 @@ body {
 .be-block {
   border: 1px solid var(--desk-line-strong);
   border-radius: 0.6rem;
-  box-shadow: 0 1px 2px rgba(30, 36, 31, 0.04);
+  box-shadow: 0 1px 2px rgba(42, 50, 44, 0.04);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
@@ -812,7 +812,7 @@ body {
     border: 1px solid var(--desk-line-strong);
     background: var(--desk-raised);
     color: var(--desk-moss);
-    box-shadow: 0 1px 3px rgba(30, 36, 31, 0.12);
+    box-shadow: 0 1px 3px rgba(42, 50, 44, 0.12);
 
     &:hover {
       background: var(--desk-forest);
@@ -964,7 +964,7 @@ body {
     background: var(--desk-forest);
     color: var(--desk-leaf-bright);
     border: none;
-    box-shadow: 0 8px 24px rgba(15, 44, 29, 0.35);
+    box-shadow: 0 8px 24px rgba(20, 58, 39, 0.35);
     font-weight: 600;
     font-size: 0.88rem;
   }

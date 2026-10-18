@@ -16,9 +16,9 @@
 .button-primary {
   background: var(--moss);
   color: #fff;
-  box-shadow: 0 .4rem 1rem -.4rem rgba(36, 92, 56, .5);
+  box-shadow: 0 .4rem 1rem -.4rem rgba(43, 110, 68, .5);
 }
-.button-primary:hover { background: var(--forest); color: #fff; transform: translateY(-1px); box-shadow: 0 .6rem 1.4rem -.4rem rgba(23, 61, 41, .55); }
+.button-primary:hover { background: var(--forest); color: #fff; transform: translateY(-1px); box-shadow: 0 .6rem 1.4rem -.4rem rgba(26, 77, 51, .55); }
 .button-primary:active { transform: translateY(0); }
 .button-primary.button-clay { background: var(--clay); box-shadow: 0 .4rem 1rem -.4rem rgba(190, 66, 16, .45); }
 .button-primary.button-clay:hover { background: var(--clay-deep); }
