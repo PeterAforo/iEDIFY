@@ -81,9 +81,9 @@
   --bs-link-color-rgb: 43, 110, 68;
   --bs-link-hover-color: var(--desk-forest);
   --bs-link-hover-color-rgb: 26, 77, 51;
-  --bs-border-radius: 0.55rem;
-  --bs-border-radius-sm: 0.4rem;
-  --bs-border-radius-lg: 0.75rem;
+  --bs-border-radius: 0;
+  --bs-border-radius-sm: 0;
+  --bs-border-radius-lg: 0;
 }
 
 body {
@@ -93,13 +93,30 @@ body {
 }
 
 // ------------------------------------------------------------------
-// Sidebar — the signature element. Deep forest with a woven
+// Sidebar — the signature element. Light ledger with a woven
 // clay/sun/leaf edge stripe, a quiet kente nod.
 // ------------------------------------------------------------------
 .app-sidebar {
-  --bs-body-bg: var(--desk-forest-deep);
-  background: linear-gradient(180deg, var(--desk-forest-deep) 0%, var(--desk-forest) 100%);
+  --bs-body-bg: var(--desk-paper);
+  background: var(--desk-paper);
   box-shadow: none;
+
+  // AdminLTE's own state variables — set them here so its
+  // higher-specificity rules resolve to the desk palette.
+  --lte-sidebar-color: var(--desk-ink-soft);
+  --lte-sidebar-hover-bg: var(--desk-sand);
+  --lte-sidebar-hover-color: var(--desk-ink);
+  --lte-sidebar-active-color: var(--desk-forest);
+  --lte-sidebar-menu-active-bg: var(--desk-ink);
+  --lte-sidebar-menu-active-color: var(--desk-paper);
+  --lte-sidebar-header-color: var(--desk-ink-faint);
+  --lte-sidebar-submenu-bg: var(--desk-paper);
+  --lte-sidebar-submenu-color: var(--desk-ink-soft);
+  --lte-sidebar-submenu-hover-bg: var(--desk-sand);
+  --lte-sidebar-submenu-hover-color: var(--desk-ink);
+  --lte-sidebar-submenu-active-bg: var(--desk-sand-deep);
+  --lte-sidebar-submenu-active-color: var(--desk-ink);
+
   border-right: 4px solid transparent;
   border-image: linear-gradient(
     180deg,
@@ -112,7 +129,7 @@ body {
   ) 1;
 
   .sidebar-brand {
-    border-bottom: 1px solid rgba(165, 218, 140, 0.15);
+    border-bottom: 1px solid var(--desk-line);
     padding: 1.1rem 0;
 
     .brand-link {
@@ -124,7 +141,7 @@ body {
       font-weight: 600;
       font-size: 1.3rem;
       letter-spacing: 0.01em;
-      color: var(--desk-leaf-bright);
+      color: var(--desk-forest);
     }
 
     .brand-tag {
@@ -134,7 +151,7 @@ body {
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(165, 218, 140, 0.55);
+      color: var(--desk-ink-faint);
       margin-top: -0.1rem;
     }
   }
@@ -144,33 +161,37 @@ body {
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.16em;
-    color: rgba(165, 218, 140, 0.5);
+    color: var(--desk-ink-faint);
     padding: 0.9rem 1rem 0.3rem;
   }
 
   .sidebar-menu {
     .nav-link {
-      color: rgba(223, 240, 213, 0.82);
-      border-radius: 0.5rem;
-      margin: 0 0.4rem;
+      color: var(--desk-ink-soft);
+      border-radius: 0;
 
       &:hover {
-        color: #fff;
-        background: rgba(165, 218, 140, 0.1);
+        color: var(--desk-ink);
+        background: var(--desk-sand);
       }
 
       &.active {
-        color: var(--desk-forest-deep);
-        background: var(--desk-leaf);
         font-weight: 600;
-
-        .nav-icon {
-          color: var(--desk-forest-deep);
-        }
       }
 
       .nav-icon {
-        color: rgba(165, 218, 140, 0.6);
+        color: var(--desk-ink-faint);
+      }
+    }
+
+    // Top-level active state — the decisive ink block. Submenu
+    // active links take the quieter sand treatment via --lte-* vars.
+    > .nav-item > .nav-link.active {
+      color: var(--desk-paper);
+      background: var(--desk-ink);
+
+      .nav-icon {
+        color: var(--desk-paper);
       }
     }
 
@@ -256,9 +277,9 @@ body {
 // ------------------------------------------------------------------
 .card {
   background: var(--desk-raised);
-  border: 1px solid var(--desk-line);
-  border-radius: var(--bs-border-radius-lg);
-  box-shadow: 0 1px 2px rgba(42, 50, 44, 0.05);
+  border: 1px solid var(--desk-line-strong);
+  border-radius: 0;
+  box-shadow: none;
 
   .card-header {
     background: transparent;
@@ -286,8 +307,11 @@ body {
 // Buttons — clay primary, forest publish, quiet outlines
 // ------------------------------------------------------------------
 .btn {
-  --bs-btn-font-weight: 600;
-  border-radius: 0.5rem;
+  --bs-btn-font-weight: 700;
+  border-radius: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 .btn-primary {
@@ -366,6 +390,7 @@ body {
   font-family: var(--desk-body);
   font-weight: 600;
   letter-spacing: 0.02em;
+  border-radius: 0;
 
   &.text-bg-primary { background: var(--desk-sun-soft) !important; color: var(--desk-clay-deep) !important; }
   &.text-bg-secondary { background: var(--desk-sand-deep) !important; color: var(--desk-ink-soft) !important; }
@@ -395,7 +420,7 @@ body {
   &:focus {
     background-color: var(--desk-raised);
     border-color: var(--desk-moss);
-    box-shadow: 0 0 0 0.2rem rgba(110, 189, 82, 0.18);
+    box-shadow: 0 0 0 2px var(--desk-leaf-soft);
   }
 }
 
@@ -482,6 +507,7 @@ body {
   .nav-link {
     color: var(--desk-ink-soft);
     font-weight: 600;
+    border-radius: 0;
 
     &:hover {
       color: var(--desk-forest);
@@ -523,7 +549,7 @@ body {
 
   &:focus {
     border-color: var(--desk-moss);
-    box-shadow: 0 0 0 0.2rem rgba(110, 189, 82, 0.18);
+    box-shadow: 0 0 0 2px var(--desk-leaf-soft);
   }
 }
 
@@ -559,12 +585,14 @@ body {
   --bs-dropdown-link-hover-bg: var(--desk-sand);
   --bs-dropdown-link-hover-color: var(--desk-ink);
   --bs-dropdown-border-color: var(--desk-line-strong);
-  box-shadow: 0 8px 24px rgba(42, 50, 44, 0.12);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 0 var(--desk-line);
 }
 
 .modal-content {
   background: var(--desk-paper);
   border-color: var(--desk-line-strong);
+  border-radius: 0;
 }
 
 .modal-header,
@@ -582,11 +610,11 @@ body {
 // Small boxes (dashboard stats) — paper cards, Fraunces numbers
 // ------------------------------------------------------------------
 .small-box {
-  border-radius: var(--bs-border-radius-lg);
-  border: 1px solid var(--desk-line);
+  border-radius: 0;
+  border: 1px solid var(--desk-line-strong);
   background: var(--desk-raised);
   color: var(--desk-ink);
-  box-shadow: 0 1px 2px rgba(42, 50, 44, 0.05);
+  box-shadow: none;
 
   &.text-bg-primary,
   &.text-bg-warning,
@@ -626,7 +654,6 @@ body {
     color: var(--desk-forest) !important;
     font-weight: 600;
     font-size: 0.82rem;
-    border-radius: 0 0 var(--bs-border-radius-lg) var(--bs-border-radius-lg);
 
     &:hover {
       background: var(--desk-sand-deep);
@@ -639,9 +666,7 @@ body {
 // Login page — a quiet, branded door
 // ------------------------------------------------------------------
 .login-page {
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, var(--desk-sun-soft) 0%, transparent 60%),
-    var(--desk-paper);
+  background: var(--desk-paper);
 }
 
 .login-box {
@@ -660,7 +685,7 @@ body {
 
   .card {
     border: 1px solid var(--desk-line-strong);
-    box-shadow: 0 12px 40px rgba(20, 58, 39, 0.1);
+    box-shadow: none;
     border-top: 4px solid transparent;
     border-image: linear-gradient(90deg, var(--desk-clay), var(--desk-sun), var(--desk-leaf)) 1;
   }
@@ -738,18 +763,14 @@ body {
     font-size: 0.85rem;
     color: var(--desk-ink-soft);
   }
-
-  .publish-actions .btn {
-    border-radius: 0.5rem;
-  }
 }
 
 // Block cards inside the editor
 .be-block {
   border: 1px solid var(--desk-line-strong);
-  border-radius: 0.6rem;
-  box-shadow: 0 1px 2px rgba(42, 50, 44, 0.04);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 0;
+  box-shadow: none;
+  transition: border-color 0.15s ease;
 
   &:hover {
     border-color: var(--desk-moss);
@@ -764,7 +785,6 @@ body {
     padding: 0.5rem 0.85rem;
     background: var(--desk-sand);
     border-bottom: 1px solid var(--desk-line);
-    border-radius: 0.6rem 0.6rem 0 0;
     cursor: default;
   }
 
@@ -808,11 +828,11 @@ body {
     font-weight: 700;
     line-height: 1;
     padding: 0.15rem 0.55rem;
-    border-radius: 999px;
+    border-radius: 0;
     border: 1px solid var(--desk-line-strong);
     background: var(--desk-raised);
     color: var(--desk-moss);
-    box-shadow: 0 1px 3px rgba(42, 50, 44, 0.12);
+    box-shadow: none;
 
     &:hover {
       background: var(--desk-forest);
@@ -847,14 +867,14 @@ body {
 // ------------------------------------------------------------------
 .ql-toolbar.ql-snow {
   border-color: var(--desk-line-strong);
-  border-radius: 0.5rem 0.5rem 0 0;
+  border-radius: 0;
   background: var(--desk-sand);
   font-family: var(--desk-body);
 }
 
 .ql-container.ql-snow {
   border-color: var(--desk-line-strong);
-  border-radius: 0 0 0.5rem 0.5rem;
+  border-radius: 0;
   background: var(--desk-raised);
   font-family: var(--desk-body);
   font-size: 0.95rem;
@@ -910,7 +930,7 @@ body {
 .status-pill {
   display: inline-block;
   padding: 0.2rem 0.6rem;
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -961,10 +981,11 @@ body {
   z-index: 1080;
 
   .toast {
-    background: var(--desk-forest);
-    color: var(--desk-leaf-bright);
+    background: var(--desk-ink);
+    color: var(--desk-paper);
     border: none;
-    box-shadow: 0 8px 24px rgba(20, 58, 39, 0.35);
+    border-radius: 0;
+    box-shadow: 4px 4px 0 0 rgba(42, 50, 44, 0.18);
     font-weight: 600;
     font-size: 0.88rem;
   }
@@ -1009,7 +1030,7 @@ code {
   color: var(--desk-clay-deep);
   background: var(--desk-sand);
   padding: 0.1em 0.35em;
-  border-radius: 0.3rem;
+  border-radius: 0;
   font-family: var(--desk-mono);
   font-size: 0.85em;
 }
