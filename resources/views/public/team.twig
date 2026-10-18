@@ -22,6 +22,29 @@
     </a>
 </article>
 {% endmacro %}
+{% macro team_group(key, eyebrow, title, lead, members, media, tile_class, tag, tag_before) %}
+{% if members %}
+<section class="home-section team-group team-group-{{ key }}" aria-labelledby="team-{{ key }}-title">
+    <div class="team-group-inner">
+        <header class="team-group-head" data-reveal>
+            <p class="team-group-eyebrow">{{ eyebrow }}</p>
+            <h2 id="team-{{ key }}-title">{{ title }}</h2>
+            {% if lead %}<p class="team-group-lead">{{ lead }}</p>{% endif %}
+        </header>
+        <div class="member-mosaic" data-reveal-group>
+            {% for member in members %}
+                {% if loop.index == tag_before %}
+                <article class="member-tile member-tile-dot {{ tile_class }}">
+                    <p class="member-tile-tag">{{ tag|raw }}</p>
+                </article>
+                {% endif %}
+                {{ _self.member_card(member, media, loop.index) }}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endmacro %}
 {% block title %}{{ page.title }} | iEDIFY Africa{% endblock %}
 {% block content %}
 {% if preview is defined %}
@@ -57,61 +80,11 @@
     </div>
     {% endif %}
 
-    {# ---------- Team mosaic ---------- #}
+    {# ---------- Team groups: each roster category in its own section ---------- #}
     {% if roster %}
-    <section class="home-section team-mosaic" aria-label="Team members">
-        <div class="member-mosaic" data-reveal-group>
-            {% if board %}
-            <article class="member-tile tile-forest">
-                <div>
-                    <p class="member-tile-eyebrow">{{ t.board.heading|default('Governance & Oversight') }}</p>
-                    <h2>Board of Directors</h2>
-                    {% if t.board.lead|default('') %}<p class="member-tile-desc">{{ t.board.lead }}</p>{% endif %}
-                </div>
-            </article>
-            {% for member in board %}
-                {% if loop.index == 4 %}
-                <article class="member-tile member-tile-dot tile-sun">
-                    <p class="member-tile-tag">Educate.<br>Train.<br>Equip.</p>
-                </article>
-                {% endif %}
-                {{ _self.member_card(member, media, loop.index) }}
-            {% endfor %}
-            {% endif %}
-            {% if youth %}
-            <article class="member-tile tile-clay">
-                <div>
-                    <p class="member-tile-eyebrow">Youth voice</p>
-                    <h2>Youth Advisory Board</h2>
-                </div>
-            </article>
-            {% for member in youth %}
-                {{ _self.member_card(member, media, loop.index) }}
-                {% if loop.index == 1 %}
-                <article class="member-tile member-tile-dot tile-ember">
-                    <p class="member-tile-tag">Africa's Next Generation</p>
-                </article>
-                {% endif %}
-            {% endfor %}
-            {% endif %}
-            {% if programs %}
-            <article class="member-tile tile-sand">
-                <div>
-                    <p class="member-tile-eyebrow">Delivery & Impact</p>
-                    <h2>Programs Team</h2>
-                </div>
-            </article>
-            {% for member in programs %}
-                {{ _self.member_card(member, media, loop.index) }}
-                {% if loop.index == 2 %}
-                <article class="member-tile member-tile-dot tile-moss">
-                    <p class="member-tile-tag">Opportunity Through Innovation</p>
-                </article>
-                {% endif %}
-            {% endfor %}
-            {% endif %}
-        </div>
-    </section>
+        {{ _self.team_group('board', t.board.heading|default('Governance & Oversight'), 'Board of Directors', t.board.lead|default(''), board, media, 'tile-sun', 'Educate.<br>Train.<br>Equip.', 4) }}
+        {{ _self.team_group('youth', 'Youth voice', 'Youth Advisory Board', '', youth, media, 'tile-ember', "Africa's Next Generation", 2) }}
+        {{ _self.team_group('programs', 'Delivery & Impact', 'Programs Team', '', programs, media, 'tile-moss', 'Opportunity Through Innovation', 3) }}
     {% endif %}
 
     {# ---------- Join CTA ---------- #}
