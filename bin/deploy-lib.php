@@ -136,10 +136,18 @@ function fetchManifest($ftp, string $remotePath): array
         return [];
     }
     $manifest = [];
-    if (@ftp_get($ftp, $tmp, $remotePath, FTP_BINARY)) {
-        $decoded = json_decode((string) file_get_contents($tmp), true);
-        if (is_array($decoded) && isset($decoded['files']) && is_array($decoded['files'])) {
-            $manifest = $decoded;
+    // Transient FTPS data-channel drops are common on shared hosting; a
+    // failed fetch must not silently degrade to "first deployment".
+    for ($attempt = 0; $attempt < 3; $attempt++) {
+        if ($attempt > 0) {
+            sleep(2);
+        }
+        if (@ftp_get($ftp, $tmp, $remotePath, FTP_BINARY)) {
+            $decoded = json_decode((string) file_get_contents($tmp), true);
+            if (is_array($decoded) && isset($decoded['files']) && is_array($decoded['files'])) {
+                $manifest = $decoded;
+                break;
+            }
         }
     }
     @unlink($tmp);
