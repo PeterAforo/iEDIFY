@@ -1,0 +1,67 @@
+{% extends 'layouts/base.twig' %}
+{% import 'public/_sections.twig' as ui %}
+{% import 'partials/africa-defs.twig' as africa %}
+{% block title %}{{ member.display_name }} | iEDIFY Africa{% endblock %}
+{% block content %}
+{% if preview is defined %}
+<div class="preview-banner" role="status">Draft preview — status {{ preview.status }}, state {{ preview.state }}, revision {{ preview.revision }}. This page is not public.</div>
+{% endif %}
+<article class="member-profile">
+
+    {# ---------- Profile hero: name and role beside the portrait ---------- #}
+    <section class="member-hero" aria-labelledby="member-title">
+        <div class="member-hero-inner">
+            <div class="member-hero-info" data-reveal>
+                <a class="member-back" href="/team"><span aria-hidden="true">&larr;</span> The team</a>
+                <h1 id="member-title" class="member-name-lg">{{ member.display_name }}</h1>
+                <p class="member-role-lg member-role-{{ group.key }}">{{ member.role_title }} &middot; {{ group.label }}</p>
+            </div>
+            <figure class="member-portrait" data-reveal>
+                {% if member.portrait_asset_id and media[member.portrait_asset_id]|default(null) %}
+                {% set m = media[member.portrait_asset_id] %}
+                <img src="{{ m.url }}"{% if m.srcset %} srcset="{{ m.srcset }}" sizes="(min-width: 56rem) 42vw, 92vw"{% endif %} alt="Portrait of {{ member.display_name }}"{% if m.width and m.height %} width="{{ m.width }}" height="{{ m.height }}"{% endif %} fetchpriority="high" decoding="async">
+                {% else %}
+                <span class="member-portrait-initials" aria-hidden="true">{{ member.initials }}</span>
+                {% endif %}
+            </figure>
+        </div>
+    </section>
+
+    {# ---------- Biography ---------- #}
+    {% if bio %}
+    <section class="member-story" aria-label="Biography">
+        <div class="member-story-inner">
+            <div class="member-bio" data-reveal>
+                {% for paragraph in bio %}<p>{{ paragraph }}</p>{% endfor %}
+            </div>
+            <svg class="member-story-map" viewBox="{{ africa.viewbox() }}" aria-hidden="true" focusable="false"><use href="#africa-shape"/></svg>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if rest_sections %}
+    <section class="home-section">
+        <div class="container page-body">{{ ui.render(rest_sections, media) }}</div>
+    </section>
+    {% endif %}
+
+    {# ---------- Roster navigation ---------- #}
+    <nav class="member-nav-wrap" aria-label="More team members">
+        <div class="member-nav">
+            {% if neighbours.prev %}
+            <a class="member-nav-item" href="{{ neighbours.prev.slug }}">
+                <span class="member-nav-label"><span aria-hidden="true">&larr;</span> Previous</span>
+                <span class="member-nav-name">{{ neighbours.prev.display_name }}</span>
+            </a>
+            {% else %}<span></span>{% endif %}
+            {% if neighbours.next %}
+            <a class="member-nav-item member-nav-next" href="{{ neighbours.next.slug }}">
+                <span class="member-nav-label">Next <span aria-hidden="true">&rarr;</span></span>
+                <span class="member-nav-name">{{ neighbours.next.display_name }}</span>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+</article>
+{% endblock %}

@@ -260,6 +260,108 @@ main .page-header { padding-block: clamp(2.5rem, 6vw, 4.25rem) clamp(1rem, 3vw, 
 .tile-sun { background: var(--sun); color: var(--forest-deep); }
 .tile-sand { background: var(--sand); color: var(--forest); }
 
+// --- Member profile: editorial bio page ---
+.member-hero { padding-block: clamp(2.5rem, 6vw, 5rem) clamp(2rem, 5vw, 3.5rem); }
+.member-hero-inner {
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+  display: grid;
+  gap: clamp(2rem, 4.5vw, 4.5rem);
+  align-items: center;
+}
+@media (min-width: 56rem) { .member-hero-inner { grid-template-columns: 1.05fr .95fr; } }
+.member-back {
+  display: inline-block;
+  margin-bottom: clamp(1.5rem, 4vw, 2.75rem);
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.member-back:hover { color: var(--clay); }
+.member-name-lg {
+  font-family: var(--font-display);
+  font-size: clamp(2.15rem, 5.6vw, 3.8rem);
+  font-weight: 600;
+  line-height: 1.03;
+  letter-spacing: -.02em;
+  margin: 0 0 1.1rem;
+  text-wrap: balance;
+}
+.member-role-lg { font-size: clamp(1.125rem, 1.9vw, 1.3rem); font-weight: 600; color: var(--ink-soft); margin: 0; }
+.member-role-board { color: var(--forest); }
+.member-role-advisory { color: var(--clay); }
+.member-role-youth { color: var(--ember); }
+.member-role-programs { color: var(--moss); }
+.member-portrait { margin: 0; }
+.member-portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(38rem, 88vh);
+  object-fit: cover;
+  object-position: top;
+  border-radius: 1.4rem;
+}
+.member-portrait-initials {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  border-radius: 1.4rem;
+  background: var(--leaf-soft);
+  color: var(--forest);
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 10vw, 7rem);
+  font-weight: 600;
+}
+.member-story { padding-bottom: clamp(3rem, 7vw, 5.5rem); }
+.member-story-inner {
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+  display: grid;
+  gap: 2rem;
+}
+@media (min-width: 56rem) { .member-story-inner { grid-template-columns: 1.05fr .95fr; align-items: start; } }
+.member-bio { max-width: 62ch; }
+.member-bio p { font-size: 1.08rem; line-height: 1.8; color: var(--ink-soft); margin: 0 0 1.35rem; }
+.member-bio > p:first-child {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.member-story-map { width: 100%; height: auto; max-height: 26rem; fill: var(--sand-deep); }
+.member-nav-wrap { background: var(--sand); }
+.member-nav {
+  max-width: 96rem;
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 3vw, 2rem);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+.member-nav-item { display: grid; gap: .35rem; text-decoration: none; color: var(--ink); }
+.member-nav-label {
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.member-nav-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.2vw, 1.6rem);
+  font-weight: 600;
+  line-height: 1.15;
+  transition: color .2s var(--ease-out);
+}
+.member-nav-item:hover .member-nav-name { color: var(--clay); }
+.member-nav-next { text-align: right; margin-left: auto; }
+
 // --- Auth & forms ---
 .auth-shell { display: grid; min-height: 36rem; margin-block: clamp(2rem, 5vw, 4rem); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--line); }
 .auth-panel {
