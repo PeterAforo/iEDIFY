@@ -64,14 +64,20 @@ if ($options['env'] !== null && !is_file($root . '/' . $options['env'])) {
 $ftp = connect($host, $port, $user, $password, $ssl, $passive, $timeout);
 printf("Connected to %s://%s:%d\n", $ssl ? 'ftps' : 'ftp', $host, $port);
 
-// Both of these remote reads ride the flaky FTPS data channel; retry the
-// root probe like fetchManifest() does instead of trusting one attempt.
+// Probe the remote root on the control channel (ftp_chdir) — ftp_nlist
+// rides the flaky FTPS data channel and can fail while PUT/GET still work.
 $rootExists = false;
+$here = @ftp_pwd($ftp);
 for ($attempt = 0; $attempt < 3 && !$rootExists; $attempt++) {
     if ($attempt > 0) {
         sleep(2);
     }
-    $rootExists = @ftp_nlist($ftp, $remoteRoot) !== false;
+    if (@ftp_chdir($ftp, $remoteRoot)) {
+        $rootExists = true;
+        if ($here !== false) {
+            @ftp_chdir($ftp, $here);
+        }
+    }
 }
 $remoteManifest = fetchManifest($ftp, remotePath($remoteRoot, $config['manifest']));
 $usingLocalManifest = false;
@@ -152,8 +158,11 @@ if (!$options['yes'] && !confirm('Proceed with deployment?')) {
 
 $knownDirs = [];
 ensureRemoteDir($ftp, $remoteRoot, $knownDirs);
-if (!$rootExists && @ftp_nlist($ftp, $remoteRoot) === false) {
+if (!$rootExists && !@ftp_chdir($ftp, $remoteRoot)) {
     fail("Remote directory {$remoteRoot} does not exist and could not be created.");
+}
+if ($here !== false) {
+    @ftp_chdir($ftp, $here);
 }
 
 // Pre-create every remote directory the uploads need so the transfer
