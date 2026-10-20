@@ -1,7 +1,7 @@
 {% extends 'layouts/admin-auth.twig' %}
 {% block title %}Admin sign in | iEDIFY Africa{% endblock %}
 {% block auth %}
-    <p class="login-box-msg">Sign in to the content desk. An administrative account{% if mfa_required|default(true) %} with multi-factor authentication{% endif %} is required.</p>
+    <p class="login-box-msg">Sign in to the content desk. An administrative account{% if mfa_required ?? true %} with multi-factor authentication{% endif %} is required.</p>
     <form method="post" action="/admin/login" novalidate>
         <input type="hidden" name="_csrf" value="{{ csrf.token() }}">
         <div class="input-group mb-3">
