@@ -15,7 +15,8 @@
         <a href="/admin/content/new{% if filters.type in creatable_types %}?type={{ filters.type }}{% endif %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add new</a>
     </li>
 </ul>
-<div class="card">
+<div class="desk-split">
+<div class="card desk-split-list">
     <div class="card-body border-bottom">
         <form method="get" action="/admin/content" class="row g-2 align-items-end">
             {% if filters.status %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
@@ -40,7 +41,7 @@
             <thead><tr><th scope="col">Title</th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Flags</th><th scope="col">Updated</th><th scope="col"></th></tr></thead>
             <tbody>
                 {% for item in items %}
-                <tr>
+                <tr class="desk-preview-row" data-preview-url="{{ item.preview_url }}" data-preview-id="{{ item.id }}" data-preview-title="{{ item.title }}" role="button" tabindex="0" title="Preview">
                     <td>
                         <a href="/admin/content/{{ item.id }}"><strong>{{ item.title }}</strong></a>
                         <div class="small"><code>{{ item.slug }}</code></div>
@@ -67,5 +68,27 @@
             </tbody>
         </table>
     </div>
+</div>
+<aside class="desk-preview" data-desk-preview aria-label="Page preview">
+    <div class="desk-preview-head">
+        <div class="min-w-0">
+            <div class="desk-preview-title fw-semibold text-truncate" data-desk-preview-title>Select a page</div>
+            <div class="small text-body-secondary">Live draft preview</div>
+        </div>
+        <div class="d-flex gap-2 ms-auto flex-shrink-0">
+            <a href="#" class="btn btn-outline-secondary btn-sm" data-desk-preview-edit hidden><i class="bi bi-pencil me-1"></i>Edit</a>
+            <a href="#" class="btn btn-outline-secondary btn-sm" data-desk-preview-open target="_blank" rel="noopener" hidden><i class="bi bi-box-arrow-up-right"></i></a>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-desk-preview-close hidden aria-label="Close preview"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+    <div class="desk-preview-body">
+        <div class="desk-preview-empty" data-desk-preview-empty>
+            <i class="bi bi-window-sidebar"></i>
+            <div class="fw-semibold mt-2">Nothing selected</div>
+            <div class="small">Choose a page from the list to see its rendered preview.</div>
+        </div>
+        <iframe class="desk-preview-frame" data-desk-preview-frame title="Page preview" hidden></iframe>
+    </div>
+</aside>
 </div>
 {% endblock %}

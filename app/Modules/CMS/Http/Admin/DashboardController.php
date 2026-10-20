@@ -17,6 +17,10 @@ final class DashboardController extends Controller
             'flags' => (int) $pdo->query("SELECT COUNT(*) FROM editorial_flags WHERE status = 'open'")->fetchColumn(),
             'media_pending' => (int) $pdo->query("SELECT COUNT(*) FROM media_assets WHERE review_status = 'pending'")->fetchColumn(),
             'outbox_pending' => (int) $pdo->query("SELECT COUNT(*) FROM outbox_events WHERE status = 'pending'")->fetchColumn(),
+            'team' => (int) $pdo->query('SELECT COUNT(*) FROM team_members')->fetchColumn(),
+            'programs' => (int) $pdo->query('SELECT COUNT(*) FROM programs')->fetchColumn(),
+            'applications_open' => (int) $pdo->query("SELECT COUNT(*) FROM applications WHERE status IN ('submitted','screening','under_review')")->fetchColumn(),
+            'media_total' => (int) $pdo->query('SELECT COUNT(*) FROM media_assets')->fetchColumn(),
         ];
         $recent = $pdo->query('SELECT id, title, slug, content_type, status, updated_at FROM content_items ORDER BY updated_at DESC LIMIT 6')->fetchAll();
         $hour = (int) (new \DateTimeImmutable('now', new \DateTimeZone('Africa/Accra')))->format('G');

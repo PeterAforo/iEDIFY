@@ -128,7 +128,7 @@ final class ContentAdminController extends Controller
         $status = (string) $this->request->query->get('status', '');
         $type = (string) $this->request->query->get('type', '');
         $query = (string) $this->request->query->get('q', '');
-        $sql = 'SELECT c.id, c.slug, c.title, c.content_type, c.status, c.working_state, c.version, c.updated_at, (SELECT COUNT(*) FROM editorial_flags f JOIN source_mappings m ON m.source_record_id = f.source_record_id WHERE m.content_id = c.id AND f.status = \'open\') AS open_flags FROM content_items c WHERE 1=1';
+        $sql = 'SELECT c.id, c.slug, c.title, c.content_type, c.status, c.working_state, c.version, c.updated_at, (SELECT COUNT(*) FROM editorial_flags f JOIN source_mappings m ON m.source_record_id = f.source_record_id WHERE m.content_id = c.id AND f.status = \'open\') AS open_flags, (SELECT r.id FROM content_revisions r WHERE r.content_id = c.id ORDER BY r.revision_number DESC LIMIT 1) AS latest_revision_id FROM content_items c WHERE 1=1';
         $params = [];
         if (in_array($status, ['draft', 'review', 'published', 'archived'], true)) {
             $sql .= ' AND c.status = ?';
@@ -146,9 +146,16 @@ final class ContentAdminController extends Controller
         $sql .= ' ORDER BY c.updated_at DESC LIMIT 200';
         $statement = $pdo->prepare($sql);
         $statement->execute($params);
+        $appKey = $this->app->config->string('APP_KEY');
+        $items = array_map(static function (array $item) use ($appKey): array {
+            $item['preview_url'] = $item['latest_revision_id'] !== null
+                ? '/preview/' . (int) $item['id'] . '/' . \IEdify\Modules\CMS\Services\CmsService::previewToken($appKey, (int) $item['id'], (int) $item['latest_revision_id'])
+                : null;
+            return $item;
+        }, $statement->fetchAll());
         $labels = \IEdify\Modules\CMS\Services\ContentTypes::LABELS;
         return $this->render('admin/content/index.twig', [
-            'items' => $statement->fetchAll(),
+            'items' => $items,
             'status_counts' => $pdo->query('SELECT status, COUNT(*) AS total FROM content_items GROUP BY status')->fetchAll(\PDO::FETCH_KEY_PAIR),
             'filters' => ['status' => $status, 'type' => $type, 'q' => $query],
             'type_labels' => $labels,

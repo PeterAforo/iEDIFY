@@ -37,6 +37,37 @@
     <div class="small"><strong>All clear.</strong> No open flags or pending media approvals.</div>
 </div></div>
 {% endif %}
+{% set published = counts.content|filter(r => r.status == 'published')|first %}
+<div class="row g-3 mb-4 desk-kpis">
+    <div class="col-sm-6 col-xl-3">
+        <a href="/admin/content?status=published" class="text-decoration-none">
+            <div class="small-box"><span class="small-box-icon"><i class="bi bi-file-earmark-text"></i></span>
+                <div class="inner"><h3>{{ published.total|default(0) }}</h3><p>Published items</p></div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a href="/admin/team" class="text-decoration-none">
+            <div class="small-box"><span class="small-box-icon"><i class="bi bi-people"></i></span>
+                <div class="inner"><h3>{{ counts.team }}</h3><p>Team members</p></div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a href="/admin/media" class="text-decoration-none">
+            <div class="small-box"><span class="small-box-icon"><i class="bi bi-images"></i></span>
+                <div class="inner"><h3>{{ counts.media_total }}</h3><p>Media assets{% if counts.media_pending > 0 %} · {{ counts.media_pending }} pending{% endif %}</p></div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a href="/admin/applications" class="text-decoration-none">
+            <div class="small-box"><span class="small-box-icon"><i class="bi bi-inbox"></i></span>
+                <div class="inner"><h3>{{ counts.applications_open }}</h3><p>Open applications</p></div>
+            </div>
+        </a>
+    </div>
+</div>
 <div class="row g-4">
     <div class="col-lg-7">
         <div class="card h-100">

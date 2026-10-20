@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="auto">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,24 +10,50 @@
     {% for stylesheet in asset_styles('resources/assets/scripts/admin.js') %}<link rel="stylesheet" href="{{ stylesheet }}">{% endfor %}
     <script type="module" src="{{ asset('resources/assets/scripts/admin.js') }}"></script>
 </head>
-<body class="login-page bg-body-secondary">
-<div class="login-box">
-    <div class="login-logo">
-        <a href="/">iEDIFY <b>Africa</b> Studio</a>
-    </div>
-    <div class="card">
-        <div class="card-body login-card-body">
-            {% if flashes %}
-                {% for type, messages in flashes %}{% for message in messages %}
-                <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endfor %}{% endfor %}
-            {% endif %}
-            {% block auth %}{% endblock %}
+<body class="login-page">
+<div class="dropdown desk-theme-toggle">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle colour theme">
+        <i class="bi bi-sun" data-lte-theme-icon="light"></i>
+        <i class="bi bi-moon-stars d-none" data-lte-theme-icon="dark"></i>
+        <i class="bi bi-circle-half d-none" data-lte-theme-icon="auto"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light"><i class="bi bi-sun me-2"></i>Light<i class="bi bi-check-lg ms-auto d-none"></i></button></li>
+        <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark"><i class="bi bi-moon-stars me-2"></i>Dark<i class="bi bi-check-lg ms-auto d-none"></i></button></li>
+        <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto"><i class="bi bi-circle-half me-2"></i>Auto<i class="bi bi-check-lg ms-auto d-none"></i></button></li>
+    </ul>
+</div>
+<div class="desk-auth">
+    <aside class="desk-auth-brand">
+        <div class="desk-auth-brand-inner">
+            <img class="desk-auth-logo" src="{{ chrome.logo_dark_url }}" alt="iEDIFY Africa" width="44" height="20">
+            <div class="desk-auth-wordmark">iEDIFY <em>Africa</em> Studio</div>
+            <p class="desk-auth-tag">The content desk — pages, people, programs and media for iEDIFY Africa.</p>
+            <ul class="desk-auth-points">
+                <li><i class="bi bi-check2-circle"></i>Draft, review and publish content</li>
+                <li><i class="bi bi-check2-circle"></i>Manage the team roster and media</li>
+                <li><i class="bi bi-check2-circle"></i>Track programs, applications and mail</li>
+            </ul>
         </div>
-    </div>
+        <div class="desk-auth-band" aria-hidden="true"></div>
+    </aside>
+    <main class="desk-auth-main">
+        <div class="login-box">
+            <div class="card">
+                <div class="card-body login-card-body">
+                    {% if flashes %}
+                        {% for type, messages in flashes %}{% for message in messages %}
+                        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}{% endfor %}
+                    {% endif %}
+                    {% block auth %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
 </body>
 </html>

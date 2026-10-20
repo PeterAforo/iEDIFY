@@ -5,6 +5,7 @@ import 'bootstrap';
 import { Toast } from 'bootstrap';
 import 'admin-lte';
 import { bindMediaPickers } from './media-picker.js';
+import { bindContentPreview } from './content-preview.js';
 
 // Bottom-right toast notifications for in-page feedback.
 window.cmsToast = function (message, variant = 'success') {
@@ -40,6 +41,7 @@ window.cmsToast = function (message, variant = 'success') {
 };
 
 document.addEventListener('DOMContentLoaded', () => bindMediaPickers());
+document.addEventListener('DOMContentLoaded', () => bindContentPreview());
 
 // "Add new content": derive the slug from the title until it is edited by hand.
 document.addEventListener('DOMContentLoaded', () => {
