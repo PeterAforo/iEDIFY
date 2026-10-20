@@ -91,7 +91,7 @@ final readonly class Config
         if ($key === false || strlen($key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
             throw new InvalidArgumentException('APP_KEY must contain a base64-encoded 32-byte random key.');
         }
-        foreach (['FUNDING_ENABLED', 'SMS_ENABLED', 'SIGNUP_ENABLED', 'MAIL_LIVE_ENABLED'] as $flag) {
+        foreach (['FUNDING_ENABLED', 'SMS_ENABLED', 'SIGNUP_ENABLED', 'MAIL_LIVE_ENABLED', 'MFA_REQUIRED'] as $flag) {
             $this->boolean($flag);
         }
         if ($this->environment() !== 'production' && $this->boolean('MAIL_LIVE_ENABLED')) {

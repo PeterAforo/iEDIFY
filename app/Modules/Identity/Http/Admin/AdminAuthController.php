@@ -23,7 +23,7 @@ final class AdminAuthController extends Controller
         if ($actor !== null && $actor->privileged && $actor->mfaComplete) {
             return $this->redirect('/admin');
         }
-        return $this->render('admin/login.twig');
+        return $this->view();
     }
 
     public function submit(): Response
@@ -37,14 +37,23 @@ final class AdminAuthController extends Controller
                 (new AuditLog($this->app->pdo()))->record(null, 'identity.sign_in_failed', 'session', 'anonymous');
             });
             $this->flash('error', 'The email or password is incorrect.');
-            return $this->render('admin/login.twig', ['email' => $email], 422);
+            return $this->view(['email' => $email], 422);
         }
         $actor = $this->app->identity()->actor($result['id']);
         if ($actor === null || !$actor->privileged) {
             $this->flash('error', 'This account does not have administrative access.');
-            return $this->render('admin/login.twig', ['email' => $email], 422);
+            return $this->view(['email' => $email], 422);
         }
         $this->app->session->migrate(true);
+        if (!$this->app->config->boolean('MFA_REQUIRED', true)) {
+            $this->app->grantSession($result['id'], true);
+            (new Transaction($this->app->pdo()))->run(function () use ($result): void {
+                (new AuditLog($this->app->pdo()))->record($result['id'], 'identity.signed_in', 'user', (string) $result['id']);
+            });
+            $intended = $this->app->session->get(Application::SESSION_INTENDED);
+            $this->app->session->remove(Application::SESSION_INTENDED);
+            return $this->redirect(is_string($intended) && str_starts_with($intended, '/admin') ? $intended : '/admin');
+        }
         $this->app->session->set(Application::SESSION_PENDING_MFA, $result['id']);
         $this->app->session->set(Application::SESSION_ADMIN_FLOW, true);
         $intended = $this->app->session->get(Application::SESSION_INTENDED);
@@ -63,5 +72,13 @@ final class AdminAuthController extends Controller
         $this->app->clearAuthentication();
         $this->app->session->invalidate();
         return $this->redirect('/admin/login');
+    }
+
+    /** @param array<string, mixed> $data */
+    private function view(array $data = [], int $status = 200): Response
+    {
+        return $this->render('admin/login.twig', $data + [
+            'mfa_required' => $this->app->config->boolean('MFA_REQUIRED', true),
+        ], $status);
     }
 }

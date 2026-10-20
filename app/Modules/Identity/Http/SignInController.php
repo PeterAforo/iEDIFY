@@ -35,7 +35,7 @@ final class SignInController extends Controller
             $this->flash('error', 'This account is not available. Contact iEDIFY Africa for help.');
             return $this->view(['email' => $email], 422);
         }
-        if ($actor->privileged) {
+        if ($actor->privileged && $this->app->config->boolean('MFA_REQUIRED', true)) {
             $this->app->session->migrate(true);
             $this->app->session->set(Application::SESSION_PENDING_MFA, $result['id']);
             if (!$this->app->mfa()->enabled($result['id'])) {

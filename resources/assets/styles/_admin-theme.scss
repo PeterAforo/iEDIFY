@@ -91,63 +91,6 @@
   --bs-border-radius-lg: 0.85rem;
 }
 
-// ------------------------------------------------------------------
-// Dark mode — a true inverse of the desk: deep green-charcoal canvas,
-// elevated surfaces, the same brand accents lightened for contrast.
-// AdminLTE's ColorMode resolves 'auto' against prefers-color-scheme.
-// ------------------------------------------------------------------
-[data-bs-theme='dark'] {
-  --desk-paper: #141a16;
-  --desk-raised: #1d2620;
-  --desk-sand: #26302a;
-  --desk-sand-deep: #303a33;
-  --desk-ink: #e9ede7;
-  --desk-ink-soft: #b9c2b6;
-  --desk-ink-faint: #8a948a;
-  --desk-forest: #2f7a4d;
-  --desk-forest-deep: #143a27;
-  --desk-moss: #63b07d;
-  --desk-leaf: #8fd174;
-  --desk-leaf-bright: #b5e5a1;
-  --desk-leaf-soft: #2c4a35;
-  --desk-clay: #e06a33;
-  --desk-clay-deep: #f08a58;
-  --desk-ember: #e04f5f;
-  --desk-sun: #f39a1e;
-  --desk-sun-deep: #f8b45f;
-  --desk-sun-soft: #4a3a22;
-  --desk-line: #2c352e;
-  --desk-line-strong: #3d473f;
-  --desk-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --desk-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
-  --desk-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
-
-  --bs-body-color: var(--desk-ink);
-  --bs-body-color-rgb: 233, 237, 231;
-  --bs-body-bg: var(--desk-paper);
-  --bs-body-bg-rgb: 20, 26, 22;
-  --bs-secondary-color: var(--desk-ink-soft);
-  --bs-secondary-bg: var(--desk-sand);
-  --bs-secondary-bg-rgb: 38, 48, 42;
-  --bs-tertiary-bg: var(--desk-sand);
-  --bs-tertiary-bg-rgb: 38, 48, 42;
-  --bs-border-color: var(--desk-line);
-  --bs-primary: var(--desk-leaf);
-  --bs-primary-rgb: 143, 209, 116;
-  --bs-success: var(--desk-moss);
-  --bs-success-rgb: 99, 176, 125;
-  --bs-danger: var(--desk-ember);
-  --bs-danger-rgb: 224, 79, 95;
-  --bs-warning: var(--desk-sun);
-  --bs-warning-rgb: 243, 154, 30;
-  --bs-info: var(--desk-moss);
-  --bs-info-rgb: 99, 176, 125;
-  --bs-link-color: var(--desk-leaf);
-  --bs-link-color-rgb: 143, 209, 116;
-  --bs-link-hover-color: var(--desk-leaf-bright);
-  --bs-link-hover-color-rgb: 181, 229, 161;
-}
-
 body {
   font-family: var(--desk-body);
   background-color: var(--desk-paper);
@@ -823,13 +766,6 @@ body {
   padding: 3rem 1.5rem;
 }
 
-.desk-theme-toggle {
-  position: fixed;
-  top: 1rem;
-  right: 1.25rem;
-  z-index: 1040;
-}
-
 .login-box {
   width: 100%;
   max-width: 26rem;
@@ -1338,59 +1274,6 @@ a {
 :focus-visible {
   outline: 2px solid var(--desk-clay);
   outline-offset: 2px;
-}
-
-// ------------------------------------------------------------------
-// Dark-mode component corrections — where a token that works as a
-// light-on-dark fill is too dark to serve as text/foreground.
-// ------------------------------------------------------------------
-[data-bs-theme='dark'] {
-  .app-sidebar {
-    background: linear-gradient(180deg, #16392a 0%, #0e2418 100%);
-  }
-
-  .small-box .inner h3 {
-    color: var(--desk-leaf);
-  }
-
-  .desk-tabs .nav-link.active {
-    color: var(--desk-leaf);
-  }
-
-  .login-box .login-logo a {
-    color: var(--desk-leaf);
-  }
-
-  .btn-outline-success {
-    --bs-btn-color: var(--desk-leaf);
-    --bs-btn-border-color: var(--desk-leaf);
-  }
-
-  .status-pill {
-    &.status-published { color: var(--desk-leaf-bright); }
-    &.status-review { color: var(--desk-sun-deep); }
-    &.status-archived { background: var(--desk-sand-deep); color: var(--desk-ink-soft); }
-  }
-
-  .badge {
-    &.text-bg-success,
-    &.text-bg-info { color: var(--desk-leaf-bright) !important; }
-    &.text-bg-danger { background: #4a2628 !important; color: var(--desk-ember) !important; }
-    &.text-bg-primary,
-    &.text-bg-warning { color: var(--desk-sun-deep) !important; }
-    &.text-bg-dark { background: var(--desk-ink) !important; color: var(--desk-paper) !important; }
-    &.text-bg-light { background: var(--desk-sand) !important; color: var(--desk-ink-soft) !important; }
-  }
-
-  .alert {
-    &.alert-success { color: var(--desk-leaf-bright); }
-    &.alert-danger { background: #3a2226; }
-    &.alert-info { background: #233428; color: var(--desk-leaf-bright); }
-  }
-
-  .dropdown-item:active {
-    color: var(--desk-leaf-bright);
-  }
 }
 
 // Reduced motion
