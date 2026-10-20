@@ -11,37 +11,37 @@
     <script type="module" src="{{ asset('resources/assets/scripts/admin.js') }}"></script>
 </head>
 <body class="login-page">
-<div class="desk-auth">
-    <aside class="desk-auth-brand">
-        <div class="desk-auth-brand-inner">
+<div class="desk-auth-stage">
+    <div class="desk-shape desk-shape-tri" aria-hidden="true"></div>
+    <div class="desk-shape desk-shape-disc" aria-hidden="true"></div>
+    <div class="desk-shape desk-shape-sq" aria-hidden="true"></div>
+    <div class="desk-auth">
+        <aside class="desk-auth-brand">
             <img class="desk-auth-logo" src="{{ chrome.logo_dark_url }}" alt="iEDIFY Africa" width="44" height="20">
-            <div class="desk-auth-wordmark">iEDIFY <em>Africa</em> Studio</div>
-            <p class="desk-auth-tag">The content desk — pages, people, programs and media for iEDIFY Africa.</p>
-            <ul class="desk-auth-points">
-                <li><i class="bi bi-check2-circle"></i>Draft, review and publish content</li>
-                <li><i class="bi bi-check2-circle"></i>Manage the team roster and media</li>
-                <li><i class="bi bi-check2-circle"></i>Track programs, applications and mail</li>
-            </ul>
-        </div>
-        <div class="desk-auth-band" aria-hidden="true"></div>
-    </aside>
-    <main class="desk-auth-main">
-        <div class="login-box">
-            <div class="card">
-                <div class="card-body login-card-body">
-                    {% if flashes %}
-                        {% for type, messages in flashes %}{% for message in messages %}
-                        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                        {% endfor %}{% endfor %}
-                    {% endif %}
-                    {% block auth %}{% endblock %}
+            <div class="desk-auth-brand-inner">
+                <h1 class="desk-auth-wordmark">Welcome back!</h1>
+                <p class="desk-auth-tag">To keep the site moving, sign in with your staff account.</p>
+                <a class="desk-auth-ghost" href="/">Visit the site</a>
+            </div>
+        </aside>
+        <main class="desk-auth-main">
+            <div class="login-box">
+                <div class="card">
+                    <div class="card-body login-card-body">
+                        {% if flashes %}
+                            {% for type, messages in flashes %}{% for message in messages %}
+                            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            {% endfor %}{% endfor %}
+                        {% endif %}
+                        {% block auth %}{% endblock %}
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 </div>
 </body>
 </html>
