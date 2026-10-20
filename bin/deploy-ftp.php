@@ -64,8 +64,29 @@ if ($options['env'] !== null && !is_file($root . '/' . $options['env'])) {
 $ftp = connect($host, $port, $user, $password, $ssl, $passive, $timeout);
 printf("Connected to %s://%s:%d\n", $ssl ? 'ftps' : 'ftp', $host, $port);
 
-$rootExists = @ftp_nlist($ftp, $remoteRoot) !== false;
+// Both of these remote reads ride the flaky FTPS data channel; retry the
+// root probe like fetchManifest() does instead of trusting one attempt.
+$rootExists = false;
+for ($attempt = 0; $attempt < 3 && !$rootExists; $attempt++) {
+    if ($attempt > 0) {
+        sleep(2);
+    }
+    $rootExists = @ftp_nlist($ftp, $remoteRoot) !== false;
+}
 $remoteManifest = fetchManifest($ftp, remotePath($remoteRoot, $config['manifest']));
+$usingLocalManifest = false;
+if ($remoteManifest === []) {
+    // The remote manifest may exist but be unreadable on a flaky channel.
+    // The last-deploy snapshot written by writeLocalManifest() is the same
+    // file set, so it is a safe diff base — deletions stay off regardless.
+    $localSnapshot = $root . '/storage/deploy/last-deploy.json';
+    $decoded = is_file($localSnapshot) ? json_decode((string) file_get_contents($localSnapshot), true) : null;
+    if (is_array($decoded) && ($decoded['remote_root'] ?? null) === $remoteRoot && is_array($decoded['files'] ?? null)) {
+        $remoteManifest = ['files' => $decoded['files']];
+        $usingLocalManifest = true;
+        fwrite(STDERR, "Warning: remote manifest unreadable; diffing against local last-deploy snapshot (deletions disabled).\n");
+    }
+}
 $remoteFiles = $remoteManifest['files'] ?? [];
 if ($remoteManifest === []) {
     echo "No remote manifest found: first deployment (nothing will be deleted).\n";
@@ -80,7 +101,7 @@ foreach ($localFiles as $path => $sha) {
     }
 }
 
-$deletions = $options['delete']
+$deletions = $options['delete'] && !$usingLocalManifest
     ? array_values(array_filter(
         array_diff(array_keys($remoteFiles), array_keys($localFiles)),
         static fn (string $path): bool => !isProtected($path, $config['protected'])
