@@ -58,6 +58,11 @@
   --desk-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
   --desk-body: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
   --desk-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --desk-radius: 0.6rem;
+  --desk-radius-lg: 0.9rem;
+  --desk-shadow-sm: 0 1px 2px rgba(26, 42, 33, 0.05);
+  --desk-shadow: 0 1px 3px rgba(26, 42, 33, 0.06), 0 8px 24px rgba(26, 42, 33, 0.06);
+  --desk-shadow-lg: 0 12px 40px rgba(26, 42, 33, 0.14);
 
   // Bootstrap variable layer — components that honour --bs-* re-theme
   // for free.
@@ -81,9 +86,9 @@
   --bs-link-color-rgb: 43, 110, 68;
   --bs-link-hover-color: var(--desk-forest);
   --bs-link-hover-color-rgb: 26, 77, 51;
-  --bs-border-radius: 0;
-  --bs-border-radius-sm: 0;
-  --bs-border-radius-lg: 0;
+  --bs-border-radius: 0.6rem;
+  --bs-border-radius-sm: 0.4rem;
+  --bs-border-radius-lg: 0.85rem;
 }
 
 body {
@@ -97,25 +102,25 @@ body {
 // clay/sun/leaf edge stripe, a quiet kente nod.
 // ------------------------------------------------------------------
 .app-sidebar {
-  --bs-body-bg: var(--desk-paper);
-  background: var(--desk-paper);
+  --bs-body-bg: var(--desk-forest-deep);
+  background: linear-gradient(180deg, var(--desk-forest) 0%, var(--desk-forest-deep) 100%);
   box-shadow: none;
 
   // AdminLTE's own state variables — set them here so its
   // higher-specificity rules resolve to the desk palette.
-  --lte-sidebar-color: var(--desk-ink-soft);
-  --lte-sidebar-hover-bg: var(--desk-sand);
-  --lte-sidebar-hover-color: var(--desk-ink);
-  --lte-sidebar-active-color: var(--desk-forest);
-  --lte-sidebar-menu-active-bg: var(--desk-ink);
-  --lte-sidebar-menu-active-color: var(--desk-paper);
-  --lte-sidebar-header-color: var(--desk-ink-faint);
-  --lte-sidebar-submenu-bg: var(--desk-paper);
-  --lte-sidebar-submenu-color: var(--desk-ink-soft);
-  --lte-sidebar-submenu-hover-bg: var(--desk-sand);
-  --lte-sidebar-submenu-hover-color: var(--desk-ink);
-  --lte-sidebar-submenu-active-bg: var(--desk-sand-deep);
-  --lte-sidebar-submenu-active-color: var(--desk-ink);
+  --lte-sidebar-color: rgba(233, 240, 233, 0.72);
+  --lte-sidebar-hover-bg: rgba(255, 255, 255, 0.07);
+  --lte-sidebar-hover-color: #ffffff;
+  --lte-sidebar-active-color: var(--desk-leaf-bright);
+  --lte-sidebar-menu-active-bg: rgba(255, 255, 255, 0.13);
+  --lte-sidebar-menu-active-color: #ffffff;
+  --lte-sidebar-header-color: rgba(233, 240, 233, 0.4);
+  --lte-sidebar-submenu-bg: transparent;
+  --lte-sidebar-submenu-color: rgba(233, 240, 233, 0.66);
+  --lte-sidebar-submenu-hover-bg: rgba(255, 255, 255, 0.05);
+  --lte-sidebar-submenu-hover-color: #ffffff;
+  --lte-sidebar-submenu-active-bg: rgba(255, 255, 255, 0.16);
+  --lte-sidebar-submenu-active-color: #ffffff;
 
   border-right: 4px solid transparent;
   border-image: linear-gradient(
@@ -129,7 +134,7 @@ body {
   ) 1;
 
   .sidebar-brand {
-    border-bottom: 1px solid var(--desk-line);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
     padding: 1.1rem 0;
 
     .brand-link {
@@ -141,7 +146,7 @@ body {
       font-weight: 600;
       font-size: 1.3rem;
       letter-spacing: 0.01em;
-      color: var(--desk-forest);
+      color: #ffffff;
     }
 
     .brand-tag {
@@ -151,7 +156,7 @@ body {
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--desk-ink-faint);
+      color: var(--desk-leaf-bright);
       margin-top: -0.1rem;
     }
   }
@@ -161,38 +166,36 @@ body {
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.16em;
-    color: var(--desk-ink-faint);
+    color: rgba(233, 240, 233, 0.4);
     padding: 0.9rem 1rem 0.3rem;
   }
 
   .sidebar-menu {
     .nav-link {
-      color: var(--desk-ink-soft);
-      border-radius: 0;
-
-      &:hover {
-        color: var(--desk-ink);
-        background: var(--desk-sand);
-      }
-
       &.active {
         font-weight: 600;
       }
 
       .nav-icon {
-        color: var(--desk-ink-faint);
+        color: rgba(233, 240, 233, 0.55);
+      }
+
+      &:hover .nav-icon {
+        color: #ffffff;
       }
     }
 
-    // Top-level active state — the decisive ink block. Submenu
-    // active links take the quieter sand treatment via --lte-* vars.
-    > .nav-item > .nav-link.active {
-      color: var(--desk-paper);
-      background: var(--desk-ink);
+    // Match AdminLTE's child-combinator structure so the pill
+    // radius and inset actually reach the links.
+    > .nav-item > .nav-link,
+    .nav-treeview > .nav-item > .nav-link {
+      border-radius: 0.55rem;
+      margin: 1px 0.55rem;
+    }
 
-      .nav-icon {
-        color: var(--desk-paper);
-      }
+    > .nav-item > .nav-link.active .nav-icon,
+    .nav-treeview .nav-link.active .nav-icon {
+      color: var(--desk-leaf-bright);
     }
 
     .nav-treeview .nav-link {
@@ -205,9 +208,9 @@ body {
 // Top navbar
 // ------------------------------------------------------------------
 .app-header.navbar {
-  background: var(--desk-paper);
+  background: var(--desk-raised);
   border-bottom: 1px solid var(--desk-line);
-  box-shadow: none;
+  box-shadow: var(--desk-shadow-sm);
 
   .nav-link {
     color: var(--desk-ink-soft);
@@ -277,9 +280,9 @@ body {
 // ------------------------------------------------------------------
 .card {
   background: var(--desk-raised);
-  border: 1px solid var(--desk-line-strong);
-  border-radius: 0;
-  box-shadow: none;
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-lg);
+  box-shadow: var(--desk-shadow-sm);
 
   .card-header {
     background: transparent;
@@ -300,6 +303,7 @@ body {
   .card-footer {
     background: var(--desk-sand);
     border-top: 1px solid var(--desk-line);
+    border-radius: 0 0 calc(var(--desk-radius-lg) - 1px) calc(var(--desk-radius-lg) - 1px);
   }
 }
 
@@ -307,24 +311,27 @@ body {
 // Buttons — clay primary, forest publish, quiet outlines
 // ------------------------------------------------------------------
 .btn {
-  --bs-btn-font-weight: 700;
-  border-radius: 0;
-  font-size: 0.78rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  --bs-btn-font-weight: 600;
+  --bs-btn-padding-y: 0.5rem;
+  --bs-btn-padding-x: 1rem;
+  border-radius: var(--desk-radius);
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
 }
 
 .btn-primary {
-  --bs-btn-bg: var(--desk-clay);
-  --bs-btn-border-color: var(--desk-clay);
-  --bs-btn-hover-bg: var(--desk-clay-deep);
-  --bs-btn-hover-border-color: var(--desk-clay-deep);
-  --bs-btn-active-bg: var(--desk-clay-deep);
-  --bs-btn-active-border-color: var(--desk-clay-deep);
-  --bs-btn-disabled-bg: #d58a68;
-  --bs-btn-disabled-border-color: #d58a68;
-  --bs-btn-color: #fff;
-  --bs-btn-hover-color: #fff;
+  --bs-btn-bg: var(--desk-leaf);
+  --bs-btn-border-color: var(--desk-leaf);
+  --bs-btn-hover-bg: #63b04a;
+  --bs-btn-hover-border-color: #63b04a;
+  --bs-btn-active-bg: #57a040;
+  --bs-btn-active-border-color: #57a040;
+  --bs-btn-disabled-bg: var(--desk-leaf-soft);
+  --bs-btn-disabled-border-color: var(--desk-leaf-soft);
+  --bs-btn-color: var(--desk-forest-deep);
+  --bs-btn-hover-color: var(--desk-forest-deep);
+  --bs-btn-active-color: var(--desk-forest-deep);
+  --bs-btn-disabled-color: var(--desk-moss);
 }
 
 .btn-success {
@@ -348,13 +355,14 @@ body {
 }
 
 .btn-outline-primary {
-  --bs-btn-color: var(--desk-clay);
-  --bs-btn-border-color: var(--desk-clay);
-  --bs-btn-hover-bg: var(--desk-clay);
-  --bs-btn-hover-border-color: var(--desk-clay);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-active-bg: var(--desk-clay-deep);
-  --bs-btn-active-border-color: var(--desk-clay-deep);
+  --bs-btn-color: var(--desk-moss);
+  --bs-btn-border-color: var(--desk-moss);
+  --bs-btn-hover-bg: var(--desk-leaf-soft);
+  --bs-btn-hover-border-color: var(--desk-moss);
+  --bs-btn-hover-color: var(--desk-forest);
+  --bs-btn-active-bg: var(--desk-leaf-soft);
+  --bs-btn-active-border-color: var(--desk-moss);
+  --bs-btn-active-color: var(--desk-forest);
 }
 
 .btn-outline-secondary {
@@ -390,7 +398,8 @@ body {
   font-family: var(--desk-body);
   font-weight: 600;
   letter-spacing: 0.02em;
-  border-radius: 0;
+  border-radius: 999px;
+  padding: 0.3em 0.7em;
 
   &.text-bg-primary { background: var(--desk-sun-soft) !important; color: var(--desk-clay-deep) !important; }
   &.text-bg-secondary { background: var(--desk-sand-deep) !important; color: var(--desk-ink-soft) !important; }
@@ -420,7 +429,7 @@ body {
   &:focus {
     background-color: var(--desk-raised);
     border-color: var(--desk-moss);
-    box-shadow: 0 0 0 2px var(--desk-leaf-soft);
+    box-shadow: 0 0 0 3px var(--desk-leaf-soft);
   }
 }
 
@@ -507,7 +516,7 @@ body {
   .nav-link {
     color: var(--desk-ink-soft);
     font-weight: 600;
-    border-radius: 0;
+    border-radius: var(--desk-radius);
 
     &:hover {
       color: var(--desk-forest);
@@ -549,7 +558,7 @@ body {
 
   &:focus {
     border-color: var(--desk-moss);
-    box-shadow: 0 0 0 2px var(--desk-leaf-soft);
+    box-shadow: 0 0 0 3px var(--desk-leaf-soft);
   }
 }
 
@@ -584,15 +593,20 @@ body {
   --bs-dropdown-link-color: var(--desk-ink);
   --bs-dropdown-link-hover-bg: var(--desk-sand);
   --bs-dropdown-link-hover-color: var(--desk-ink);
-  --bs-dropdown-border-color: var(--desk-line-strong);
-  border-radius: 0;
-  box-shadow: 3px 3px 0 0 var(--desk-line);
+  --bs-dropdown-border-color: var(--desk-line);
+  border-radius: 0.8rem;
+  box-shadow: var(--desk-shadow-lg);
+  padding: 0.35rem;
+}
+
+.dropdown-item {
+  border-radius: 0.45rem;
 }
 
 .modal-content {
   background: var(--desk-paper);
-  border-color: var(--desk-line-strong);
-  border-radius: 0;
+  border-color: var(--desk-line);
+  border-radius: 1rem;
 }
 
 .modal-header,
@@ -610,11 +624,11 @@ body {
 // Small boxes (dashboard stats) — paper cards, Fraunces numbers
 // ------------------------------------------------------------------
 .small-box {
-  border-radius: 0;
-  border: 1px solid var(--desk-line-strong);
+  border-radius: var(--desk-radius-lg);
+  border: 1px solid var(--desk-line);
   background: var(--desk-raised);
   color: var(--desk-ink);
-  box-shadow: none;
+  box-shadow: var(--desk-shadow-sm);
 
   &.text-bg-primary,
   &.text-bg-warning,
@@ -684,10 +698,18 @@ body {
   }
 
   .card {
-    border: 1px solid var(--desk-line-strong);
-    box-shadow: none;
-    border-top: 4px solid transparent;
-    border-image: linear-gradient(90deg, var(--desk-clay), var(--desk-sun), var(--desk-leaf)) 1;
+    position: relative;
+    border: 1px solid var(--desk-line);
+    box-shadow: var(--desk-shadow-lg);
+    border-radius: 1rem;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      display: block;
+      height: 4px;
+      background: linear-gradient(90deg, var(--desk-clay), var(--desk-sun), var(--desk-leaf));
+    }
   }
 
   .login-box-msg {
@@ -767,8 +789,8 @@ body {
 
 // Block cards inside the editor
 .be-block {
-  border: 1px solid var(--desk-line-strong);
-  border-radius: 0;
+  border: 1px solid var(--desk-line);
+  border-radius: 0.7rem;
   box-shadow: none;
   transition: border-color 0.15s ease;
 
@@ -785,6 +807,7 @@ body {
     padding: 0.5rem 0.85rem;
     background: var(--desk-sand);
     border-bottom: 1px solid var(--desk-line);
+    border-radius: calc(0.7rem - 1px) calc(0.7rem - 1px) 0 0;
     cursor: default;
   }
 
@@ -828,7 +851,7 @@ body {
     font-weight: 700;
     line-height: 1;
     padding: 0.15rem 0.55rem;
-    border-radius: 0;
+    border-radius: 999px;
     border: 1px solid var(--desk-line-strong);
     background: var(--desk-raised);
     color: var(--desk-moss);
@@ -867,14 +890,14 @@ body {
 // ------------------------------------------------------------------
 .ql-toolbar.ql-snow {
   border-color: var(--desk-line-strong);
-  border-radius: 0;
+  border-radius: var(--desk-radius) var(--desk-radius) 0 0;
   background: var(--desk-sand);
   font-family: var(--desk-body);
 }
 
 .ql-container.ql-snow {
   border-color: var(--desk-line-strong);
-  border-radius: 0;
+  border-radius: 0 0 var(--desk-radius) var(--desk-radius);
   background: var(--desk-raised);
   font-family: var(--desk-body);
   font-size: 0.95rem;
@@ -929,8 +952,8 @@ body {
 // Status pills used across lists
 .status-pill {
   display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 0;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -984,8 +1007,8 @@ body {
     background: var(--desk-ink);
     color: var(--desk-paper);
     border: none;
-    border-radius: 0;
-    box-shadow: 4px 4px 0 0 rgba(42, 50, 44, 0.18);
+    border-radius: 0.7rem;
+    box-shadow: var(--desk-shadow-lg);
     font-weight: 600;
     font-size: 0.88rem;
   }
@@ -1030,7 +1053,7 @@ code {
   color: var(--desk-clay-deep);
   background: var(--desk-sand);
   padding: 0.1em 0.35em;
-  border-radius: 0;
+  border-radius: 0.3rem;
   font-family: var(--desk-mono);
   font-size: 0.85em;
 }
