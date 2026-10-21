@@ -695,41 +695,6 @@ body {
   overflow: hidden;
 }
 
-.desk-shape {
-  position: absolute;
-  pointer-events: none;
-}
-
-.desk-shape-tri {
-  top: 0;
-  right: 0;
-  width: 24rem;
-  height: 15rem;
-  background: var(--desk-clay);
-  clip-path: polygon(100% 0, 18% 0, 100% 100%);
-  opacity: 0.85;
-}
-
-.desk-shape-disc {
-  bottom: -7rem;
-  left: -7rem;
-  width: 19rem;
-  height: 19rem;
-  border-radius: 50%;
-  background: var(--desk-sun);
-  opacity: 0.8;
-}
-
-.desk-shape-sq {
-  top: 22%;
-  left: 6%;
-  width: 1.5rem;
-  height: 1.5rem;
-  background: var(--desk-leaf);
-  transform: rotate(20deg);
-  opacity: 0.75;
-}
-
 .desk-auth {
   position: relative;
   z-index: 1;
