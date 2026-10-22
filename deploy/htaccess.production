@@ -7,6 +7,6 @@ Require all denied
     # before reaching the app, whose host allowlist only accepts APP_URL.
     RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC,OR]
     RewriteCond %{HTTPS} off
-    RewriteRule ^(.*)$ https://iedifyafrica.com/$1 [R=301,L]
+    RewriteRule ^(.*)$ https://iedifyafrica.org/$1 [R=301,L]
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

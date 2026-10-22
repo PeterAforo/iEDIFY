@@ -2,7 +2,7 @@
 
 Target shape: only `public/` is the document root; everything else lives one level above it and is unreachable from the web. If the host forces `public_html`, point it at `public/` or relocate the app outside and symlink — do **not** copy the whole repo into `public_html`.
 
-## Actual production layout (iedifyafrica.com, Namecheap)
+## Actual production layout (iedifyafrica.org, Namecheap)
 
 The production FTP account is jailed to the document root itself
 (`/home/iedisokm/public_html` = `/`), so the "app outside docroot" shape is not

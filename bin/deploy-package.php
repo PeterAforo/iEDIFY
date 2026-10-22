@@ -67,7 +67,7 @@ if ($host === null || $user === null || $password === null) {
     fail('FTP_HOST, FTP_USER and FTP_PASSWORD must be set in .env.deploy.');
 }
 if (!filter_var($deployUrl, FILTER_VALIDATE_URL) || !str_starts_with($deployUrl, 'https://')) {
-    fail('DEPLOY_URL (or --url) must be an https:// origin, e.g. https://iedifyafrica.com');
+    fail('DEPLOY_URL (or --url) must be an https:// origin, e.g. https://iedifyafrica.org');
 }
 if ($options['env'] !== null && !is_file($root . '/' . $options['env'])) {
     fail("--env file not found: {$options['env']}");
